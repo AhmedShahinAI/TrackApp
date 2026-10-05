@@ -101,8 +101,8 @@ jobs:
         run: vendor/bin/phpstan analyse --no-progress
 
       - name: Pest — default suites
-        # Performance is excluded here and gated on PERF_SUITE so CI stays fast; its budgets are
-        # measured before acceptance, per constitution principle VII.
+        # The performance group is excluded by phpunit.xml, so CI stays fast. Its budgets are
+        # measured on demand before acceptance, per constitution principle VII.
         run: php artisan test
         env:
           DB_CONNECTION: mysql

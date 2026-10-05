@@ -135,7 +135,7 @@ php artisan test tests/Feature/Audit/TransactionalWriteTest.php
 7. Timing:
 
 ```bash
-PERF_SUITE=1 php artisan test tests/Performance/AuditLogFilterTest.php
+php artisan test --group=performance tests/Performance/AuditLogFilterTest.php
 # seeds 1,000,000 entries; asserts a person + date-range filter returns under 2 s
 ```
 
@@ -206,7 +206,7 @@ php artisan test tests/Feature/Imports/ResumeAfterChunkFailureTest.php
 11. Throughput:
 
 ```bash
-PERF_SUITE=1 php artisan test tests/Performance/ImportThroughputTest.php
+php artisan test --group=performance tests/Performance/ImportThroughputTest.php
 # 10,000 rows validated and committed under 5 minutes (SC-007)
 ```
 
@@ -249,7 +249,7 @@ php artisan test tests/Architecture/LocalizationParityTest.php
 # fails on any key present in lang/ar but not lang/en, or the reverse
 php artisan test tests/Architecture/NoHardcodedStringsTest.php
 # fails on user-facing literals in Blade outside __() / @lang
-PERF_SUITE=1 php artisan test tests/Performance/PageLoadTest.php   # first render under 2 s p95
+php artisan test --group=performance tests/Performance/PageLoadTest.php   # first render under 2 s p95
 ```
 
 ### Scenario 8 — Design-system fidelity (design-system.md §13 → SC-013, SC-014)
@@ -341,7 +341,7 @@ FR-089 … FR-113.
 14. As an instructor, attempt either bulk import. **Expect**: refused (FR-107).
 
 ```bash
-PERF_SUITE=1 php artisan test tests/Performance/BulkImportTest.php   # 40 courses + 30 staff < 10 min
+php artisan test --group=performance tests/Performance/BulkImportTest.php   # 40 courses + 30 staff < 10 min
 ```
 
 ### Scenario 10 — Typed EAV capacity spike (FR-087, FR-088 → SC-017)
@@ -354,7 +354,7 @@ Must pass before this feature is accepted, because Phase 2 depends on the answer
 
 ```bash
 php artisan db:seed --class=EavSpikeSeeder        # ~1,500,000 values; expect 10-20 minutes
-PERF_SUITE=1 php artisan test tests/Performance/EavSpikeTest.php
+php artisan test --group=performance tests/Performance/EavSpikeTest.php
 ```
 
 Measures the five queries in [research.md R-06](./research.md) as p95 over 10 cold runs and
@@ -586,7 +586,7 @@ request.
 vendor/bin/pint --test          # formatting
 vendor/bin/phpstan analyse      # Larastan
 php artisan test                # all suites except Performance
-PERF_SUITE=1 php artisan test --testsuite=Performance
+php artisan test --group=performance
 php artisan test --testsuite=Architecture
 npx playwright test             # visual regression (components + screens + RTL) and axe-core
 
@@ -616,7 +616,7 @@ Every item below is covered by the scenarios above; none may be waived at accept
    [contracts/audit.md](./contracts/audit.md).
 4. Arabic and English both complete — scenario 7, with fidelity and accessibility proven in
    scenario 8.
-5. Performance budgets measured, not assumed — the `PERF_SUITE` runs in scenarios 3, 5, 7, 9, 10.
+5. Performance budgets measured, not assumed — the `performance` group runs in scenarios 3, 5, 7, 9, 10.
 6. Empty, loading, error, and success states present — scenarios 6.6 and 7.4–7.5.
 7. High-impact actions gated by a confirmation restating the impact — scenario 7.6.
 

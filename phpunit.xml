@@ -10,8 +10,8 @@
         nobody notices failing.
 
         Default run: Unit, Feature, Architecture, Scope, Authorization.
-        Excluded by default: Performance — it seeds up to 1.5M rows and is gated on PERF_SUITE=1 so
-        CI stays fast, while its budgets are still measured before acceptance (principle VII).
+        Excluded by default: the performance group — it seeds up to 1.5M rows, so it is kept out of
+        the default run while its budgets are still measured before acceptance (principle VII).
     -->
     <testsuites>
         <testsuite name="Unit">
@@ -33,11 +33,33 @@
         <testsuite name="Authorization">
             <directory>tests/Authorization</directory>
         </testsuite>
-        <!-- Principle VII budgets. Run it with PERF_SUITE=1 and the Performance testsuite selected -->
+        <!--
+            Principle VII budgets. Excluded from the default run by the groups block below. An
+            earlier version relied on a PERF_SUITE env var that nothing read, so the suite ran on
+            every build and the toggle did nothing at all.
+        -->
         <testsuite name="Performance">
             <directory>tests/Performance</directory>
         </testsuite>
     </testsuites>
+
+    <!--
+        The default run excludes the performance group. Phase 12's spike seeds 1,500,000 rows
+        (T289) and Phase 25's audit test seeds 1,000,000 (T161); running either on every build
+        would make CI unusable. The budgets are still measured before acceptance, which is what
+        principle VII requires — on demand, not on every push.
+
+        Default run:  php artisan test                        performance is excluded
+        On demand:    php artisan test, passing group=performance
+
+        Note: selecting the Performance testsuite alone yields nothing, because this exclusion is
+        global. Passing the group on the command line overrides it, which is the documented way in.
+    -->
+    <groups>
+        <exclude>
+            <group>performance</group>
+        </exclude>
+    </groups>
 
     <source>
         <include>
@@ -72,8 +94,5 @@
         <!-- Arabic is the default locale, so tests exercise the RTL path unless they opt out. -->
         <env name="APP_LOCALE" value="ar"/>
         <env name="APP_FALLBACK_LOCALE" value="en"/>
-
-        <!-- Performance suite is opt-in. See the Performance testsuite comment above. -->
-        <env name="PERF_SUITE" value="0"/>
     </php>
 </phpunit>

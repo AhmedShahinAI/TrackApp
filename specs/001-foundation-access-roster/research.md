@@ -126,7 +126,7 @@ instead of a second parse, and keeps the 5-minute budget for 10,000 rows achieva
 
 **Verification**: Tests for each of the seven validation categories in FR-057; a test that
 kills a chunk mid-run and asserts committed rows survive and the resume completes the rest; a
-re-upload test asserting zero new records on a matching `file_hash`; and a `PERF_SUITE` test
+re-upload test asserting zero new records on a matching `file_hash`; and a `performance`-group test
 timing 10,000 rows end to end.
 
 ---

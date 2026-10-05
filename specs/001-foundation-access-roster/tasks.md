@@ -103,7 +103,7 @@ Single Laravel application, domain modules under `app/Modules`, shared Eloquent 
 - [X] T004 Unpack `TRACK Design System.zip` to `design-system/` at the repository root as read-only reference, add it to version control, and add a `design-system/VENDORED.md` noting the source zip, its 174-file inventory, and the rule that nothing in the folder is ever edited
 - [X] T005 [P] Install and configure Pint in `pint.json` using the Laravel preset
 - [X] T006 [P] Install Larastan and configure `phpstan.neon` at the highest level that passes on a bare skeleton, with `forceDelete` and raw-query helpers (`DB::raw`, `whereRaw`, `selectRaw`) added to the banned-call list per constitution principle V and the security floor
-- [X] T007 [P] Install Pest and register the `Unit`, `Feature`, `Architecture`, `Scope`, `Authorization`, and `Performance` testsuites in `phpunit.xml`, with `Performance` excluded from the default run unless `PERF_SUITE=1`
+- [X] T007 [P] Install Pest and register the `Unit`, `Feature`, `Architecture`, `Scope`, `Authorization`, and `Performance` testsuites in `phpunit.xml`, with the `performance` group excluded from the default run
 - [X] T008 [P] Install `laravel/sanctum`, `spatie/laravel-permission`, `maatwebsite/excel`, and `openspout/openspout` and publish their configuration
 - [X] T009 [P] Install Playwright and axe-core, and configure `playwright.config.ts` with projects for `ar`/RTL and `en`/LTR at viewport widths 1280, 1440, 1920, and 390, screenshot baselines under `tests/Visual/baselines/`
 - [X] T010 Create the module directory skeleton under `app/Modules/` for `Authentication`, `UserManagement`, `Authorization`, `Audit`, `AcademicTerms`, `AcademicStructure`, `Sections`, `Students`, `Imports`, `Settings`, and `Shared`, each with `Http/Controllers`, `Http/Requests`, `Actions`, and `Tests` subdirectories
@@ -364,7 +364,7 @@ keyboard.
 - [ ] T158 [P] [US3] Write `tests/Feature/Audit/OldAndNewValuesTest.php` asserting both previous and new values are present for every changed field on an edit
 - [ ] T159 [P] [US3] Write `tests/Scope/AuditLogScopeTest.php` asserting a coordinator sees only entries resolving into their branches plus their own actions, and cannot widen `branch_id`
 - [ ] T160 [P] [US3] Write `tests/Authorization/AuditEndpointsTest.php` with allow and deny cases for `GET /audit-logs`, `GET /audit-logs/export`, and `GET /{entity}/{id}/activity`
-- [ ] T161 [P] [US3] Write `tests/Performance/AuditLogFilterTest.php` seeding 1,000,000 entries and asserting a person + date-range filter returns in under 2 seconds (SC-004), gated on `PERF_SUITE=1`
+- [ ] T161 [P] [US3] Write `tests/Performance/AuditLogFilterTest.php` seeding 1,000,000 entries and asserting a person + date-range filter returns in under 2 seconds (SC-004), in the `performance` group, excluded from the default run
 - [ ] T162 [P] [US3] Write `tests/Visual/us3.spec.ts` screenshotting the audit list with filters applied, the before/after detail expansion, the immutability notice, and an activity tab against the `AuditScreen` reference, both locales
 
 ### Implementation for User Story 3
@@ -457,7 +457,7 @@ keyboard.
 - [ ] T216 [P] [US5] Write `tests/Feature/Imports/ErrorReportTest.php` asserting the `.xlsx` contains row number, column, submitted value, and reason for **every** rejected row with none missing, Arabic-safe (FR-071, SC-009)
 - [ ] T217 [P] [US5] Write `tests/Feature/Imports/QueueUnavailableTest.php` asserting that with no worker the job stays `validating` or `committing` and the response says the import is waiting rather than reporting a failure — the state the reference kit does not cover ([ui-conflicts.md](./ui-conflicts.md) C-13)
 - [ ] T218 [P] [US5] Write `tests/Authorization/ImportEndpointsTest.php` with allow and deny cases for all 9 endpoints in contracts/imports.md
-- [ ] T219 [P] [US5] Write `tests/Performance/ImportThroughputTest.php` asserting 10,000 rows validate and commit within 5 minutes (SC-007), gated on `PERF_SUITE=1`
+- [ ] T219 [P] [US5] Write `tests/Performance/ImportThroughputTest.php` asserting 10,000 rows validate and commit within 5 minutes (SC-007), in the `performance` group, excluded from the default run
 - [ ] T220 [P] [US5] Write `tests/Visual/us5.spec.ts` screenshotting all six wizard steps plus the imports list, the re-upload warning, the row-reason table, the report, and the **queue-waiting** state against the `ImportScreens` reference, both locales; the queue-waiting baseline has no React counterpart and is baselined from the Blade implementation for design review (C-13)
 - [ ] T221 [US5] Write `tests/Feature/Imports/CentralModeRejectsRegistrarFileTest.php` asserting that the actual registrar export at `design-system/uploads/filedownloadservlet(21).xlsx` fed to the **central** mode fails with clear per-target reasons naming each of FR-052's ten required targets it cannot supply, and points the operator at the registrar mode — rather than crashing or importing partial nonsense. *(C-09 was decided on 2026-09-27: the registrar mode now handles this file properly, so this task's original purpose — gathering evidence for that decision — is served. It remains as a regression guard on the central mode's failure behaviour. The successful end-to-end import of the same file is T325.)*
 
@@ -542,7 +542,7 @@ keyboard.
 - [ ] T264 [P] [US7] Write `tests/Visual/screens-all.spec.ts` running the full screen regression across all 20 in-scope screens × both locales × 1280 / 1440 / 1920 / 390, at ≤ 1% pixel difference against the reference ([design-system.md](./design-system.md) §13)
 - [ ] T265 [P] [US7] Write `tests/Visual/axe-all.spec.ts` running axe-core over all 20 screens in both locales, requiring **zero** WCAG 2.1 AA violations (SC-014)
 - [ ] T266 [P] [US7] Write `tests/Visual/rtl-mirroring.spec.ts` asserting per screen that the sidebar sits right in RTL and left in LTR, breadcrumb chevrons point correctly, button icons sit on the correct side, and the toast anchors to the correct corner
-- [ ] T267 [P] [US7] Write `tests/Performance/PageLoadTest.php` asserting first contentful render under 2 seconds at p95 (SC-015), gated on `PERF_SUITE=1`
+- [ ] T267 [P] [US7] Write `tests/Performance/PageLoadTest.php` asserting first contentful render under 2 seconds at p95 (SC-015), in the `performance` group, excluded from the default run
 
 ### Implementation for User Story 7
 
@@ -569,7 +569,7 @@ keyboard.
 - [ ] T281 [P] Write `docs/architecture-001.md` recording the decisions from [research.md](./research.md) and the six design-system decisions from plan.md, so they survive the key-person risk in PRD R-05
 - [ ] T282 Request vector originals (SVG or AI/EPS) for the logo set from the brand author, per [ui-conflicts.md](./ui-conflicts.md) C-06 — the shipped assets are ~3× raster upscales and Phase 3's PDF export headers will show it
 - [ ] T283 Walk the design author through `design-system/ACCESSIBILITY-DELTA.md` and obtain their acknowledgement of the 7 palette corrections (C-17)
-- [ ] T284 Execute the full gate from [quickstart.md](./quickstart.md): `pint --test`, `phpstan analyse`, `php artisan test`, `PERF_SUITE=1 php artisan test --testsuite=Performance`, `--testsuite=Architecture`, and the Playwright visual + axe suites
+- [ ] T284 Execute the full gate from [quickstart.md](./quickstart.md): `pint --test`, `phpstan analyse`, `php artisan test`, `php artisan test --group=performance`, `--testsuite=Architecture`, and the Playwright visual + axe suites
 - [ ] T285 Walk quickstart.md validation scenarios **1-10** (Phases 1-17 scope; Scenarios 11-21 are verified by T462) manually and record the outcome against the four PRD Phase 1 gate checks and the seven constitution Definition-of-Done items
 
 ---
@@ -696,7 +696,7 @@ insertion point. The table in "Dependencies & Execution Order" below gives the f
 - [ ] T339 [P] [US8] Write `tests/Feature/Imports/UserImportUnusableUntilResetTest.php` asserting **every** created account is refused sign-in until a Super Admin reset sets a real hash (FR-105, SC-024)
 - [ ] T340 [P] [US8] Write `tests/Feature/Imports/UserImportRejectionsTest.php` asserting a duplicate email — including against a soft-deleted account — a coordinator with no branch, an unknown role, and an unknown branch are each rejected with their own reason (FR-104, FR-005, FR-004)
 - [ ] T341 [P] [US8] Write `tests/Authorization/BulkImportEndpointsTest.php` with allow and deny cases for `POST /imports/courses` and `POST /imports/users`, including that an **instructor** is refused both (FR-107)
-- [ ] T342 [P] [US8] Write `tests/Performance/BulkImportTest.php` asserting 40 courses and 30 staff accounts load in under 10 minutes total (SC-023), gated on `PERF_SUITE=1`
+- [ ] T342 [P] [US8] Write `tests/Performance/BulkImportTest.php` asserting 40 courses and 30 staff accounts load in under 10 minutes total (SC-023), in the `performance` group, excluded from the default run
 - [ ] T343 [P] [US8] Write `tests/Visual/us8.spec.ts` screenshotting both wizard entry points against the `CourseImportDialog` and `UserImportDialog` references, both locales
 
 ### Implementation for User Story 8
