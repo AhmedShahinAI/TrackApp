@@ -1,0 +1,26 @@
+:root{
+--font-arabic:'Cairo',system-ui,sans-serif;
+--font-latin:'Inter',system-ui,sans-serif;
+--font-sans:'Cairo','Inter',system-ui,sans-serif;
+--font-numeric:'Inter','Cairo',system-ui,sans-serif;
+--fw-regular:400; /* @kind font */
+--fw-medium:500; /* @kind font */
+--fw-semibold:600; /* @kind font */
+--fw-bold:700; /* @kind font */
+--fw-black:800; /* @kind font */
+--fs-display:40px;--fs-h1:28px;--fs-h2:22px;--fs-h3:18px;--fs-h4:16px;
+--fs-body:14px;--fs-body-sm:13px;--fs-caption:12px;--fs-micro:11px;
+--fs-stat:26px;
+--lh-tight:1.25; /* @kind font */
+--lh-snug:1.4; /* @kind font */
+--lh-body:1.6; /* @kind font */
+--text-display:var(--fw-bold) var(--fs-display)/var(--lh-tight) var(--font-sans); /* @kind font */
+--text-h1:var(--fw-bold) var(--fs-h1)/var(--lh-tight) var(--font-sans); /* @kind font */
+--text-h2:var(--fw-bold) var(--fs-h2)/var(--lh-snug) var(--font-sans); /* @kind font */
+--text-h3:var(--fw-semibold) var(--fs-h3)/var(--lh-snug) var(--font-sans); /* @kind font */
+--text-h4:var(--fw-semibold) var(--fs-h4)/var(--lh-snug) var(--font-sans); /* @kind font */
+--text-body:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--font-sans); /* @kind font */
+--text-body-sm:var(--fw-regular) var(--fs-body-sm)/var(--lh-body) var(--font-sans); /* @kind font */
+--text-caption:var(--fw-medium) var(--fs-caption)/var(--lh-snug) var(--font-sans); /* @kind font */
+--text-stat:var(--fw-bold) var(--fs-stat)/1 var(--font-numeric); /* @kind font */
+}

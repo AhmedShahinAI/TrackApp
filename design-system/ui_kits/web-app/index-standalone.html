@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="ext-resource-dependency" content="../../assets/logo-reversed.png" data-resource-id="logoReversed" />
+<meta name="ext-resource-dependency" content="../../assets/logo-lockup-full.png" data-resource-id="logoLockup" />
+<meta name="ext-resource-dependency" content="../../assets/banner-initiatives.png" data-resource-id="bannerIni" />
+<script>(function(){var M={'logo-reversed.png':'logoReversed','logo-lockup-full.png':'logoLockup','banner-initiatives.png':'bannerIni'};
+function fix(img){var src=img.getAttribute('src')||'';if(src.indexOf('blob:')===0)return;for(var k in M){if(src.slice(-k.length)===k&&window.__resources&&window.__resources[M[k]]){img.setAttribute('src',window.__resources[M[k]]);return;}}}
+function scan(n){if(n.tagName==='IMG')fix(n);if(n.querySelectorAll)n.querySelectorAll('img').forEach(fix);}
+new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==='attributes')fix(m.target);else m.addedNodes.forEach(scan);});}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});})();</script>
+<title>TRACK — منصة إدارة ومتابعة المبادرات الأكاديمية</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0}*{box-sizing:border-box}@keyframes track-spin{to{transform:rotate(360deg)}}:focus-visible{outline:2px solid var(--track-green);outline-offset:2px}</style>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="i18n.js"></script>
+<script src="store.js"></script>
+<script src="xlsx.js"></script>
+<script src="dashboard-data.js"></script>
+<script src="dash-map.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head><body><div id="root"></div>
+<script type="text/babel" src="Shell.jsx"></script>
+<script type="text/babel" src="AuthScreens.jsx"></script>
+<script type="text/babel" src="HomeScreen.jsx"></script>
+<script type="text/babel" src="UsersScreen.jsx"></script>
+<script type="text/babel" src="StructureScreens.jsx"></script>
+<script type="text/babel" src="CourseImport.jsx"></script>
+<script type="text/babel" src="AuditScreen.jsx"></script>
+<script type="text/babel" src="SectionsScreens.jsx"></script>
+<script type="text/babel" src="ImportScreens.jsx"></script>
+<script type="text/babel" src="InitiativesScreen.jsx"></script>
+<script type="text/babel" src="DashboardParts.jsx"></script>
+<script type="text/babel" src="DashboardScreen.jsx"></script>
+<script type="text/babel">
+const PERM_ROUTE={users:'user.view',terms:'term.create',branches:'branch.create',courses:'course.create',audit:'audit.view',dashboard:'dashboard.view',programs:'program.create'};
+function App(){
+  const st=window.TRACK_STORE;const {Toast}=window.DS;
+  const saved=JSON.parse(localStorage.getItem('track-kit-v2')||'{}');
+  const [lang,setLangS]=React.useState(saved.lang||'ar');
+  const [meId,setMeId]=React.useState(saved.me||null);
+  const [route,setRoute]=React.useState(saved.route||{name:'home'});
+  const [banner,setBanner]=React.useState(!!saved.banner);
+  const [toast,setToast]=React.useState(null);
+  const me=meId&&st.user(meId);
+  React.useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';},[lang]);
+  React.useEffect(()=>{localStorage.setItem('track-kit-v2',JSON.stringify({lang,me:meId,route,banner}))},[lang,meId,route,banner]);
+  const t=(k,p)=>window.TRACK_I18N.t(lang,k,p);
+  const go=(name,param)=>{setRoute({name,param});const m=document.querySelector('main');if(m)m.scrollTop=0;};
+  const notify=(title,message)=>{setToast({title,message});clearTimeout(window.__tt);window.__tt=setTimeout(()=>setToast(null),4000);};
+  const setLang=l=>{setLangS(l);if(me){me.locale=l;}};
+  const login=u=>{const first=!u.firstLogin;if(first)u.firstLogin=st.now();u.lastLogin=st.now();st.audit(u.id,'auth.signed_in','user',u.id,null,null);setMeId(u.id);setBanner(first);setRoute({name:'home'});};
+  const logout=()=>{setMeId(null);setRoute({name:'home'});};
+  const ctx={lang,setLang,t,me,route,go,logout,firstBanner:banner,dismissBanner:()=>setBanner(false)};
+  let screen;
+  if(me){
+    const r=route.name;const need=PERM_ROUTE[r];
+    if(need&&!st.can(me,need)){screen=<RefusalScreen kind="403"/>;}
+    else if(r==='home')screen=<HomeScreen/>;
+    else if(r==='dashboard')screen=<DashboardScreen/>;
+    else if(r==='profile')screen=<ProfileScreen notify={notify}/>;
+    else if(r==='initiatives')screen=<InitiativesScreen notify={notify}/>;
+    else if(r==='initiative')screen=<InitiativeDetailScreen key={route.param} id={route.param} notify={notify}/>;
+    else if(r==='users')screen=<UsersScreen notify={notify}/>;
+    else if(r==='terms')screen=<TermsScreen notify={notify}/>;
+    else if(r==='branches')screen=<BranchesScreen notify={notify}/>;
+    else if(r==='programs')screen=<ProgramsScreen notify={notify}/>;
+    else if(r==='courses')screen=<CoursesScreen notify={notify}/>;
+    else if(r==='sections'||r==='mysections')screen=<SectionsScreen key={r} notify={notify}/>;
+    else if(r==='section')screen=<SectionDetail key={route.param} id={route.param} notify={notify}/>;
+    else if(r==='students')screen=<SectionsScreen key={me.role==='INSTRUCTOR'?'mysections':'sections'} notify={notify}/>;
+    else if(r==='student')screen=<StudentDetail id={route.param}/>;
+    else if(r==='imports')screen=<ImportsScreen/>;
+    else if(r==='wizard')screen=<ImportWizard key={JSON.stringify(route.param)} params={route.param} notify={notify}/>;
+    else if(r==='audit')screen=<AuditScreen notify={notify}/>;
+    else screen=<RefusalScreen kind="404"/>;
+  }
+  return <AppCtx.Provider value={ctx}>
+    {me?<Shell>{screen}</Shell>:<LoginScreen onLogin={login}/>}
+    {toast&&<div style={{position:'fixed',bottom:24,insetInlineStart:24,zIndex:200}}><Toast title={toast.title} message={toast.message} onClose={()=>setToast(null)}/></div>}
+  </AppCtx.Provider>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+<template id="__bundler_thumbnail" data-bg-color="#0F4C5C"><svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#0F4C5C"/><rect x="450" y="250" width="300" height="300" rx="48" fill="#10B981"/><rect x="520" y="330" width="160" height="28" rx="14" fill="#fff"/><rect x="586" y="330" width="28" height="150" rx="14" fill="#fff"/></svg></template>
+</body></html>

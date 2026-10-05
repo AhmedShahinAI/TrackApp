@@ -1,0 +1,5 @@
+html[dir="rtl"],[dir="rtl"]{font-family:var(--font-sans)}
+body{font:var(--text-body);color:var(--text-primary);background:var(--surface-page);-webkit-font-smoothing:antialiased}
+a{color:var(--text-link);text-decoration:none}
+a:hover{color:var(--track-blue);text-decoration:underline}
+.num,[data-num]{font-family:var(--font-numeric);font-variant-numeric:tabular-nums}

@@ -1,0 +1,22 @@
+<!-- @dsCard group="Components" viewport="700x640" name="Feedback" -->
+<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:#fff}.r{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.lb{font:500 11px var(--font-latin);color:var(--track-gray);width:70px}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { StatusBadge, ProgressBar, Toast, Tooltip, Dialog, Button, Alert, EmptyState, Skeleton } = window.TRACKDesignSystem_c33017;
+function App(){return (<>
+<div className="r"><StatusBadge status="active"/><StatusBadge status="completed"/><StatusBadge status="progress"/><StatusBadge status="late"/><StatusBadge status="pending"/><StatusBadge status="notStarted"/><StatusBadge status="closed" dot/><StatusBadge status="withdrawn"/><StatusBadge status="inactive"/><StatusBadge status="shared"/><StatusBadge status="draft"/><StatusBadge status="current"/><StatusBadge status="error"/><StatusBadge status="warning"/><StatusBadge status="valid"/></div>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}><Alert tone="warning" icon="key-round" title="يُنصح بتغيير كلمة المرور الأولية" onClose={()=>{}} action={<Button size="sm" variant="secondary">تغيير الآن</Button>}/><Alert tone="danger">البريد الإلكتروني أو كلمة المرور غير صحيحة.</Alert><Alert tone="info" icon="lock">القيود غير قابلة للتعديل أو الحذف</Alert><Alert tone="success" title="اكتمل الاستيراد">roster_1448_first.xlsx</Alert></div>
+<div style={{display:'grid',gridTemplateColumns:'1.3fr 1fr',gap:16,marginBottom:14,alignItems:'center'}}><div style={{border:'1px solid var(--border-default)',borderRadius:12}}><EmptyState icon="users" title="لم تُسند إليك أي شعبة بعد" message="تواصل مع مسؤول النظام لإسناد الشعب."/></div><div style={{display:'flex',flexDirection:'column',gap:10}}><Skeleton width="70%" height={16}/><Skeleton/><Skeleton width="85%"/><Skeleton width="40%"/><Button loading>جارٍ الحفظ</Button></div></div>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16,marginBottom:16}}><ProgressBar value={92}/><ProgressBar value={56}/><ProgressBar value={20}/></div>
+<div style={{display:'flex',gap:16,alignItems:'flex-start'}}>
+<div style={{display:'flex',flexDirection:'column',gap:10}}><Toast title="تم حفظ البيانات" message="تم تحديث نتائج الشعبة 123 بنجاح." onClose={()=>{}}/><Toast tone="error" title="تعذّر رفع الملف" message="تأكد من صيغة ملف الطلبة (xlsx)."/>
+<div style={{paddingTop:30}}><Tooltip content="آخر تحديث قبل ساعتين"><Button variant="secondary" size="sm" icon="info">مرّر للتلميح</Button></Tooltip></div></div>
+<Dialog inline width={300} title="إغلاق المبادرة؟" subtitle="لن يتمكن المدرسون من تعديل النتائج بعد الإغلاق." onClose={()=>{}} footer={<><Button variant="ghost" size="sm">إلغاء</Button><Button variant="danger" size="sm">إغلاق</Button></>}><div style={{font:'400 13px var(--font-sans)',color:'var(--text-secondary)'}}>مهارات المستقبل · 2026/2027</div></Dialog>
+</div></>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>

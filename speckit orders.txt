@@ -1,0 +1,6 @@
+/speckit-constitution    → fill in project principles
+/speckit-specify         → feed it your PRD content as the feature description
+/speckit-clarify         → optional, de-risk ambiguity before planning
+/speckit-plan            → implementation plan
+/speckit-tasks           → actionable task list
+/speckit-implement       → execute

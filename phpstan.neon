@@ -1,0 +1,60 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    # Provides disallowedMethodCalls / disallowedStaticCalls, which is how T006 turns two
+    # constitutional rules into build failures rather than review comments.
+    - vendor/spaze/phpstan-disallowed-calls/extension.neon
+
+parameters:
+    # T006 — the highest level that passes on a bare skeleton. Raise it as the codebase grows;
+    # lowering it later would be a silent weakening of a constitutional gate.
+    level: 6
+
+    paths:
+        - app
+        - config
+        - database
+        - routes
+        - tests
+
+    excludePaths:
+        analyseAndScan:
+            - design-system
+            # Created by T464 when the design system migrates to v2; optional until then.
+            - design-system-v1 (?)
+            - bootstrap/cache
+            - storage
+            - public/build (?)
+
+    # Constitution principle V: hard delete of any record with history is prohibited. Banning the
+    # call makes that enforceable rather than reviewable, which is the whole point of having a
+    # static-analysis gate.
+    #
+    # Constitution security floor: "Eloquent or parameterized queries only, never
+    # string-concatenated SQL". The raw-query helpers are where that rule gets broken, so they are
+    # banned too. A genuine need for one is a reviewed exception with a baseline entry and a reason,
+    # not a quiet call site.
+    disallowedMethodCalls:
+        -
+            method: 'Illuminate\Database\Eloquent\Model::forceDelete()'
+            message: 'Hard delete is prohibited (constitution principle V). Use soft delete, deactivation, or withdrawal.'
+        -
+            method: 'Illuminate\Database\Eloquent\Builder::whereRaw()'
+            message: 'Raw SQL is prohibited (constitution security floor). Use Eloquent or bindings.'
+        -
+            method: 'Illuminate\Database\Eloquent\Builder::selectRaw()'
+            message: 'Raw SQL is prohibited (constitution security floor). Use Eloquent or bindings.'
+        -
+            method: 'Illuminate\Database\Query\Builder::whereRaw()'
+            message: 'Raw SQL is prohibited (constitution security floor). Use Eloquent or bindings.'
+        -
+            method: 'Illuminate\Database\Query\Builder::selectRaw()'
+            message: 'Raw SQL is prohibited (constitution security floor). Use Eloquent or bindings.'
+
+    disallowedStaticCalls:
+        -
+            method: 'Illuminate\Support\Facades\DB::raw()'
+            message: 'Raw SQL is prohibited (constitution security floor). Use Eloquent or bindings.'
+
+    # Arabic strings are everywhere in this codebase. Treating them as anything but UTF-8 text would
+    # produce noise, not findings.
+    treatPhpDocTypesAsCertain: false

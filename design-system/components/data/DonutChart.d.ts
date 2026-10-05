@@ -1,0 +1,2 @@
+export interface DonutChartProps{segments:{label:string;value:number;color:string}[];total?:string|number;caption?:string;size?:number;thickness?:number}
+export declare function DonutChart(props:DonutChartProps):JSX.Element;

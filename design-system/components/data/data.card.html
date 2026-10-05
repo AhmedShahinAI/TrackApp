@@ -1,0 +1,20 @@
+<!-- @dsCard group="Components" viewport="700x560" name="Data display" -->
+<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:#fff}.r{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.lb{font:500 11px var(--font-latin);color:var(--track-gray);width:70px}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { Card, StatCard, DataTable, BarChart, DonutChart, LineChart, StatusBadge } = window.TRACKDesignSystem_c33017;
+function App(){return (<>
+<div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:14}}><StatCard value="12" label="المبادرات النشطة" tone="green"/><StatCard value="145" label="الشعب الدراسية"/><StatCard value="3,482" label="الطلبة" icon="graduation-cap"/><StatCard value="76%" label="نسبة الإنجاز" tone="green" trend="+4%"/></div>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12,marginBottom:14}}>
+<Card title="نسبة الإنجاز حسب الفرع" padding={14}><BarChart height={90} data={[{label:'المجمعة',value:92},{label:'الزلفي',value:78},{label:'حائل',value:64},{label:'الغاط',value:88},{label:'حوطة سدير',value:70}]}/></Card>
+<Card title="توزيع الطلبة حسب النوع" padding={14}><DonutChart size={100} thickness={13} total="3,482" caption="طالب وطالبة" segments={[{label:'طلاب',value:56,color:'var(--track-blue)'},{label:'طالبات',value:44,color:'var(--track-green)'}]}/></Card>
+<Card title="معدل الإنجاز عبر الفصول" padding={14}><LineChart height={90} data={[{label:'24/25 أول',value:30},{label:'24/25 ثاني',value:42},{label:'25/26 أول',value:50},{label:'25/26 ثاني',value:66},{label:'26/27 أول',value:78}]}/></Card>
+</div>
+<DataTable dense columns={[{key:'name',label:'اسم المبادرة'},{key:'term',label:'الفصل',numeric:true},{key:'end',label:'تاريخ الانتهاء',numeric:true},{key:'s',label:'الحالة',render:r=><StatusBadge status={r.s}/>}]} rows={[{name:'مهارات المستقبل',term:'2026/2027',end:'2026/12/01',s:'active'},{name:'الشهادات الاحترافية',term:'2026/2027',end:'2026/11/15',s:'progress'},{name:'الوعي السيبراني',term:'2026/2027',end:'2026/10/20',s:'completed'}]}/></>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>

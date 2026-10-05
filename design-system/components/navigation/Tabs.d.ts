@@ -1,0 +1,2 @@
+export interface TabsProps{tabs:{id:string;label:string;count?:number}[];value?:string;onChange?:(id:string)=>void;variant?:'underline'|'segmented'}
+export declare function Tabs(props:TabsProps):JSX.Element;

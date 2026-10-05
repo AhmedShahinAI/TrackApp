@@ -1,0 +1,224 @@
+name: CI
+
+# Constitution "Development Workflow & Quality Gates": CI runs Pint, Larastan and Pest on every
+# pull request, and a failing pipeline blocks merge. Principle VIII adds the visual-regression and
+# accessibility suites as build gates, so fidelity and accessibility are proven the same way access
+# control is.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # T014 — Pint, Larastan, Pest against real MySQL and Redis.
+  quality:
+    name: Lint, static analysis, tests
+    runs-on: ubuntu-24.04
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: track_test
+          MYSQL_ROOT_PASSWORD: root
+          # utf8mb4 end to end — the schema stores Arabic, and a latin1 test database would pass
+          # tests that production would fail (constitution: utf8mb4 / utf8mb4_unicode_ci).
+          MYSQL_INITDB_SKIP_TZINFO: "1"
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          # PHP 8.4, decided at kickoff 2026-10-05. The constitution requires 8.3+; 8.4 is the
+          # floor in practice because Pest 5 requires it, and research.md R-07.2 forbids CI and
+          # local drifting apart. Production must therefore also be 8.4.
+          php-version: "8.4"
+          extensions: pdo_mysql, mbstring, zip, intl, gd, redis
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: track_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+
+      - name: Force the database charset
+        # A MySQL default of latin1 would let Arabic pass in tests and fail in production.
+        run: mysql -h 127.0.0.1 -uroot -proot -e "ALTER DATABASE track_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+      - name: Migrate
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: track_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          REDIS_HOST: 127.0.0.1
+
+      - name: Pint (formatting)
+        run: vendor/bin/pint --test
+
+      - name: Larastan (static analysis)
+        run: vendor/bin/phpstan analyse --no-progress
+
+      - name: Pest — default suites
+        # Performance is excluded here and gated on PERF_SUITE so CI stays fast; its budgets are
+        # measured before acceptance, per constitution principle VII.
+        run: php artisan test
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: track_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          REDIS_HOST: 127.0.0.1
+
+      - name: Pest — architecture suite
+        # Constitution IV and VIII are enforced here, not by review: no hard-coded branch names, no
+        # hard-coded visual values, every route authorized, lang/ar and lang/en at key parity.
+        run: php artisan test --testsuite=Architecture
+
+      - name: Pest — scope suite
+        # Principle I. A cross-branch leak is the highest-impact failure this platform can have, so
+        # it gets its own gate rather than hiding inside the general run.
+        run: php artisan test --testsuite=Scope
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: track_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          REDIS_HOST: 127.0.0.1
+
+  # T015 — visual regression against the vendored design system, plus axe-core.
+  visual:
+    name: Visual regression and accessibility
+    runs-on: ubuntu-24.04
+    needs: quality
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: track_test
+          MYSQL_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_mysql, mbstring, zip, intl, gd, redis
+          coverage: none
+          tools: composer:v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          composer install --prefer-dist --no-interaction --no-progress
+          npm ci
+
+      - name: Build assets
+        # Produces app-rtl.css and app-ltr.css and copies design-system/assets/ to public/img/brand/.
+        run: npm run build
+
+      - name: Prepare environment and seed the fixture dataset
+        # UiFixtureSeeder (T051) is the dataset every visual baseline renders against, so the Blade
+        # screens and the React reference show identical content. Without it, every diff is noise.
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan migrate --force
+          php artisan db:seed --class=UiFixtureSeeder --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: track_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          REDIS_HOST: 127.0.0.1
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Visual regression and axe-core
+        # design-system.md §13: component and screen diffs at <= 1% in both locales, and zero
+        # WCAG 2.1 AA violations.
+        run: npx playwright test
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: track_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          REDIS_HOST: 127.0.0.1
+
+      - name: Upload diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

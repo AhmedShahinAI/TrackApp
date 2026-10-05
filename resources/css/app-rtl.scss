@@ -1,0 +1,13 @@
+// T013 entry — the real token pipeline and shell styles arrive in T057-T063.
+// Order is load-bearing: tokens, then the Bootstrap bridge, then Bootstrap RTL, then our layers.
+
+// @use "tokens/fonts";
+// @use "tokens/colors";
+// @use "tokens/typography";
+// @use "tokens/spacing";
+// @use "bootstrap-bridge";
+// @use "bootstrap/scss/bootstrap" with ($enable-rtl: true);
+// @use "shell";
+// @use "components";
+
+body { direction: rtl; }

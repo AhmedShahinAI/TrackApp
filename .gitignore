@@ -1,0 +1,46 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# --- TRACK: generated paths ---
+# Copied from design-system/assets by `npm run build` (T013). The source is committed; the copy is not.
+/public/img/brand
+# Playwright output. Baselines under tests/Visual/baselines ARE committed — they are the contract.
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+# Private uploads and import files (constitution security floor: outside the public web root).
+/storage/app/private/*
+!/storage/app/private/.gitkeep
+
+# --- TRACK: design system delivery archives ---
+# The design system is vendored uncompressed under design-system/, which is what the
+# visual-regression suite compares against. Committing the zips as well would put ~22 MB of
+# duplicate data in history permanently. design-system/VENDORED.md records each archive's name,
+# size and date, which is the traceability that matters.
+/TRACK Design System*.zip

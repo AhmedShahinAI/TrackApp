@@ -1,0 +1,57 @@
+:root{
+/* Brand base — from brand board "الألوان الرئيسية" */
+--track-blue:#0F4C5C;        /* الأزرق الأكاديمي — Primary */
+--track-green:#10B981;       /* أخضر النمو — Success */
+--track-mint:#A7F3D0;        /* الأخضر الفاتح — Light */
+--track-dark:#1F2937;        /* الرمادي الداكن — Dark */
+--track-gray:#6B7280;        /* الرمادي المتوسط — Gray */
+--track-bg:#F8FAFC;          /* الخلفية — Background */
+
+/* Extended scales (derived, for states & data viz) */
+--blue-900:#0A2F3A;--blue-800:#0C3D4A;--blue-700:#0F4C5C;--blue-600:#155E70;--blue-500:#1B7A8E;--blue-100:#E1EEF1;--blue-50:#F0F7F9;
+--green-700:#047857;--green-600:#059669;--green-500:#10B981;--green-300:#6EE7B7;--green-200:#A7F3D0;--green-100:#D1FAE5;--green-50:#ECFDF5;
+--gray-900:#111827;--gray-800:#1F2937;--gray-700:#374151;--gray-600:#4B5563;--gray-500:#6B7280;--gray-400:#9CA3AF;--gray-300:#D1D5DB;--gray-200:#E5E7EB;--gray-100:#F1F5F9;--gray-50:#F8FAFC;--white:#FFFFFF;
+--red-600:#DC2626;--red-500:#EF4444;--red-100:#FEE2E2;--red-50:#FEF2F2;
+--amber-600:#D97706;--amber-100:#FEF3C7;
+--slate-blue-600:#475569;--slate-blue-100:#E2E8F0;
+
+/* Semantic aliases */
+--text-primary:var(--track-dark);
+--text-secondary:var(--track-gray);
+--text-muted:var(--gray-400);
+--text-brand:var(--track-blue);
+--text-on-brand:var(--white);
+--text-link:var(--blue-500);
+
+--surface-page:var(--track-bg);
+--surface-card:var(--white);
+--surface-subtle:var(--gray-100);
+--surface-brand:var(--track-blue);
+--surface-sidebar:linear-gradient(180deg,#0E4150 0%,#0A2F3A 100%); /* @kind color */
+--surface-sidebar-solid:#0C3D4A;
+--surface-sidebar-active:rgba(255,255,255,.12);
+
+--border-default:var(--gray-200);
+--border-strong:var(--gray-300);
+--border-focus:var(--track-green);
+
+--action-primary:var(--track-blue);
+--action-primary-hover:var(--blue-800);
+--action-primary-active:var(--blue-900);
+--action-accent:var(--track-green);
+--action-accent-hover:var(--green-600);
+
+--status-success-fg:var(--green-700);--status-success-bg:var(--green-100);
+--status-active-fg:var(--green-700);--status-active-bg:var(--green-100);
+--status-progress-fg:var(--slate-blue-600);--status-progress-bg:var(--slate-blue-100);
+--status-danger-fg:var(--red-600);--status-danger-bg:var(--red-100);
+--status-warning-fg:var(--amber-600);--status-warning-bg:var(--amber-100);
+--status-neutral-fg:var(--gray-600);--status-neutral-bg:var(--gray-100);
+
+/* Data viz sequence */
+--chart-1:var(--track-green);--chart-2:var(--blue-500);--chart-3:var(--track-blue);--chart-4:var(--green-300);--chart-5:var(--track-mint);
+
+/* Brand gradient (graphic elements / hero only) */
+--gradient-brand:linear-gradient(135deg,#0F4C5C 0%,#10B981 100%); /* @kind color */
+--gradient-mint:linear-gradient(135deg,#A7F3D0 0%,#D1FAE5 100%); /* @kind color */
+}

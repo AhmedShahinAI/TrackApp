@@ -1,0 +1,53 @@
+# Merged 2026-10-05: Laravel 13's defaults plus the TRACK rules from task T016.
+
+# --- Laravel defaults ---
+* text=auto eol=lf
+
+*.blade.php diff=html
+*.css diff=css
+*.html diff=html
+*.md diff=markdown
+*.php diff=php
+
+/.github export-ignore
+CHANGELOG.md export-ignore
+.styleci.yml export-ignore
+
+# --- T016: keep diffs readable ---
+
+# Visual-regression baselines are PNGs. Marking them binary stops git attempting a text diff on
+# every screenshot, which is both useless and enormous.
+tests/Visual/baselines/** binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.woff2 binary
+*.woff binary
+*.ttf binary
+*.otf binary
+*.ico binary
+*.pdf binary
+*.xlsx binary
+*.xls binary
+*.zip binary
+
+# The vendored design system is reference material, never edited (see design-system/VENDORED.md).
+# linguist-vendored keeps it out of language statistics; -diff keeps 174 files of someone else's
+# React out of every review.
+design-system/** linguist-vendored -diff
+design-system-v1/** linguist-vendored -diff
+
+# Lock files are generated. Keep them in version control — they pin the versions CI and production
+# both install — but collapse them in diffs.
+composer.lock -diff linguist-generated
+package-lock.json -diff linguist-generated
+
+# Shell scripts must stay LF even on Windows, or the CI runner cannot execute them. The Spec Kit
+# PowerShell scripts need CRLF.
+*.sh text eol=lf
+*.ps1 text eol=crlf
+
+# Arabic translation files are UTF-8 text and must diff as text, not as binary.
+lang/ar/** text
+lang/en/** text

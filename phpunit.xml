@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <!--
+        T007 — six testsuites. The four beyond Unit and Feature exist because the constitution makes
+        each of them a build gate in its own right, and a gate buried inside a general run is one
+        nobody notices failing.
+
+        Default run: Unit, Feature, Architecture, Scope, Authorization.
+        Excluded by default: Performance — it seeds up to 1.5M rows and is gated on PERF_SUITE=1 so
+        CI stays fast, while its budgets are still measured before acceptance (principle VII).
+    -->
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <!-- Principle IV and VI enforced mechanically: no hard-coded branch names, no hard-coded
+             visual values, every route authorized, lang/ar and lang/en at key parity. -->
+        <testsuite name="Architecture">
+            <directory>tests/Architecture</directory>
+        </testsuite>
+        <!-- Principle I. A cross-branch leak is the highest-impact failure this platform can have. -->
+        <testsuite name="Scope">
+            <directory>tests/Scope</directory>
+        </testsuite>
+        <!-- Principle VIII: an allow case and a deny case for every one of the 64 routes. -->
+        <testsuite name="Authorization">
+            <directory>tests/Authorization</directory>
+        </testsuite>
+        <!-- Principle VII budgets. Run it with PERF_SUITE=1 and the Performance testsuite selected -->
+        <testsuite name="Performance">
+            <directory>tests/Performance</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="DB_URL" value=""/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="NIGHTWATCH_ENABLED" value="false"/>
+
+        <!--
+            Hashing in tests. Argon2id is the production driver (T003) and is deliberately slow,
+            which would make a suite with hundreds of user factories crawl. Tests use bcrypt at 4
+            rounds; the Argon2id driver itself is asserted by its own test rather than by every
+            test paying for it.
+        -->
+        <env name="HASH_DRIVER" value="bcrypt"/>
+
+        <!-- Arabic is the default locale, so tests exercise the RTL path unless they opt out. -->
+        <env name="APP_LOCALE" value="ar"/>
+        <env name="APP_FALLBACK_LOCALE" value="en"/>
+
+        <!-- Performance suite is opt-in. See the Performance testsuite comment above. -->
+        <env name="PERF_SUITE" value="0"/>
+    </php>
+</phpunit>
