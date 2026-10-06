@@ -44,3 +44,7 @@ Thumbs.db
 # duplicate data in history permanently. design-system/VENDORED.md records each archive's name,
 # size and date, which is the traceability that matters.
 /TRACK Design System*.zip
+
+# Local SQLite databases used for schema verification when no MySQL server is available.
+*.sqlite
+*.sqlite-journal

@@ -665,7 +665,9 @@ same-branch peer is not one when the branch is the unit of responsibility.
 
 ## Permissions
 
-Two added, taking the platform from 46 to **48**:
+Two listed, but only one is new, so the platform goes from 46 to **47** (corrected 2026-10-06 — the
+earlier figure of 48 counted `section.create`, which already exists in the base set and which
+Amendment 4 regrants rather than adds):
 
 | Permission | SUPER_ADMIN | BRANCH_COORDINATOR | INSTRUCTOR |
 |---|---|---|---|
