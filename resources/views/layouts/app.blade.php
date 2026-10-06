@@ -77,14 +77,13 @@
                 <x-slot:end>
                     {{-- Posts rather than links: the locale lives on the user record, so switching
                          it is a write (locale-switcher.js). --}}
-                    <x-track-button
-                        variant="ghost"
-                        size="sm"
-                        data-track-locale="{{ $rtl ? 'en' : 'ar' }}"
-                        data-track-locale-action="{{ url('/locale') }}"
-                    >
-                        {{ $rtl ? 'EN' : 'ع' }}
-                    </x-track-button>
+                    <form method="POST" action="{{ route('locale.update') }}" style="margin: 0">
+                        @csrf
+                        <input type="hidden" name="locale" value="{{ $rtl ? 'en' : 'ar' }}">
+                        <x-track-button variant="ghost" size="sm" type="submit">
+                            {{ $rtl ? 'EN' : 'ع' }}
+                        </x-track-button>
+                    </form>
                 </x-slot:end>
             </x-track-topbar>
 

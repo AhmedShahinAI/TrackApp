@@ -800,3 +800,152 @@
     .track-step__label { display: none; }
     .track-stepper .track-step--active .track-step__label { display: block; }
 }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Sign-in screen (T127)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// The one screen outside the application shell, so its layout lives here rather than in _shell.scss.
+.track-login {
+    display: flex;
+    min-height: 100vh;
+    background: var(--surface-page);
+}
+
+.track-login__form {
+    flex: 0 0 500px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--space-10) 64px;
+    background: var(--surface-card);
+}
+
+.track-login__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-8);
+}
+
+.track-login__lang { margin: 0; }
+
+.track-login__title { font: var(--text-h2); margin: 0; }
+
+.track-login__subtitle {
+    font: var(--text-body);
+    color: var(--text-secondary);
+    margin: 6px 0 22px;
+}
+
+.track-login__fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.track-login__note {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    margin: var(--space-4) 0 0;
+}
+
+// The brand column. Dropped below 768px rather than stacked: on a phone it would push the form
+// below the fold, and the form is the only thing anyone opens this page for.
+.track-login__brand {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 36px;
+    padding: 0 64px;
+    background: var(--surface-sidebar);
+    color: var(--text-on-brand);
+}
+
+.track-login__tagline {
+    font-family: var(--font-arabic);
+    font-weight: var(--fw-bold);
+    font-size: 34px;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.track-login__tagline-latin {
+    font-family: var(--font-latin);
+    font-size: var(--fs-h3);
+    opacity: .85;
+    margin: var(--space-2) 0 0;
+}
+
+.track-login__rule {
+    display: block;
+    width: 48px;
+    height: 4px;
+    border-radius: var(--radius-xs);
+    background: var(--track-green);  // non-text, so the brand green stays
+    margin-top: 18px;
+}
+
+.track-login__banner {
+    width: 100%;
+    max-width: 760px;
+    height: auto;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-overlay);
+    display: block;
+}
+
+@media (max-width: 991.98px) {
+    .track-login__form { flex: 1; padding: var(--space-8) var(--space-6); }
+    .track-login__brand { display: none; }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Home landing (T130) and the accounts screen (T131)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+.track-home-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.track-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: flex-end;
+    margin-bottom: var(--space-4);
+}
+
+.track-filters > * { flex: 1 1 180px; min-width: 0; }
+.track-filters__search { flex: 2 1 260px; }
+
+.track-dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3) var(--space-4);
+    margin: 0;
+    font: var(--text-body-sm);
+}
+
+.track-dl dt { color: var(--text-secondary); }
+.track-dl dd { margin: 0; }
+
+.track-row-actions {
+    display: flex;
+    gap: var(--space-1);
+    justify-content: flex-end;
+}
+
+@media (max-width: 991.98px) {
+    .track-home-grid { grid-template-columns: 1fr; }
+}

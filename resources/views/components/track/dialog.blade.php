@@ -28,8 +28,12 @@
 @endphp
 
 <div
+    {{-- The id goes on the element, not only into the event matching and aria-labelledby. The
+         component took `id` as a prop and used it for both of those while rendering no id at all,
+         so `#user-dialog` matched nothing — the dialogs were in the DOM and unreachable by id, which
+         the US1 visual suite found by looking for one. --}}
+    id="{{ $id }}"
     x-data="trackDialog(@js($open))"
-    x-id="['{{ $id }}']"
     @if (! $inline)
         x-show="open"
         x-cloak

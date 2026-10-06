@@ -29,6 +29,27 @@ use Spatie\Permission\Traits\HasRoles;
  * makes, and re-reading the pivot each time would turn one page load into dozens of identical
  * lookups.
  */
+/**
+ * Declared for static analysis. Larastan reads attribute types from @property or the $casts
+ * property, not from the casts() method this model uses — so without these, every
+ * `$user->last_login_at->format(...)` reads as a method call on a string.
+ *
+ * @property int $id
+ * @property int $organization_id
+ * @property string $name_ar
+ * @property string $name_en
+ * @property string $email
+ * @property string $password
+ * @property string $locale
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $first_login_at
+ * @property \Illuminate\Support\Carbon|null $last_login_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read int|null $taught_sections_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Branch> $coordinatorBranches
+ */
 #[Fillable(['organization_id', 'name_ar', 'name_en', 'email', 'locale', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable

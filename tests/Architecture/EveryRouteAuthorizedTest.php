@@ -42,6 +42,28 @@ function apiRoutes(): array
 }
 
 /**
+ * Routes whose authorization rule is "you are you".
+ *
+ * A third category the original gate did not model. `auth/me` returns the caller's own identity,
+ * `auth/password` changes the caller's own password, `auth/logout` ends the caller's own session:
+ * there is no permission to check, because the record IS the caller. `auth/login` is
+ * unauthenticated by design (FR-001 — the one endpoint anyone may reach).
+ *
+ * Listed by name rather than allowed by pattern, so adding a self-scoped endpoint is a visible,
+ * reviewable edit here and not a hole that a URL shape happens to fall through. Each is covered by
+ * an allow/deny pair in tests/Authorization/UserEndpointsTest.php, where the deny case is "no
+ * session at all".
+ *
+ * @var list<string>
+ */
+const SELF_SCOPED_ROUTES = [
+    'api.v1.auth.login',
+    'api.v1.auth.logout',
+    'api.v1.auth.me',
+    'api.v1.auth.password.update',
+];
+
+/**
  * Whether a route carries an authorization gate of its own.
  *
  * `auth:sanctum` is authentication, not authorization, and does not count — that is the distinction
@@ -97,6 +119,10 @@ test('every api/v1 route carries an authorization check', function (): void {
     foreach (apiRoutes() as $route) {
         /** @var list<string> $middleware */
         $middleware = $route->gatherMiddleware();
+
+        if (in_array($route->getName(), SELF_SCOPED_ROUTES, true)) {
+            continue;
+        }
 
         if (hasAuthorizationGate($middleware) || actionAuthorizesInternally($route)) {
             continue;
@@ -168,4 +194,44 @@ test('both gates fire on a route that should fail them', function (): void {
 
     // And a properly gated route must satisfy it.
     expect(hasAuthorizationGate(['web', 'auth:sanctum', 'can:section.view']))->toBeTrue();
+});
+
+test('every self-scoped exception names a route that exists', function (): void {
+    $names = collect(Route::getRoutes()->getRoutes())
+        ->map(fn ($route) => $route->getName())
+        ->filter()
+        ->all();
+
+    $stale = array_values(array_diff(SELF_SCOPED_ROUTES, $names));
+
+    expect($stale)->toBe([], 'These self-scoped exceptions name routes that no longer exist.');
+});
+
+test('a self-scoped route still refuses an unauthenticated caller', function (): void {
+    // The exception is from the PERMISSION check, not from authentication. Every one of them must
+    // still be behind auth:sanctum, or "you are you" is satisfied by being nobody.
+    $unprotected = [];
+
+    foreach (apiRoutes() as $route) {
+        if (! in_array($route->getName(), SELF_SCOPED_ROUTES, true)) {
+            continue;
+        }
+
+        if ($route->getName() === 'api.v1.auth.login') {
+            continue;  // Unauthenticated by design (FR-001).
+        }
+
+        /** @var list<string> $middleware */
+        $middleware = $route->gatherMiddleware();
+
+        $authenticated = collect($middleware)->contains(
+            fn (string $name) => str_contains($name, 'Authenticate') || str_starts_with($name, 'auth'),
+        );
+
+        if (! $authenticated) {
+            $unprotected[] = $route->getName();
+        }
+    }
+
+    expect($unprotected)->toBe([]);
 });

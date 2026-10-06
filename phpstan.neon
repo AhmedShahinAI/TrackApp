@@ -58,3 +58,28 @@ parameters:
     # Arabic strings are everywhere in this codebase. Treating them as anything but UTF-8 text would
     # produce noise, not findings.
     treatPhpDocTypesAsCertain: false
+
+    # ── The one ignore in this configuration ─────────────────────────────────────────────────────
+    #
+    # Pest binds $this inside a test closure to the TestCase at runtime, and no static analyser can
+    # see that: PHPStan resolves $this to Pest\PendingCalls\TestCall, which has none of the HTTP
+    # testing methods. The result is one error per `$this->actingAs(...)` call site.
+    #
+    # Scoped as tightly as it can be: one identifier, one method, and only in the directories that
+    # make HTTP requests. Everything else in tests/ is still analysed — a wrong argument type in a
+    # fixture helper, a call to a method that genuinely does not exist, a bad return type all still
+    # fail the build. Phase 2 avoided this by not using $this at all, which worked for unit-shaped
+    # tests; `$this->actingAs()->get()` IS the testing API for a feature test, and rewriting 99 call
+    # sites to dodge an analyser would make the tests worse.
+    ignoreErrors:
+        -
+            identifier: method.notFound
+            # Matched without the namespace, because a backslash-P in a PCRE pattern is the
+            # unicode-property escape and the compile fails.
+            message: '#Call to an undefined method .*TestCall::#'
+            # Only the directories that currently make HTTP requests. Scope and Performance hold
+            # placeholders so far; when their first real test lands, add them here — an unmatched
+            # pattern fails the build, which is what keeps this list honest.
+            paths:
+                - tests/Feature
+                - tests/Authorization

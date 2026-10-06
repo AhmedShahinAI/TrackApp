@@ -35,7 +35,13 @@ export default defineConfig({
     retries: 0,
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
-    workers: process.env.CI ? 2 : undefined,
+    /*
+     * Capped locally too, not just in CI. Eight projects against one `artisan serve` saturate it:
+     * a full local run produced eight failures that all passed when re-run serially, and chasing
+     * those is worse than taking a little longer. PHP_CLI_SERVER_WORKERS raises the server side;
+     * this caps the client side.
+     */
+    workers: process.env.CI ? 2 : 4,
 
     reporter: process.env.CI
         ? [['html', { open: 'never' }], ['github']]
@@ -105,6 +111,16 @@ export default defineConfig({
             // serves one request at a time and the rest queue until they time out, which looks
             // exactly like a flaky test suite. This is in ServeCommand's own passthrough list.
             PHP_CLI_SERVER_WORKERS: '8',
+
+            /*
+             * Cheap hashing. This suite measures rendering, not hash strength, and the lockout test
+             * signs in six times — at Argon2id's production cost (19 MiB, 2 iterations, ~32 ms each)
+             * that test alone cannot fit a sensible budget. The strength that ships is asserted in
+             * CreateUserTest against .env.example, where it belongs.
+             */
+            HASH_DRIVER: 'bcrypt',
+            BCRYPT_ROUNDS: '4',
+
             APP_ENV: 'local',
             APP_DEBUG: 'true',
             SESSION_DRIVER: 'file',

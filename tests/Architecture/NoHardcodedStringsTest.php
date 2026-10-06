@@ -35,7 +35,11 @@ function viewTextNodes(string $contents): string
         '/@php.*?@endphp/s',            // PHP blocks
         '/\{\{.*?\}\}/s',               // echoes — already PHP, judged by the PHP guards
         '/\{!!.*?!!\}/s',               // raw echoes
-        '/@[a-zA-Z]+\s*\((?:[^()]|\([^()]*\))*\)/s', // Blade directives with arguments
+        // Blade directives with arguments, at ANY nesting depth. The previous pattern allowed one
+        // level of nested parentheses, so `@if ($u->is_active && ! $u->is(auth()->user()))` left a
+        // fragment behind that the scanner then reported as prose — a false positive the accounts
+        // screen produced immediately. (?1) recurses into the group.
+        '/@[a-zA-Z]+\s*(\((?:[^()]++|(?1))*\))/s',
         '/@[a-zA-Z]+/s',                // bare Blade directives
         // Tags, matched so a quoted attribute value may contain `>`. The naive `<[^>]*>` stops at
         // the first `>` inside `:dot="$count > 0"` and leaves the rest of the tag looking like

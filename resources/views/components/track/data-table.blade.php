@@ -31,6 +31,18 @@
     'searchable' => false,
     'rowUrl' => null,
     'caption' => null,
+
+    /*
+     * Per-column cell renderers: ['status' => fn (array $row) => ...]. A closure rather than a
+     * Blade slot because a slot is rendered once while a cell is rendered per row — the original
+     * slot-based attempt could not see $row, which the accounts screen (T131) found immediately.
+     *
+     * The closure returns a string or a renderable; its output is echoed escaped unless it is an
+     * Illuminate\Support\HtmlString, which is how a column renders a status badge.
+     *
+     * @var array<string, callable(array<string, mixed>): mixed>
+     */
+    'renderers' => [],
 ])
 
 @php
@@ -144,10 +156,8 @@
                                     data-sort-value="{{ is_scalar($value) ? $value : '' }}"
                                     @class(['track-table__cell--numeric' => $numeric])
                                 >
-                                    @if (isset(${'cell_'.$key}))
-                                        {{ ${'cell_'.$key}($row) }}
-                                    @elseif (isset($$key))
-                                        {{ $$key }}
+                                    @if (isset($renderers[$key]))
+                                        {{ $renderers[$key]($row) }}
                                     @else
                                         {{ $value ?? __('common.labels.none') }}
                                     @endif

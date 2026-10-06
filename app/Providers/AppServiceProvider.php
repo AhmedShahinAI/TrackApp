@@ -86,6 +86,14 @@ class AppServiceProvider extends ServiceProvider
 
             Blade::component('components.track.'.$name, 'track-'.$name);
         }
+
+        /*
+         * The application shell, as <x-app-layout>. T095 puts it at views/layouts/app.blade.php,
+         * which Blade would only resolve as a component from views/components/layouts/. Aliasing it
+         * keeps the task's path and still gives a slot-based layout, which is what the file is
+         * written as.
+         */
+        Blade::component('layouts.app', 'app-layout');
     }
 
     /**
@@ -119,6 +127,10 @@ class AppServiceProvider extends ServiceProvider
                 'SESSION_DRIVER',
                 'CACHE_STORE',
                 'QUEUE_CONNECTION',
+
+                // So the visual suite can hash cheaply (playwright.config.ts explains why).
+                'HASH_DRIVER',
+                'BCRYPT_ROUNDS',
             ],
         )));
     }

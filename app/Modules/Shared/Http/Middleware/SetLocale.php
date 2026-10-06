@@ -43,7 +43,34 @@ final class SetLocale
         $user = $request->user();
 
         if ($user !== null && in_array($user->locale, self::SUPPORTED, true)) {
+            // A signed-in person's stored preference is the authority, and the session is NOT
+            // consulted for them: on a shared machine, one person switching language must not
+            // silently change it for whoever signs in next.
             return $user->locale;
+        }
+
+        if ($user === null) {
+            // A guest's choice, from the sign-in screen's switch. There is no record to write to
+            // until they have an account.
+            $chosen = $request->session()->get('locale');
+
+            if (is_string($chosen) && in_array($chosen, self::SUPPORTED, true)) {
+                return $chosen;
+            }
+        }
+
+        /*
+         * `?locale=` is honoured in local only, and nowhere else. The visual suite has to shoot both
+         * directions of the sign-in screen without signing anyone in, and a query parameter that
+         * changed rendering in production would be a way to make any screenshot or shared link
+         * render in a language the recipient did not choose.
+         */
+        if (app()->isLocal()) {
+            $query = $request->query('locale');
+
+            if (is_string($query) && in_array($query, self::SUPPORTED, true)) {
+                return $query;
+            }
         }
 
         return $this->configuredDefault();

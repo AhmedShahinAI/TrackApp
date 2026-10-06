@@ -29,6 +29,25 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             App\Modules\Shared\Http\Middleware\SetLocale::class,
         ]);
+
+        $middleware->alias([
+            // FR-011, FR-018 — refuses every request from a deactivated account, on any driver.
+            'active' => App\Modules\Authentication\Http\Middleware\EnsureUserIsActive::class,
+
+            /*
+             * FR-015. AuthenticateSession stores the password hash on the session and rejects any
+             * session carrying a stale one, which is how logoutOtherDevices ends other sessions
+             * without a per-user session index. Laravel ships it unregistered.
+             *
+             * An alias applied per route group rather than appended to `web`, because `web` is also
+             * the base of the /api/v1 stack — and there `auth:sanctum` has already called
+             * Auth::shouldUse('sanctum'), so AuthenticateSession resolves the default guard to
+             * Sanctum's RequestGuard, which has no viaRemember(). That was a 500 on every
+             * authenticated API request, and route-level withoutMiddleware did not undo it.
+             */
+            'session.auth' => App\Modules\Authentication\Http\Middleware\AuthenticateWebSession::class,
+
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
