@@ -23,6 +23,13 @@ const LOCALES = [
 
 export default defineConfig({
     testDir: './tests/Visual',
+
+    /*
+     * Builds and seeds database/visual.sqlite before anything runs, so the suite does not depend on
+     * a file that looks like a build artifact and gets cleaned up. Deleting it mid-run once produced
+     * sixty failures in components unrelated to the change under test.
+     */
+    globalSetup: './tests/Visual/global-setup.ts',
     outputDir: './test-results',
     // {platform} is load-bearing and was missing (F-07 from the Phase 1 review). Font rasterisation
     // differs between Windows and the Linux CI runner by more than the 1% threshold, so one shared

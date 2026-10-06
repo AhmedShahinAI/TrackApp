@@ -48,3 +48,6 @@ Thumbs.db
 # Local SQLite databases used for schema verification when no MySQL server is available.
 *.sqlite
 *.sqlite-journal
+
+# The visual suite rebuilds this on every run (tests/Visual/global-setup.ts).
+/database/visual.sqlite

@@ -46,6 +46,24 @@ function skipUnlessInteractionWidth(testInfo: { project: { use: { viewport?: { w
     );
 }
 
+/** The one project that owns tests which consume shared state. */
+const PRIMARY_PROJECT = 'ar-1440';
+
+/**
+ * Restrict a test to one project AND one locale.
+ *
+ * For a test that consumes state — the first-sign-in stamp, a rate-limiter counter — running it
+ * anywhere else means several runs competing for the same row or cache key, and each one observing
+ * whatever the others left behind. Scoping by width alone is not enough: ar-1440 and en-1440 are
+ * both 1440, and each runs both locale describes, so a width-scoped test still runs four times.
+ */
+function skipUnlessPrimary(testInfo: { project: { name: string } }, locale: 'ar' | 'en'): void {
+    test.skip(
+        testInfo.project.name !== PRIMARY_PROJECT || locale !== 'ar',
+        `Consumes shared state; owned by ${PRIMARY_PROJECT} / ar so parallel projects cannot race it.`,
+    );
+}
+
 async function signIn(page: Page, locale: 'ar' | 'en', who: { email: string; password: string }) {
     await page.goto(`/login?locale=${locale}`);
     await page.fill('input[name="email"]', who.email);
@@ -108,7 +126,8 @@ for (const locale of ['ar', 'en'] as const) {
         });
 
         test('login — lockout countdown', async ({ page }, testInfo) => {
-            skipUnlessInteractionWidth(testInfo);
+            // Trips a shared rate-limiter key, so exactly one run owns it.
+            skipUnlessPrimary(testInfo, locale);
             test.setTimeout(120_000);
 
             // FR-010. Six attempts for one address trips the limiter; the sixth response carries
@@ -139,7 +158,13 @@ for (const locale of ['ar', 'en'] as const) {
             );
         });
 
-        test('first-sign-in banner on the landing page', async ({ page }) => {
+        test('first-sign-in banner on the landing page', async ({ page }, testInfo) => {
+            /*
+             * Consumes the fixture's one never-signed-in account: signing in writes
+             * first_login_at, and the banner is then gone for every other project. One owner.
+             */
+            skipUnlessPrimary(testInfo, locale);
+
             await signIn(page, locale, FIRST_TIME);
             await stabilise(page);
 
