@@ -1,13 +1,35 @@
-// T013 entry — the real token pipeline and shell styles arrive in T057-T063.
-// Order is load-bearing: tokens, then the Bootstrap bridge, then Bootstrap RTL, then our layers.
+// T063 — the Arabic (RTL) stylesheet. Default locale, so this is the one most users load.
+//
+// Order is load-bearing and is the whole reason this file exists rather than one build flipping
+// direction at runtime:
+//
+//   1. tokens          — plain CSS custom properties, no Sass, so they cascade normally
+//   2. bootstrap-bridge — Sass variables, which must be defined BEFORE Bootstrap is imported
+//   3. bootstrap        — consumes those variables
+//   4. shell, components — ours, last, so a token always wins over a Bootstrap default
+//
+// Swapping 2 and 3 silently produces Bootstrap's own palette: Sass variable defaults are resolved
+// at import time, and `!default` means a later definition is ignored.
+//
+// This imports `bootstrap`, not `bootstrap.rtl`, which tasks.md T063 named. Bootstrap 5.3 has no
+// `bootstrap.rtl` Sass entry — its dist `bootstrap.rtl.css` is `bootstrap.scss` compiled and then
+// mirrored with RTLCSS. The mirroring happens for this file in vite.config.js, which explains the
+// mechanics in full.
+//
+// `@import` rather than `@use ... with ()`: this is Bootstrap 5.3's own documented customisation
+// pattern, and it displaces EVERY `!default` variable rather than only the ones named in a list.
+// The hand-written list this replaced silently left Bootstrap's raw palette in place, which put ten
+// non-brand hex values in `:root`. Dart Sass deprecates `@import`; the deprecation is silenced in
+// vite.config.js because Bootstrap's own internals still use it.
 
-// @use "tokens/fonts";
-// @use "tokens/colors";
-// @use "tokens/typography";
-// @use "tokens/spacing";
-// @use "bootstrap-bridge";
-// @use "bootstrap/scss/bootstrap" with ($enable-rtl: true);
-// @use "shell";
-// @use "components";
+@import 'tokens/fonts';
+@import 'tokens/colors';
+@import 'tokens/typography';
+@import 'tokens/spacing';
 
-body { direction: rtl; }
+@import 'bootstrap-bridge';
+@import 'bootstrap/scss/bootstrap';
+
+@import 'tokens/base';
+@import 'shell';
+@import 'components';

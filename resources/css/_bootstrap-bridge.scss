@@ -1,0 +1,168 @@
+// T062 — the derived layer that makes Bootstrap inherit the brand instead of fighting it.
+//
+// Direction of authority, from design-system.md §2: **tokens define, Bootstrap consumes.** The
+// constitution keeps Bootstrap for its grid, its utilities, and its RTL/LTR build machinery; its
+// visual defaults are displaced here, once, so no component has to override them later.
+//
+// Sass cannot read a CSS custom property at compile time, so these are the literal hex values from
+// the token layer rather than `var(--token)` references. That duplication is the one place in the
+// system where a colour appears twice, and TokenParityTest (T064) is what keeps the two honest —
+// it fails the build if a value here stops matching resources/css/tokens/colors.css.
+
+// ── Palette ──────────────────────────────────────────────────────────────────────────────────────
+// $success, $danger and $warning carry the §6 accessibility corrections, not the approved values.
+// Bootstrap uses these for both fills and text (.text-success, .btn-success), and a token that is
+// safe as a fill but not as text would fail the AA gate the moment someone used the utility class.
+$primary:   #0F4C5C;  // --track-blue
+$secondary: #475569;  // --slate-blue-600
+$success:   #059669;  // --green-600  (A11Y-01, A11Y-03)
+$danger:    #B91C1C;  // --red-700    (A11Y-05)
+$warning:   #B45309;  // --amber-700  (A11Y-04)
+$info:      #1B7A8E;  // --blue-500
+$light:     #F1F5F9;  // --gray-100
+$dark:      #1F2937;  // --track-dark
+
+$body-bg:     #F8FAFC;  // --track-bg
+$body-color:  #1F2937;  // --track-dark
+$border-color: #E5E7EB; // --gray-200
+
+// Bootstrap's raw palette. These are not used by any TRACK component, but _root.scss emits every
+// one of them as a --bs-* custom property, so leaving them at Bootstrap's defaults puts ten
+// non-brand hex values in :root on every page — available to anyone who types `var(--bs-blue)`.
+// Mapped onto the nearest TRACK step so there is no colour in the bundle that is not a brand colour.
+$blue:   #0F4C5C;  // --track-blue
+$indigo: #475569;  // --slate-blue-600
+$purple: #475569;
+$pink:   #B91C1C;
+$red:    #B91C1C;  // --red-700
+$orange: #B45309;  // --amber-700
+$yellow: #B45309;
+$green:  #059669;  // --green-600
+$teal:   #1B7A8E;  // --blue-500
+$cyan:   #1B7A8E;
+
+$white:    #FFFFFF;
+$gray-100: #F1F5F9;
+$gray-200: #E5E7EB;
+$gray-300: #D1D5DB;
+$gray-400: #9CA3AF;
+$gray-500: #6B7280;
+$gray-600: #4B5563;
+$gray-700: #374151;
+$gray-800: #1F2937;
+$gray-900: #111827;
+$black:    #000000;
+
+$blockquote-footer-color: #6B7280;  // --track-gray, not Bootstrap's $gray-600
+
+// ── Typography ───────────────────────────────────────────────────────────────────────────────────
+// Cairo first in both directions. It carries Latin glyphs well enough for the interface chrome, and
+// Inter is reached for explicitly where numerals matter (--font-numeric, .num).
+$font-family-sans-serif: 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
+$font-size-base: 0.875rem;  // 14px — --fs-body
+$line-height-base: 1.6;     // --lh-body
+
+$h1-font-size: 1.75rem;   // 28px — --fs-h1
+$h2-font-size: 1.375rem;  // 22px — --fs-h2
+$h3-font-size: 1.125rem;  // 18px — --fs-h3
+$h4-font-size: 1rem;      // 16px — --fs-h4
+$h5-font-size: 0.875rem;
+$h6-font-size: 0.8125rem;
+
+$headings-font-weight: 700;  // --fw-bold
+$headings-line-height: 1.25; // --lh-tight
+
+// ── Radii ────────────────────────────────────────────────────────────────────────────────────────
+$border-radius-sm: 0.375rem;  //  6px — --radius-sm
+$border-radius:    0.5rem;    //  8px — --radius-md
+$border-radius-lg: 0.75rem;   // 12px — --radius-lg
+$border-radius-xl: 1rem;      // 16px — --radius-xl
+$border-radius-xxl: 1.25rem;  // 20px — --radius-2xl
+$border-radius-pill: 999px;
+
+// ── Shadows ──────────────────────────────────────────────────────────────────────────────────────
+$box-shadow-sm: 0 1px 2px rgba(15, 76, 92, .06);
+$box-shadow:    0 1px 3px rgba(15, 76, 92, .06), 0 1px 2px rgba(15, 76, 92, .04);
+$box-shadow-lg: 0 16px 40px rgba(10, 47, 58, .18), 0 4px 10px rgba(10, 47, 58, .08);
+
+// ── Focus ────────────────────────────────────────────────────────────────────────────────────────
+// --ring-focus. Green at 25% rather than Bootstrap's primary at 25%, because the focus indicator is
+// the one place the design system deliberately uses the accent instead of the primary — it has to
+// be visible against a primary-coloured button.
+$focus-ring-color: rgba(16, 185, 129, .25);
+$focus-ring-width: 3px;
+$focus-ring-opacity: 1;
+$input-btn-focus-box-shadow: 0 0 0 3px rgba(16, 185, 129, .25);
+$input-btn-focus-color: rgba(16, 185, 129, .25);
+$input-focus-border-color: #059669;  // --border-focus (A11Y-03)
+$btn-focus-box-shadow: $input-btn-focus-box-shadow;
+
+// ── Control geometry ─────────────────────────────────────────────────────────────────────────────
+// Bootstrap sizes controls by padding, not height. These paddings resolve to --control-h-* given
+// $font-size-base 14px and $line-height-base 1.6 (14 × 1.6 = 22.4px of line box).
+$input-btn-padding-y:    0.5rem;     // 40px total — --control-h-md
+$input-btn-padding-x:    1rem;
+$input-btn-padding-y-sm: 0.25rem;    // 32px total — --control-h-sm
+$input-btn-padding-x-sm: 0.75rem;
+$input-btn-padding-y-lg: 0.75rem;    // 48px total — --control-h-lg
+$input-btn-padding-x-lg: 1.25rem;
+$input-btn-font-size:    0.875rem;
+$input-btn-font-size-sm: 0.8125rem;
+$input-btn-font-size-lg: 0.875rem;
+
+$btn-font-weight: 600;  // --fw-semibold
+$btn-border-radius:    $border-radius;
+$btn-border-radius-sm: $border-radius-sm;
+$btn-border-radius-lg: $border-radius;
+
+$input-bg: #FFFFFF;
+$input-border-color: #E5E7EB;
+$input-placeholder-color: #6B7280;  // --track-gray, not --gray-400 (A11Y-07)
+$input-color: #1F2937;
+
+// ── Spacing ──────────────────────────────────────────────────────────────────────────────────────
+// 4px base, mapped to --space-*. Bootstrap's default map stops at 5; the design system uses steps
+// up to 48px, so the map is extended rather than leaving authors to invent values.
+$spacer: 0.25rem;  // 4px
+$spacers: (
+    0:  0,
+    1:  0.25rem,   //  4px — --space-1
+    2:  0.5rem,    //  8px — --space-2
+    3:  0.75rem,   // 12px — --space-3
+    4:  1rem,      // 16px — --space-4
+    5:  1.25rem,   // 20px — --space-5
+    6:  1.5rem,    // 24px — --space-6
+    8:  2rem,      // 32px — --space-8
+    10: 2.5rem,    // 40px — --space-10
+    12: 3rem,      // 48px — --space-12
+);
+
+$grid-gutter-width: 0.875rem;  // 14px — the design system's grid gap
+
+// ── Components Bootstrap styles that we keep ─────────────────────────────────────────────────────
+$card-bg: #FFFFFF;
+$card-border-color: #E5E7EB;
+$card-border-radius: $border-radius-lg;
+$card-box-shadow: $box-shadow;
+$card-spacer-y: 1.25rem;  // 20px
+$card-spacer-x: 1.25rem;
+
+$table-bg: #FFFFFF;
+$table-border-color: #E5E7EB;
+$table-hover-bg: #F0F7F9;  // --blue-50
+$table-cell-padding-y: 0.75rem;
+$table-cell-padding-x: 1rem;
+
+$modal-content-border-radius: $border-radius-xl;
+$modal-backdrop-bg: #0F4C5C;
+$modal-backdrop-opacity: 0.45;
+
+$tooltip-bg: #1F2937;  // --track-dark
+$tooltip-border-radius: $border-radius-sm;
+$tooltip-opacity: 1;
+
+$transition-base: all 180ms cubic-bezier(.2, 0, 0, 1);  // --dur-base / --ease-standard
+
+// Bootstrap components with no design-system counterpart are not used in this feature, so their
+// CSS is not shipped. Removing them here is what keeps the bundle to what the screens render.
+$enable-dark-mode: false;

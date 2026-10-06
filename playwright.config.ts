@@ -24,7 +24,12 @@ const LOCALES = [
 export default defineConfig({
     testDir: './tests/Visual',
     outputDir: './test-results',
-    snapshotPathTemplate: '{testDir}/baselines/{projectName}/{testFilePath}/{arg}{ext}',
+    // {platform} is load-bearing and was missing (F-07 from the Phase 1 review). Font rasterisation
+    // differs between Windows and the Linux CI runner by more than the 1% threshold, so one shared
+    // baseline means either the suite fails on every CI run or the threshold has to be widened far
+    // enough to stop detecting anything. Separate baselines per platform is the only honest answer;
+    // the Linux set is generated in CI with `--update-snapshots` and committed from there.
+    snapshotPathTemplate: '{testDir}/baselines/{platform}/{projectName}/{testFilePath}/{arg}{ext}',
 
     // A visual diff is never flaky in a useful way: a retry that passes hides a real difference.
     retries: 0,
@@ -45,10 +50,21 @@ export default defineConfig({
 
     expect: {
         toHaveScreenshot: {
+            // Two settings doing two different jobs, which the original pairing conflated.
+            //
+            // maxDiffPixelRatio is how MANY pixels may differ: 1%, which absorbs the anti-aliased
+            // edges of Arabic glyph shaping without admitting a layout change.
+            //
+            // threshold is how DIFFERENT a single pixel may be before it counts, on pixelmatch's
+            // YIQ scale. This was 0.2, which admits any colour delta below 1409 — and a brand-blue
+            // shift of 16 steps per channel is 491, while the §6 accent-green correction itself is
+            // 1335. The gate could not detect either. Planting a visible colour change and watching
+            // the suite pass is how that was found.
+            //
+            // 0.05 admits deltas below 88. Five grey levels of text anti-aliasing is 13, so the
+            // noise this is meant to absorb still passes, and both colour changes above now fail.
             maxDiffPixelRatio: 0.01,
-            // Per-pixel tolerance for sub-pixel text rendering. Without it, Arabic shaping
-            // differences of one grey level would fail every screenshot.
-            threshold: 0.2,
+            threshold: 0.05,
             animations: 'disabled',
             caret: 'hide',
             scale: 'css',
@@ -71,10 +87,31 @@ export default defineConfig({
 
     // Boot the application for the suite. Reuses a running server locally; always starts a fresh
     // one in CI so a stale build can never be measured.
+    //
+    // The env overrides matter. The visual suite renders pages, not infrastructure: it has no use
+    // for Redis sessions or a queue, and depending on them means the suite fails for reasons that
+    // have nothing to do with the design. Without these the gallery returns Laravel's error page,
+    // and axe dutifully reports violations in Laravel's error page — which is how this was found.
+    //
+    // APP_ENV stays `local` because the gallery route is registered only in local (T100), and
+    // SQLite because the suite needs a database it can always reach.
     webServer: {
         command: 'php artisan serve --host=127.0.0.1 --port=8000',
         url: 'http://127.0.0.1:8000/up',
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        env: {
+            // PHP's built-in server is single-threaded. With fullyParallel across eight projects it
+            // serves one request at a time and the rest queue until they time out, which looks
+            // exactly like a flaky test suite. This is in ServeCommand's own passthrough list.
+            PHP_CLI_SERVER_WORKERS: '8',
+            APP_ENV: 'local',
+            APP_DEBUG: 'true',
+            SESSION_DRIVER: 'file',
+            CACHE_STORE: 'file',
+            QUEUE_CONNECTION: 'sync',
+            DB_CONNECTION: process.env.CI ? 'mysql' : 'sqlite',
+            DB_DATABASE: process.env.CI ? 'track_test' : 'database/visual.sqlite',
+        },
     },
 });

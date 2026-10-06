@@ -1,0 +1,802 @@
+// T070–T093 — styles for the 24 Blade components.
+//
+// One stylesheet rather than 24, because every rule here is a handful of declarations over the
+// token layer and the cascade order between them matters. Split across files, the order would be
+// decided by whichever import someone added last.
+//
+// Rules: no hex value, no px radius, no px shadow, no duration. Only tokens, the control-height
+// variables, and the bridge's Sass variables where a measurement has no custom property.
+// NoHardcodedVisualValuesTest (T065) fails the build on a violation.
+//
+// Direction: logical properties throughout. The two places that genuinely need a direction-aware
+// rule — the button's trailing icon and the breadcrumb chevron — say so where they appear.
+
+
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Button (T070)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    height: var(--control-h-md);
+    padding-inline: var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font: var(--text-body);
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.track-btn:hover { text-decoration: none; }
+
+.track-btn:active:not(:disabled) { transform: scale(.98); }
+
+.track-btn:disabled,
+.track-btn[aria-disabled='true'] {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+// Focus: a green border plus the ring. Two signals because on a primary (dark teal) button the ring
+// alone has too little contrast against the fill to satisfy 1.4.11.
+.track-btn:focus-visible {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: var(--ring-focus);
+}
+
+.track-btn--sm { height: var(--control-h-sm); padding-inline: var(--space-3); font: var(--text-body-sm); font-weight: var(--fw-semibold); }
+.track-btn--lg { height: var(--control-h-lg); padding-inline: var(--space-5); }
+
+.track-btn--primary   { background: var(--action-primary); color: var(--text-on-brand); }
+.track-btn--primary:hover:not(:disabled)   { background: var(--action-primary-hover); color: var(--text-on-brand); }
+.track-btn--primary:active:not(:disabled)  { background: var(--action-primary-active); }
+
+// A11Y-08. The fill darkens to --green-700 because the button carries white text: white on the
+// brand green is 2.54:1 against a 4.5:1 requirement. The brand green stays on fills that carry
+// nothing — the progress bar, the switch, the sidebar indicator.
+.track-btn--accent    { background: var(--action-accent-strong); color: var(--text-on-brand); }
+.track-btn--accent:hover:not(:disabled)    { background: var(--action-accent-strong-hover); color: var(--text-on-brand); }
+
+.track-btn--secondary { background: var(--surface-card); color: var(--text-primary); border-color: var(--border-strong); }
+.track-btn--secondary:hover:not(:disabled) { background: var(--surface-subtle); color: var(--text-primary); }
+
+.track-btn--ghost     { background: transparent; color: var(--text-brand); }
+.track-btn--ghost:hover:not(:disabled)     { background: var(--blue-50); color: var(--text-brand); }
+
+.track-btn--danger    { background: var(--red-600); color: var(--text-on-brand); }
+.track-btn--danger:hover:not(:disabled)    { background: var(--status-danger-fg); color: var(--text-on-brand); }
+
+.track-btn--block { width: 100%; }
+
+// `loading` must not change the button's width, or every toolbar reflows the moment someone clicks.
+// The label stays in the flow at zero opacity and the spinner is absolutely centred over it.
+.track-btn--loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+
+.track-btn--loading .track-btn__label,
+.track-btn--loading .track-btn__icon { opacity: 0; }
+
+.track-btn__spinner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+}
+
+.track-btn--primary .track-btn__spinner,
+.track-btn--accent .track-btn__spinner,
+.track-btn--danger .track-btn__spinner { color: var(--text-on-brand); }
+
+@media (prefers-reduced-motion: no-preference) {
+    .track-spin { animation: track-rotate var(--dur-spin) linear infinite; }
+}
+
+@keyframes track-rotate { to { transform: rotate(360deg); } }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Icon + IconButton (T067, T071)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-icon {
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.track-icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-h-md);
+    height: var(--control-h-md);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.track-icon-btn--sm { width: var(--control-h-sm); height: var(--control-h-sm); }
+.track-icon-btn--lg { width: var(--control-h-lg); height: var(--control-h-lg); }
+
+.track-icon-btn:hover:not(:disabled) { background: var(--surface-subtle); color: var(--text-primary); }
+
+.track-icon-btn:focus-visible {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: var(--ring-focus);
+}
+
+.track-icon-btn--outline { border-color: var(--border-strong); background: var(--surface-card); }
+.track-icon-btn--filled  { background: var(--action-primary); color: var(--text-on-brand); }
+.track-icon-btn--filled:hover:not(:disabled) { background: var(--action-primary-hover); color: var(--text-on-brand); }
+
+.track-icon-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+// The notification dot is decorative — the count it stands for is announced in the aria-label, so a
+// screen reader never depends on seeing it.
+.track-icon-btn__dot {
+    position: absolute;
+    top: var(--space-1);
+    inset-inline-end: var(--space-1);
+    width: var(--space-2);
+    height: var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--red-500);
+    border: 2px solid var(--surface-card);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Field, Input, Select, Checkbox, Switch (T072–T075, T093)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-field { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.track-field__label {
+    font: var(--text-caption);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}
+
+.track-field__required {
+    color: var(--status-danger-fg);
+    margin-inline-start: var(--space-1);
+}
+
+.track-field__hint { font: var(--text-caption); color: var(--text-secondary); }
+
+.track-field__error {
+    font: var(--text-caption);
+    font-weight: var(--fw-medium);
+    color: var(--status-danger-fg);
+}
+
+.track-input-wrap { position: relative; display: flex; align-items: center; }
+
+.track-input {
+    width: 100%;
+    height: var(--control-h-md);
+    padding-inline: var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-card);
+    color: var(--text-primary);
+    font: var(--text-body);
+}
+
+.track-input::placeholder { color: var(--text-secondary); }
+
+.track-input:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: var(--ring-focus);
+}
+
+.track-input:disabled { background: var(--surface-subtle); color: var(--text-muted); cursor: not-allowed; }
+
+.track-input--sm { height: var(--control-h-sm); font: var(--text-body-sm); }
+.track-input--lg { height: var(--control-h-lg); }
+
+// An input with a leading icon pads the text away from it on the inline-start side, which flips with
+// direction automatically.
+.track-input--with-icon { padding-inline-start: var(--space-10); }
+
+.track-input-wrap__icon {
+    position: absolute;
+    inset-inline-start: var(--space-3);
+    display: flex;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+// The error state changes the border AND replaces the hint with the message. Border colour alone
+// would be information carried by colour only (WCAG 1.4.1).
+.track-input--error,
+.track-input--error:focus { border-color: var(--red-600); }
+
+.track-select {
+    appearance: none;
+    padding-inline-end: var(--space-8);
+    background-image: none;
+}
+
+.track-select-wrap__chevron {
+    position: absolute;
+    inset-inline-end: var(--space-3);
+    display: flex;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.track-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+    font: var(--text-body);
+    color: var(--text-primary);
+}
+
+.track-check__box {
+    appearance: none;
+    width: var(--space-4);
+    height: var(--space-4);
+    flex-shrink: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xs);
+    background: var(--surface-card);
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+}
+
+.track-check__box:checked {
+    background: var(--action-primary);
+    border-color: var(--action-primary);
+}
+
+.track-check__box:checked::after {
+    content: '';
+    width: var(--space-2);
+    height: var(--space-1);
+    border: 2px solid var(--text-on-brand);
+    border-top: 0;
+    border-inline-end: 0;
+    transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.track-check__box:focus-visible { outline: none; border-color: var(--border-focus); box-shadow: var(--ring-focus); }
+
+.track-switch { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; }
+
+.track-switch__track {
+    appearance: none;
+    position: relative;
+    width: 40px;
+    height: var(--space-6);
+    flex-shrink: 0;
+    border-radius: var(--radius-pill);
+    background: var(--gray-300);
+    cursor: pointer;
+    border: 0;
+}
+
+// Non-text use, so the brand #10B981 is retained here per the §6 note.
+.track-switch__track:checked { background: var(--track-green); }
+
+.track-switch__track::after {
+    content: '';
+    position: absolute;
+    top: var(--space-1);
+    inset-inline-start: var(--space-1);
+    width: var(--space-4);
+    height: var(--space-4);
+    border-radius: var(--radius-pill);
+    background: var(--white);
+    box-shadow: var(--shadow-xs);
+}
+
+.track-switch__track:checked::after { inset-inline-start: calc(100% - var(--space-5)); }
+
+.track-switch__track:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+
+@media (prefers-reduced-motion: no-preference) {
+    .track-switch__track::after { transition: inset-inline-start var(--dur-fast) var(--ease-standard); }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// StatusBadge (T076)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// 6px radius pill. The label is always rendered — the Blade component cannot be invoked without
+// one — which is how FR-077 is satisfied structurally instead of by review.
+.track-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font: var(--text-caption);
+    font-weight: var(--fw-semibold);
+    white-space: nowrap;
+}
+
+.track-badge--success  { background: var(--status-success-bg);  color: var(--status-success-fg); }
+.track-badge--active   { background: var(--status-active-bg);   color: var(--status-active-fg); }
+.track-badge--progress { background: var(--status-progress-bg); color: var(--status-progress-fg); }
+.track-badge--danger   { background: var(--status-danger-bg);   color: var(--status-danger-fg); }
+.track-badge--warning  { background: var(--status-warning-bg);  color: var(--status-warning-fg); }
+.track-badge--neutral  { background: var(--status-neutral-bg);  color: var(--status-neutral-fg); }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Alert (T077)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font: var(--text-body);
+}
+
+.track-alert__icon { flex-shrink: 0; margin-top: 2px; }
+.track-alert__body { flex: 1; min-width: 0; }
+.track-alert__title { font-weight: var(--fw-semibold); margin-bottom: var(--space-1); }
+.track-alert__action { margin-top: var(--space-3); }
+
+.track-alert--info    { background: var(--blue-50);              color: var(--text-brand);        border-color: var(--blue-100); }
+.track-alert--success { background: var(--status-success-bg);    color: var(--status-success-fg); border-color: var(--green-200); }
+.track-alert--warning { background: var(--status-warning-bg);    color: var(--status-warning-fg); border-color: var(--amber-600); }
+.track-alert--danger  { background: var(--status-danger-bg);     color: var(--status-danger-fg);  border-color: var(--red-500); }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Toast (T078)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Fixed to the bottom-start corner, which is bottom-left in RTL and bottom-right in LTR.
+.track-toast-region {
+    position: fixed;
+    bottom: var(--space-6);
+    inset-inline-start: var(--space-6);
+    z-index: 1090;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    pointer-events: none;
+}
+
+.track-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-width: 280px;
+    max-width: 420px;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--surface-card);
+    box-shadow: var(--shadow-overlay);
+    border-inline-start: 3px solid var(--border-default);
+    font: var(--text-body);
+    pointer-events: auto;
+}
+
+.track-toast--success { border-inline-start-color: var(--action-accent); }
+.track-toast--error   { border-inline-start-color: var(--status-danger-fg); }
+.track-toast--info    { border-inline-start-color: var(--text-link); }
+
+.track-toast__body { flex: 1; min-width: 0; }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Dialog (T079)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-dialog-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    display: grid;
+    place-items: center;
+    padding: var(--space-4);
+    background: var(--surface-scrim);
+    backdrop-filter: blur(2px);
+}
+
+.track-dialog {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-overlay);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.track-dialog--form { max-width: 560px; }
+
+.track-dialog--inline {
+    max-width: none;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-default);
+}
+
+.track-dialog__header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+}
+
+.track-dialog__title { font: var(--text-h3); margin: 0; flex: 1; }
+.track-dialog__body { padding: 0 var(--space-5) var(--space-5); overflow-y: auto; }
+
+.track-dialog__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    background: var(--gray-50);
+    border-top: 1px solid var(--border-default);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Progress + Skeleton (T080, T081)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-progress { display: flex; flex-direction: column; gap: var(--space-1); }
+
+.track-progress__head {
+    display: flex;
+    justify-content: space-between;
+    font: var(--text-caption);
+    color: var(--text-secondary);
+}
+
+.track-progress__rail {
+    height: var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--surface-subtle);
+    overflow: hidden;
+}
+
+// Progress fill is non-text, so the brand green is retained.
+.track-progress__bar { height: 100%; border-radius: var(--radius-pill); background: var(--track-green); }
+.track-progress--blue   .track-progress__bar { background: var(--text-link); }
+.track-progress--danger .track-progress__bar { background: var(--red-500); }
+
+.track-skeleton {
+    display: block;
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Tooltip + EmptyState (T082, T083)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-tooltip-host { position: relative; display: inline-flex; }
+
+.track-tooltip {
+    position: absolute;
+    bottom: calc(100% + var(--space-2));
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    z-index: 1070;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--track-dark);
+    color: var(--text-on-brand);
+    font: var(--text-caption);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.track-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    padding: var(--space-12) var(--space-6);
+}
+
+.track-empty__icon { color: var(--text-muted); }
+.track-empty__title { font: var(--text-h3); margin: 0; }
+.track-empty__message { font: var(--text-body); color: var(--text-secondary); margin: 0; max-width: 42ch; }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Card + StatCard + Panel (T084, T085, T093)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-card,
+.track-panel {
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.track-card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-5) 0;
+}
+
+.track-card__title { font: var(--text-h4); margin: 0; flex: 1; }
+.track-card__body { padding: var(--space-5); }
+.track-card--flush > .track-card__body { padding: 0; }
+
+.track-panel__head {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-default);
+    font: var(--text-h4);
+}
+
+.track-panel__body { padding: var(--space-5); }
+
+.track-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-5);
+    text-align: center;
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+// The numeral is Inter with tabular figures, so a column of KPI cards does not jitter as values
+// change. 26px bold — --text-stat.
+.track-stat__value {
+    font: var(--text-stat);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-brand);
+}
+
+.track-stat--green .track-stat__value { color: var(--stat-green); }
+.track-stat--dark  .track-stat__value { color: var(--text-primary); }
+
+.track-stat__label { font: var(--text-caption); color: var(--text-secondary); }
+.track-stat__icon { color: var(--text-secondary); }
+.track-stat__trend { font: var(--text-caption); font-weight: var(--fw-semibold); }
+.track-stat__trend--up   { color: var(--text-success); }
+.track-stat__trend--down { color: var(--status-danger-fg); }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// DataTable (T086)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-table-wrap { width: 100%; overflow-x: auto; }
+
+.track-table { width: 100%; border-collapse: collapse; font: var(--text-body); }
+
+.track-table th {
+    padding: var(--space-3) var(--space-4);
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--border-default);
+    font: var(--text-caption);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+    text-align: start;
+    white-space: nowrap;
+}
+
+.track-table td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-default);
+    color: var(--text-primary);
+}
+
+.track-table tbody tr:hover { background: var(--blue-50); }
+.track-table--dense th,
+.track-table--dense td { padding: var(--space-2) var(--space-3); }
+
+.track-table__row--clickable { cursor: pointer; }
+
+// Numeric columns in Inter with tabular figures, so digits align down the column.
+.track-table__cell--numeric {
+    font-family: var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+    text-align: start;
+}
+
+.track-table__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.track-table__sort:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+
+// Below 768px each row becomes a card, with the column name rendered from a data attribute as the
+// label. FR-085: a 9-column roster is unreadable on a phone as a table, and horizontal scrolling
+// hides exactly the column someone is looking for.
+@media (max-width: 767.98px) {
+    .track-table--stack thead { display: none; }
+
+    .track-table--stack tbody tr {
+        display: block;
+        margin-bottom: var(--space-3);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background: var(--surface-card);
+        box-shadow: var(--shadow-xs);
+    }
+
+    .track-table--stack tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+        border-bottom: 1px solid var(--border-default);
+    }
+
+    .track-table--stack tbody tr td:last-child { border-bottom: 0; }
+
+    .track-table--stack tbody td::before {
+        content: attr(data-label);
+        font: var(--text-caption);
+        font-weight: var(--fw-semibold);
+        color: var(--text-secondary);
+    }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Tabs, Breadcrumbs, Stepper (T089–T091)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-tabs { display: flex; align-items: center; gap: var(--space-1); }
+
+.track-tabs--underline {
+    border-bottom: 1px solid var(--border-default);
+    gap: var(--space-5);
+}
+
+.track-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    font: var(--text-body);
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.track-tab:hover { color: var(--text-primary); }
+
+// The green underline is a non-text indicator; the active tab also carries aria-selected and a
+// weight change, so the state is not colour-only.
+.track-tab--active {
+    color: var(--text-brand);
+    font-weight: var(--fw-semibold);
+    border-bottom-color: var(--track-green);
+}
+
+.track-tab:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+
+.track-tab__count {
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--surface-subtle);
+    font: var(--text-micro);
+    font-family: var(--font-numeric);
+}
+
+.track-tabs--segmented {
+    padding: var(--space-1);
+    border-radius: var(--radius-md);
+    background: var(--surface-subtle);
+    gap: var(--space-1);
+}
+
+.track-tabs--segmented .track-tab {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    border-bottom: 0;
+    // A11Y-09. The segmented track is --surface-subtle, where --text-secondary drops to 4.41:1.
+    color: var(--text-secondary-on-subtle);
+}
+
+.track-tabs--segmented .track-tab--active { background: var(--surface-card); box-shadow: var(--shadow-xs); }
+
+.track-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+    list-style: none;
+    padding: 0;
+}
+
+.track-breadcrumbs a { color: var(--text-secondary); }
+.track-breadcrumbs a:hover { color: var(--text-brand); }
+.track-breadcrumbs li { display: flex; align-items: center; gap: var(--space-2); }
+.track-breadcrumbs__current { color: var(--text-primary); font-weight: var(--fw-medium); }
+
+// The separator is the only glyph in the system that must mirror. The chevron is emitted as
+// `chevron-left` or `chevron-right` by the component from the active direction rather than being
+// rotated here, because a rotated icon's optical weight shifts.
+.track-breadcrumbs__sep { color: var(--text-muted); display: flex; }
+
+.track-stepper { display: flex; align-items: flex-start; gap: var(--space-2); }
+
+.track-step { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); flex: 1; }
+
+.track-step__marker {
+    display: grid;
+    place-items: center;
+    width: var(--space-8);
+    height: var(--space-8);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    font: var(--text-caption);
+    font-family: var(--font-numeric);
+    font-weight: var(--fw-semibold);
+    flex-shrink: 0;
+}
+
+// A11Y-08 again: the marker holds a white check, which WCAG 1.4.11 holds to 3:1.
+.track-step--done .track-step__marker {
+    background: var(--action-accent-strong);
+    border-color: var(--action-accent-strong);
+    color: var(--text-on-brand);
+}
+
+.track-step--active .track-step__marker {
+    background: var(--action-primary);
+    border-color: var(--action-primary);
+    color: var(--text-on-brand);
+    box-shadow: var(--ring-focus);
+}
+
+.track-step__label { font: var(--text-caption); color: var(--text-secondary); text-align: center; }
+.track-step--active .track-step__label { color: var(--text-primary); font-weight: var(--fw-semibold); }
+
+.track-step__line { flex: 1; height: 1px; background: var(--border-default); margin-top: var(--space-4); }
+.track-step__line--done { background: var(--action-accent); }  // no text on it, so brand green
+
+// Below 768px the stepper wraps rather than scrolling. `overflow-x: auto` was the first attempt and
+// axe was right to reject it: a scrollable region has to be keyboard-reachable (WCAG 2.1.1), and
+// the only way to give a <ol> keyboard access is a tabindex, which would add a pointless tab stop
+// at every width. Six 32px markers wrap comfortably into 390px, so there is nothing to scroll.
+@media (max-width: 767.98px) {
+    .track-stepper {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-3);
+    }
+
+    // The connecting lines cannot survive wrapping — a line that wraps to the next row points at
+    // nothing. The markers' numbers already carry the sequence.
+    .track-step__line { display: none; }
+
+    .track-step { flex: 0 0 auto; }
+
+    // Only the active step keeps its label. Six labels at 12px in two rows is more text than the
+    // step markers are worth on a phone.
+    .track-step__label { display: none; }
+    .track-stepper .track-step--active .track-step__label { display: block; }
+}

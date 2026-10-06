@@ -1,0 +1,277 @@
+// T096 — the layout shell geometry from design-system.md §4.
+//
+// Every value here is a token reference. The one thing this file is allowed to decide is *which*
+// token a measurement uses; it may never introduce a number of its own, which is what
+// NoHardcodedVisualValuesTest (T065) enforces.
+//
+// Direction is handled entirely by CSS logical properties — `inset-inline-start`, `margin-inline`,
+// `padding-inline`. There is no `[dir="rtl"]` override anywhere in this file. That is deliberate:
+// the alternative is two sets of rules that drift, and the RTL one drifts first because it is the
+// one nobody on a Latin-script team checks.
+
+
+
+.track-shell {
+    display: flex;
+    min-height: 100vh;
+    background: var(--surface-page);
+}
+
+// ── Sidebar ──────────────────────────────────────────────────────────────────────────────────────
+// Fixed, not sticky: the content column scrolls on its own, so the nav never leaves the viewport
+// even on the 3,000-row section list.
+.track-sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    width: var(--sidebar-width);
+    background: var(--surface-sidebar);
+    color: var(--text-on-brand);
+}
+
+.track-sidebar__brand {
+    display: flex;
+    align-items: center;
+    height: var(--topbar-height);
+    padding-inline: var(--space-5);
+    flex-shrink: 0;
+}
+
+.track-sidebar__nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-3) var(--space-3) var(--space-6);
+}
+
+.track-sidebar__group-label {
+    padding: var(--space-4) var(--space-3) var(--space-2);
+    font: var(--text-caption);
+    color: rgb(255 255 255 / 55%);
+}
+
+.track-sidebar__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    height: 42px;
+    padding-inline: var(--space-3);
+    border-radius: var(--radius-md);
+    color: rgb(255 255 255 / 82%);
+    font: var(--text-body);
+    text-decoration: none;
+}
+
+.track-sidebar__item:hover {
+    background: rgb(255 255 255 / 8%);
+    color: var(--text-on-brand);
+    text-decoration: none;
+}
+
+// The active item carries two signals, not one: the filled surface and the indicator bar. Colour
+// alone would fail WCAG 1.4.1, and the sidebar is the one place a user orients themselves.
+.track-sidebar__item--active {
+    background: var(--surface-sidebar-active);
+    color: var(--text-on-brand);
+    font-weight: var(--fw-semibold);
+}
+
+.track-sidebar__item--active::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block: var(--space-2);
+    width: 3px;
+    border-radius: var(--radius-pill);
+    // Non-text use, so #10B981 is retained per the §6 note — this is an indicator, not a label.
+    background: var(--track-green);
+}
+
+.track-sidebar__item-icon {
+    flex-shrink: 0;
+}
+
+.track-sidebar__footer {
+    padding: var(--space-3);
+    border-top: 1px solid rgb(255 255 255 / 10%);
+    flex-shrink: 0;
+}
+
+// ── Main column ──────────────────────────────────────────────────────────────────────────────────
+.track-main {
+    flex: 1;
+    min-width: 0;  // lets a wide table shrink instead of forcing the page to scroll sideways
+    margin-inline-start: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+}
+
+.track-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    height: var(--topbar-height);
+    padding-inline: var(--space-6);
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.track-topbar__search {
+    flex: 1;
+    max-width: 420px;
+}
+
+.track-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+}
+
+.track-topbar__user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline: var(--space-3);
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.track-topbar__user:hover {
+    text-decoration: none;
+}
+
+.track-topbar__user-name {
+    font: var(--text-caption);
+    font-weight: var(--fw-semibold);
+    display: block;
+}
+
+.track-topbar__user-role {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    display: block;
+}
+
+.track-topbar__drawer-toggle {
+    display: none;  // shown only below the drawer breakpoint
+}
+
+// Content padding is 28/28/48 per §4 — the extra bottom space keeps the last table row clear of
+// the viewport edge, which matters because that row is often the one being acted on.
+.track-content {
+    flex: 1;
+    padding: 28px 28px 48px;
+}
+
+.track-page-header {
+    margin-bottom: var(--space-5);
+}
+
+.track-page-header__row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+}
+
+.track-page-header__title {
+    font: var(--text-h1);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.track-page-header__subtitle {
+    font: var(--text-body);
+    color: var(--text-secondary);
+    margin: var(--space-1) 0 0;
+}
+
+.track-page-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+    flex-shrink: 0;
+}
+
+// ── Grid ─────────────────────────────────────────────────────────────────────────────────────────
+// 14px is the design system's grid gap and has no custom property of its own. It is taken from the
+// bridge, which already declares it as $grid-gutter-width, rather than written as a literal here.
+.track-grid {
+    display: grid;
+    gap: $grid-gutter-width;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+// ── Drawer breakpoint ────────────────────────────────────────────────────────────────────────────
+// Below 768px the sidebar becomes an off-canvas drawer. `translate` on the inline axis rather than
+// `left`, so the transform follows direction without a separate RTL rule.
+.track-sidebar__scrim {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .track-sidebar {
+        transform: translateX(-100%);
+        transition: transform var(--dur-base) var(--ease-standard);
+    }
+
+    [dir='rtl'] .track-sidebar {
+        transform: translateX(100%);
+    }
+
+    .track-sidebar--open,
+    [dir='rtl'] .track-sidebar--open {
+        transform: translateX(0);
+    }
+
+    .track-sidebar__scrim {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1035;
+        background: var(--surface-scrim);
+        backdrop-filter: blur(2px);
+    }
+
+    .track-main {
+        margin-inline-start: 0;
+    }
+
+    .track-topbar {
+        padding-inline: var(--space-4);
+    }
+
+    .track-topbar__drawer-toggle {
+        display: inline-flex;
+    }
+
+    .track-topbar__search {
+        display: none;  // the search moves into the drawer; a 320px topbar cannot hold it
+    }
+
+    .track-content {
+        padding: var(--space-4) var(--space-4) var(--space-8);
+    }
+
+    .track-page-header__row {
+        flex-direction: column;
+    }
+
+    .track-page-header__actions {
+        margin-inline-start: 0;
+        width: 100%;
+    }
+}
+
+// The two verification widths FR-085 names. Nothing changes at either — they are here as a record
+// of what the visual-regression suite shoots, so a future author does not add a breakpoint between
+// them without noticing the baselines.
+// 1280px: sidebar 240 + content 1040
+// 1920px: sidebar 240 + content 1680

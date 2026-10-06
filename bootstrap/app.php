@@ -23,7 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // T094 — appended to the web group, so it runs after the session and authentication have
+        // resolved. Prepending it would mean $request->user() is still null and every page renders
+        // in the default locale rather than the user's own (FR-074).
+        $middleware->web(append: [
+            App\Modules\Shared\Http\Middleware\SetLocale::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

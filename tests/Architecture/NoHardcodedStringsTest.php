@@ -21,19 +21,31 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Strip everything from a Blade template that is not a bare text node.
+ *
+ * Order matters. Comments, scripts and PHP come out first; then Blade expressions, because they can
+ * contain `>` and would otherwise survive the tag pass as fragments; then tags.
  */
 function viewTextNodes(string $contents): string
 {
     $patterns = [
-        '/\{\{--.*?--\}\}/s',          // Blade comments
-        '/<!--.*?-->/s',               // HTML comments
-        '/<script\b.*?<\/script>/is',  // inline JS
-        '/<style\b.*?<\/style>/is',    // inline CSS
-        '/@php.*?@endphp/s',           // PHP blocks
-        '/\{\{.*?\}\}/s',              // echoes — already PHP, judged by the PHP guards
-        '/\{!!.*?!!\}/s',              // raw echoes
-        '/<[^>]*>/s',                  // all tags, which takes every attribute with them
-        '/@[a-zA-Z]+(\s*\([^)]*\))?/s', // Blade directives and their arguments
+        '/\{\{--.*?--\}\}/s',           // Blade comments
+        '/<!--.*?-->/s',                // HTML comments
+        '/<script\b.*?<\/script>/is',   // inline JS
+        '/<style\b.*?<\/style>/is',     // inline CSS
+        '/@php.*?@endphp/s',            // PHP blocks
+        '/\{\{.*?\}\}/s',               // echoes — already PHP, judged by the PHP guards
+        '/\{!!.*?!!\}/s',               // raw echoes
+        '/@[a-zA-Z]+\s*\((?:[^()]|\([^()]*\))*\)/s', // Blade directives with arguments
+        '/@[a-zA-Z]+/s',                // bare Blade directives
+        // Tags, matched so a quoted attribute value may contain `>`. The naive `<[^>]*>` stops at
+        // the first `>` inside `:dot="$count > 0"` and leaves the rest of the tag looking like
+        // prose — which is exactly how this scanner produced six false positives before.
+        '/<[a-zA-Z\/!](?:"[^"]*"|\'[^\']*\'|[^>"\'])*>/s',
+        // A dynamic tag name - `<{{ $tag }} href="...">`, which button and icon-button use to be
+        // either a <button> or an <a>. By this point the echo has been stripped, so the tag opens
+        // with `<` and whitespace and the pattern above has no tag name to anchor on.
+        '/<\s(?:"[^"]*"|\'[^\']*\'|[^>"\'])*>/s',
+        '/<\/\s*>/s',
     ];
 
     return (string) preg_replace($patterns, ' ', $contents);
@@ -59,25 +71,40 @@ function isTranslatableProse(string $text): bool
     return mb_strlen($trimmed) > 1;
 }
 
-test('no user-facing literal sits outside the translator', function (): void {
-    // welcome.blade.php is Laravel's stock landing page. Phase 3 replaces it with the application
-    // shell (T057 onward); this entry must be deleted when that happens, and the test below asserts
-    // the allowlist stays honest.
-    $allowlist = ['welcome.blade.php'];
-
+/**
+ * @return list<string>
+ */
+function translatableViewFiles(): array
+{
     $viewPath = resource_path('views');
+
+    if (! is_dir($viewPath)) {
+        return [];
+    }
+
+    $files = [];
+
+    // Dev-only fixture surfaces are excluded by path. The component gallery is specimen markup
+    // whose purpose is to show every component with representative content; translating a test
+    // fixture would make it a worse fixture, and it is unreachable outside APP_ENV=local.
+    $finder = Finder::create()->files()->in($viewPath)->notPath('dev')->name('*.blade.php');
+
+    foreach ($finder as $file) {
+        $files[] = (string) $file->getRealPath();
+    }
+
+    return $files;
+}
+
+test('no user-facing literal sits outside the translator', function (): void {
     $offenders = [];
 
-    foreach (Finder::create()->files()->in($viewPath)->name('*.blade.php') as $file) {
-        if (in_array($file->getFilename(), $allowlist, true)) {
-            continue;
-        }
-
-        $text = viewTextNodes((string) file_get_contents((string) $file->getRealPath()));
+    foreach (translatableViewFiles() as $path) {
+        $text = viewTextNodes((string) file_get_contents($path));
 
         foreach (preg_split('/\R/', $text) ?: [] as $line) {
             if (isTranslatableProse($line)) {
-                $relative = str_replace(base_path().DIRECTORY_SEPARATOR, '', (string) $file->getRealPath());
+                $relative = str_replace(base_path().DIRECTORY_SEPARATOR, '', $path);
                 $offenders[] = $relative.': '.trim($line);
             }
         }
@@ -89,18 +116,24 @@ test('no user-facing literal sits outside the translator', function (): void {
     'No views yet - Phase 3 creates the Blade layer.',
 );
 
-test('every allowlisted view still exists', function (): void {
-    // An allowlist that outlives the file it excuses is how a guard quietly stops guarding.
-    foreach (['welcome.blade.php'] as $filename) {
-        expect(is_file(resource_path('views/'.$filename)))->toBeTrue(
-            "views/{$filename} is allowlisted in NoHardcodedStringsTest but no longer exists — remove the entry.",
-        );
-    }
+test('there is no allowlist', function (): void {
+    // Laravel's stock welcome page was the one candidate for an exemption. It was rewritten to use
+    // tokens and __() instead, because a guard with a standing exemption is a guard nobody trusts.
+    // If a view genuinely cannot be translated, that is a conversation in review, not a quiet entry
+    // in an array here.
+    $source = (string) file_get_contents(__FILE__);
+
+    expect(str_contains($source, '$allow'.'list'))->toBeFalse(
+        'This test has gained an allowlist. Justify the exemption in review rather than in the test.',
+    );
 });
 
 test('the scanner finds prose and ignores markup', function (): void {
-    // The guard is only worth having if it fires. These four cases are the ones that matter: a bare
-    // sentence is caught, a translated one is not, and neither attributes nor numerals are prose.
+    // The guard is only worth having if it fires. These are the cases that matter: a bare sentence
+    // is caught, a translated one is not, and neither attributes, numerals, nor an attribute value
+    // containing `>` are prose.
+    expect(translatableViewFiles())->not->toBeEmpty();
+
     $caught = viewTextNodes('<p class="lead">Create a new section</p>');
     expect(isTranslatableProse($caught))->toBeTrue();
 
@@ -112,4 +145,12 @@ test('the scanner finds prose and ignores markup', function (): void {
 
     expect(isTranslatableProse(viewTextNodes('<td>1,204</td>')))->toBeFalse();
     expect(isTranslatableProse(viewTextNodes('<hr aria-label="divider">')))->toBeFalse();
+
+    // The regression this scanner was fixed for: a `>` inside a quoted attribute value.
+    $greaterThan = viewTextNodes('<x-track-icon-button :dot="$notificationCount > 0" icon="bell" />');
+    expect(isTranslatableProse($greaterThan))->toBeFalse();
+
+    // And a multi-line tag, which is how every component in this project is written.
+    $multiline = viewTextNodes("<x-track-button\n    variant=\"primary\"\n    :disabled=\"\$count > 3\"\n/>");
+    expect(isTranslatableProse($multiline))->toBeFalse();
 });
