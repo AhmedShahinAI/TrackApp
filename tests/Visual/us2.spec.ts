@@ -12,12 +12,12 @@
  * per-role map is otherwise only visible to someone who happens to sign in as the right person.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { refuseErrorPages } from './helpers/render-reference';
+import { accountFor, adminFor, expectLocale } from './support/session';
 
 const INTERACTION_WIDTH = 1440;
 
 /** The accounts this spec drives, and why each one. */
-const ADMIN = { email: 'm.alsalem@mu.edu.sa', password: 'Track2026' };
-const COORDINATOR = { email: 'k.alshammari@mu.edu.sa', password: 'Track2026' };
 
 /*
  * Instructor 5, not instructor 3.
@@ -28,7 +28,6 @@ const COORDINATOR = { email: 'k.alshammari@mu.edu.sa', password: 'Track2026' };
  * that reads as a styling regression in a completely different spec. Instructor 5 teaches sections
  * 13 and 16 and was granted 14, so their list carries both states at once.
  */
-const INSTRUCTOR = { email: 'r.alanazi@mu.edu.sa', password: 'Track2026' };
 
 function skipUnlessInteractionWidth(testInfo: { project: { use: { viewport?: { width: number } | null } } }): void {
     test.skip(
@@ -49,18 +48,28 @@ async function signIn(page: Page, locale: 'ar' | 'en', who: { email: string; pas
     await page.waitForLoadState('load');
 
     await expect(page.locator('.track-login__fields')).toHaveCount(0);
+
+    /*
+     * No locale switch here: the account's own stored preference decides, and there is one admin
+     * per locale. Switching after sign-in wrote a shared row and raced across parallel workers —
+     * see tests/Visual/support/session.ts.
+     */
+    await expectLocale(page, locale);
 }
 
 async function stabilise(page: Page) {
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(150);
+
+    // Never photograph an exception page.
+    await refuseErrorPages(page);
 }
 
 for (const locale of ['ar', 'en'] as const) {
     test.describe(`US2 · ${locale}`, () => {
         test('403 — a permission the caller does not hold', async ({ page }) => {
-            await signIn(page, locale, INSTRUCTOR);
+            await signIn(page, locale, accountFor('instructor', locale));
 
             // An instructor holds no user.view, and the record (the accounts screen) is not scoped
             // away from them — so this is the refusal, not the absence.
@@ -71,7 +80,7 @@ for (const locale of ['ar', 'en'] as const) {
         });
 
         test('404 — nothing there, or nothing they may know about', async ({ page }) => {
-            await signIn(page, locale, INSTRUCTOR);
+            await signIn(page, locale, accountFor('instructor', locale));
 
             await page.goto('/sections/999999');
             await stabilise(page);
@@ -85,7 +94,18 @@ for (const locale of ['ar', 'en'] as const) {
         });
 
         test('the shared-access badge in the sections list', async ({ page }) => {
-            await signIn(page, locale, INSTRUCTOR);
+            /*
+             * Arabic only, and deliberately.
+             *
+             * The badge needs an instructor who teaches two sections and was granted a third, and
+             * the fixture gives that shape to one account (r.alanazi). Duplicating the sections and
+             * the grant for an English twin would change the section counts every other baseline
+             * renders, to prove a label that components.spec.ts already shoots in both locales —
+             * status-badge is one of the twenty-seven specimens there.
+             */
+            test.skip(locale !== 'ar', 'Needs the granted instructor; the badge label is covered in components.spec.ts.');
+
+            await signIn(page, locale, accountFor('instructor', locale));
 
             await page.goto('/sections');
             await stabilise(page);
@@ -96,7 +116,7 @@ for (const locale of ['ar', 'en'] as const) {
         test('sidebar — Super Admin', async ({ page }, testInfo) => {
             skipUnlessInteractionWidth(testInfo);
 
-            await signIn(page, locale, ADMIN);
+            await signIn(page, locale, adminFor(locale));
             await page.goto('/home');
             await stabilise(page);
 
@@ -106,7 +126,7 @@ for (const locale of ['ar', 'en'] as const) {
         test('sidebar — branch coordinator', async ({ page }, testInfo) => {
             skipUnlessInteractionWidth(testInfo);
 
-            await signIn(page, locale, COORDINATOR);
+            await signIn(page, locale, accountFor('coordinator', locale));
             await page.goto('/home');
             await stabilise(page);
 
@@ -116,7 +136,7 @@ for (const locale of ['ar', 'en'] as const) {
         test('sidebar — instructor', async ({ page }, testInfo) => {
             skipUnlessInteractionWidth(testInfo);
 
-            await signIn(page, locale, INSTRUCTOR);
+            await signIn(page, locale, accountFor('instructor', locale));
             await page.goto('/home');
             await stabilise(page);
 
@@ -139,7 +159,7 @@ test.describe('US2 behaviour the pixels cannot pin', () => {
 
         const labels: Record<string, string[]> = {};
 
-        for (const [role, who] of Object.entries({ admin: ADMIN, coordinator: COORDINATOR, instructor: INSTRUCTOR })) {
+        for (const [role, who] of Object.entries({ admin: adminFor('ar'), coordinator: accountFor('coordinator', 'ar'), instructor: accountFor('instructor', 'ar') })) {
             await signIn(page, 'ar', who);
             await page.goto('/home');
             await stabilise(page);
@@ -164,7 +184,7 @@ test.describe('US2 behaviour the pixels cannot pin', () => {
     });
 
     test('a refusal page names no record and no branch', async ({ page }) => {
-        await signIn(page, 'ar', INSTRUCTOR);
+        await signIn(page, 'ar', accountFor('instructor', 'ar'));
         await page.goto('/sections/999999');
         await stabilise(page);
 

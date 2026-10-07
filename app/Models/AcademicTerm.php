@@ -43,6 +43,19 @@ class AcademicTerm extends Model
         return $query->where('is_current', true);
     }
 
+    /**
+     * T167 — the contract names this entity `term`, not `academic_term`.
+     *
+     * contracts/audit.md lists 38 action keys and a Pest test treats that list as closed. The
+     * trait's default is snake(class_basename), which would emit `academic_term.created` — a key the
+     * contract does not contain, and therefore an action no audit screen has a label or a filter
+     * for.
+     */
+    public function auditEntityKey(): string
+    {
+        return 'term';
+    }
+
     /** @return list<string> */
     public function auditedAttributes(): array
     {

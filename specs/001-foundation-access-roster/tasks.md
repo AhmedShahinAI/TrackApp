@@ -357,26 +357,26 @@ keyboard.
 
 ### Tests for User Story 3
 
-- [ ] T154 [P] [US3] Write `tests/Feature/Audit/TransactionalWriteTest.php` forcing the audit insert to fail mid-action and asserting the business row is **absent** afterwards and the caller is told to retry (FR-030)
-- [ ] T155 [P] [US3] Write `tests/Feature/Audit/ImmutabilityTest.php` asserting all three layers independently: no update or delete path in code, no `updated_at` column, and — where the connection has privileges — that a direct `UPDATE` on `audit_logs` is refused for the application user (FR-031)
-- [ ] T156 [P] [US3] Write `tests/Feature/Audit/ActionCoverageTest.php` performing each of the 34 action keys tabulated in [contracts/audit.md](./contracts/audit.md) once and asserting exactly one entry each with the correct key (FR-028)
-- [ ] T157 [P] [US3] Write `tests/Feature/Audit/NoSecretsInPayloadTest.php` asserting no audit payload contains a `password`, hash, session token, or CSRF token key
-- [ ] T158 [P] [US3] Write `tests/Feature/Audit/OldAndNewValuesTest.php` asserting both previous and new values are present for every changed field on an edit
-- [ ] T159 [P] [US3] Write `tests/Scope/AuditLogScopeTest.php` asserting a coordinator sees only entries resolving into their branches plus their own actions, and cannot widen `branch_id`
-- [ ] T160 [P] [US3] Write `tests/Authorization/AuditEndpointsTest.php` with allow and deny cases for `GET /audit-logs`, `GET /audit-logs/export`, and `GET /{entity}/{id}/activity`
-- [ ] T161 [P] [US3] Write `tests/Performance/AuditLogFilterTest.php` seeding 1,000,000 entries and asserting a person + date-range filter returns in under 2 seconds (SC-004), in the `performance` group, excluded from the default run
-- [ ] T162 [P] [US3] Write `tests/Visual/us3.spec.ts` screenshotting the audit list with filters applied, the before/after detail expansion, the immutability notice, and an activity tab against the `AuditScreen` reference, both locales
+- [X] T154 [P] [US3] Write `tests/Feature/Audit/TransactionalWriteTest.php` forcing the audit insert to fail mid-action and asserting the business row is **absent** afterwards and the caller is told to retry (FR-030)
+- [X] T155 [P] [US3] Write `tests/Feature/Audit/ImmutabilityTest.php` asserting all three layers independently: no update or delete path in code, no `updated_at` column, and — where the connection has privileges — that a direct `UPDATE` on `audit_logs` is refused for the application user (FR-031)
+- [X] T156 [P] [US3] Write `tests/Feature/Audit/ActionCoverageTest.php` performing each of the 34 action keys tabulated in [contracts/audit.md](./contracts/audit.md) once and asserting exactly one entry each with the correct key (FR-028)
+- [X] T157 [P] [US3] Write `tests/Feature/Audit/NoSecretsInPayloadTest.php` asserting no audit payload contains a `password`, hash, session token, or CSRF token key
+- [X] T158 [P] [US3] Write `tests/Feature/Audit/OldAndNewValuesTest.php` asserting both previous and new values are present for every changed field on an edit
+- [X] T159 [P] [US3] Write `tests/Scope/AuditLogScopeTest.php` asserting a coordinator sees only entries resolving into their branches plus their own actions, and cannot widen `branch_id`
+- [X] T160 [P] [US3] Write `tests/Authorization/AuditEndpointsTest.php` with allow and deny cases for `GET /audit-logs`, `GET /audit-logs/export`, and `GET /{entity}/{id}/activity`
+- [X] T161 [P] [US3] Write `tests/Performance/AuditLogFilterTest.php` seeding 1,000,000 entries and asserting a person + date-range filter returns in under 2 seconds (SC-004), in the `performance` group, excluded from the default run
+- [X] T162 [P] [US3] Write `tests/Visual/us3.spec.ts` screenshotting the audit list with filters applied, the before/after detail expansion, the immutability notice, and an activity tab against the `AuditScreen` reference, both locales
 
 ### Implementation for User Story 3
 
-- [ ] T163 [US3] Implement `app/Modules/Audit/Http/Controllers/AuditLogController.php` with `GET /audit-logs` supporting the `user_id`, `action`, `entity_type`, `entity_id`, `date_from`, `date_to`, and `branch_id` filters, served by the T029 indexes
-- [ ] T164 [P] [US3] Implement `app/Modules/Audit/Http/Resources/AuditLogResource.php` adding server-localized `action_label` and `entity_label` while keeping the raw `action` key stable for filtering
-- [ ] T165 [P] [US3] Implement `app/Modules/Audit/Exports/AuditLogExport.php` and `GET /audit-logs/export` producing an Arabic-safe `.xlsx` whose rows match the list endpoint exactly for the same filters, with a header block carrying the applied filters, timestamp, and requesting user — auditing `audit.exported`
-- [ ] T166 [US3] Implement `app/Modules/Audit/Http/Controllers/EntityActivityController.php` with `GET /{entity}/{id}/activity` for terms, branches, sections, and students, returning 404 when the entity is out of scope so it cannot be used to probe (FR-033)
-- [ ] T167 [P] [US3] Apply the `Auditable` trait and an `auditedAttributes()` allowlist to `User`, `Branch`, `AcademicTerm`, `Course`, `Section`, `Student`, and `SectionEnrollment`
-- [ ] T168 [US3] Build `resources/views/audit/index.blade.php` to the `AuditScreen` + `AuditTable` reference — `x-track-page-header` with an export action, a filter `x-track-card` holding actor/action/entity/date-range `x-track-select` and date inputs, `x-track-data-table` with monospace-numeric timestamps and an expandable before/after JSON diff row, and a persistent `x-track-alert` tone info stating entries cannot be modified or deleted
-- [ ] T169 [P] [US3] Build `resources/views/components/track/activity-tab.blade.php` as an `x-track-tabs` panel embedding the scoped activity table, reused on term, branch, section, and student detail pages
-- [ ] T170 [P] [US3] Add the `audit` translation keys — one `action_label` per action key in [contracts/audit.md](./contracts/audit.md) — to `lang/ar/audit.php` and `lang/en/audit.php`, taking the Arabic labels from the reference kit's audit strings per [ui-conflicts.md](./ui-conflicts.md) C-11
+- [X] T163 [US3] Implement `app/Modules/Audit/Http/Controllers/AuditLogController.php` with `GET /audit-logs` supporting the `user_id`, `action`, `entity_type`, `entity_id`, `date_from`, `date_to`, and `branch_id` filters, served by the T029 indexes
+- [X] T164 [P] [US3] Implement `app/Modules/Audit/Http/Resources/AuditLogResource.php` adding server-localized `action_label` and `entity_label` while keeping the raw `action` key stable for filtering
+- [X] T165 [P] [US3] Implement `app/Modules/Audit/Exports/AuditLogExport.php` and `GET /audit-logs/export` producing an Arabic-safe `.xlsx` whose rows match the list endpoint exactly for the same filters, with a header block carrying the applied filters, timestamp, and requesting user — auditing `audit.exported`
+- [X] T166 [US3] Implement `app/Modules/Audit/Http/Controllers/EntityActivityController.php` with `GET /{entity}/{id}/activity` for terms, branches, sections, and students, returning 404 when the entity is out of scope so it cannot be used to probe (FR-033)
+- [X] T167 [P] [US3] Apply the `Auditable` trait and an `auditedAttributes()` allowlist to `User`, `Branch`, `AcademicTerm`, `Course`, `Section`, `Student`, and `SectionEnrollment`
+- [X] T168 [US3] Build `resources/views/audit/index.blade.php` to the `AuditScreen` + `AuditTable` reference — `x-track-page-header` with an export action, a filter `x-track-card` holding actor/action/entity/date-range `x-track-select` and date inputs, `x-track-data-table` with monospace-numeric timestamps and an expandable before/after JSON diff row, and a persistent `x-track-alert` tone info stating entries cannot be modified or deleted
+- [X] T169 [P] [US3] Build `resources/views/components/track/activity-tab.blade.php` as an `x-track-tabs` panel embedding the scoped activity table, reused on term, branch, section, and student detail pages
+- [X] T170 [P] [US3] Add the `audit` translation keys — one `action_label` per action key in [contracts/audit.md](./contracts/audit.md) — to `lang/ar/audit.php` and `lang/en/audit.php`, taking the Arabic labels from the reference kit's audit strings per [ui-conflicts.md](./ui-conflicts.md) C-11
 
 **Checkpoint**: The audit trail is complete, queryable, and provably immutable before records exist at scale.
 

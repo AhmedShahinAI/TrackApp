@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { VISUAL_DATABASE } from './tests/Visual/global-setup';
+
 /**
  * T009 — visual regression and accessibility.
  *
@@ -25,7 +27,7 @@ export default defineConfig({
     testDir: './tests/Visual',
 
     /*
-     * Builds and seeds database/visual.sqlite before anything runs, so the suite does not depend on
+     * Builds and seeds the visual database before anything runs, so the suite does not depend on
      * a file that looks like a build artifact and gets cleaned up. Deleting it mid-run once produced
      * sixty failures in components unrelated to the change under test.
      */
@@ -134,7 +136,11 @@ export default defineConfig({
             CACHE_STORE: 'file',
             QUEUE_CONNECTION: 'sync',
             DB_CONNECTION: process.env.CI ? 'mysql' : 'sqlite',
-            DB_DATABASE: process.env.CI ? 'track_test' : 'database/visual.sqlite',
+            /*
+             * The same path globalSetup builds, imported rather than repeated — two spellings of
+             * one file is how a suite ends up seeding one database and reading another.
+             */
+            DB_DATABASE: process.env.CI ? 'track_test' : VISUAL_DATABASE,
         },
     },
 });

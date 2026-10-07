@@ -16,10 +16,10 @@
  * shares this layout.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { adminFor, expectLocale } from './support/session';
 import { stabilise } from './helpers/render-reference';
 
-/** From UiFixtureSeeder: user 1, مها السالم, SUPER_ADMIN — holds every permission. */
-const ADMIN = { email: 'm.alsalem@mu.edu.sa', password: 'Track2026' };
+/* The Super Admin is chosen by locale — adminFor() in support/session.ts explains why. */
 
 /** User 3, د. فيصل العتيبي — an instructor who has never signed in, so the banner shows for them. */
 const FIRST_TIME = { email: 'f.alotaibi@mu.edu.sa', password: 'Track2026' };
@@ -84,6 +84,13 @@ async function signIn(page: Page, locale: 'ar' | 'en', who: { email: string; pas
      * sign-in screen is actually behind us.
      */
     await expect(page.locator('.track-login__fields')).toHaveCount(0);
+
+    /*
+     * No locale switch here: the account's own stored preference decides, and there is one admin
+     * per locale. Switching after sign-in wrote a shared row and raced across parallel workers —
+     * see tests/Visual/support/session.ts.
+     */
+    await expectLocale(page, locale);
 }
 
 for (const locale of ['ar', 'en'] as const) {
@@ -180,7 +187,7 @@ for (const locale of ['ar', 'en'] as const) {
         });
 
         test('landing page', async ({ page }) => {
-            await signIn(page, locale, ADMIN);
+            await signIn(page, locale, adminFor(locale));
             await stabilise(page);
 
             /*
@@ -204,7 +211,7 @@ for (const locale of ['ar', 'en'] as const) {
         });
 
         test('accounts list', async ({ page }) => {
-            await signIn(page, locale, ADMIN);
+            await signIn(page, locale, adminFor(locale));
             await page.goto('/users');
             await stabilise(page);
 
@@ -220,7 +227,7 @@ for (const locale of ['ar', 'en'] as const) {
         test('create dialog', async ({ page }, testInfo) => {
             skipUnlessInteractionWidth(testInfo);
 
-            await signIn(page, locale, ADMIN);
+            await signIn(page, locale, adminFor(locale));
             await page.goto('/users');
             await page.click('.track-page-header__actions button');
             await page.waitForTimeout(250);
@@ -236,7 +243,7 @@ for (const locale of ['ar', 'en'] as const) {
         test('deactivate confirmation', async ({ page }, testInfo) => {
             skipUnlessInteractionWidth(testInfo);
 
-            await signIn(page, locale, ADMIN);
+            await signIn(page, locale, adminFor(locale));
             await page.goto('/users');
 
             const trigger = page.locator('button[title*="تعطيل"], button[title*="Deactivate"]').first();
@@ -259,7 +266,7 @@ for (const locale of ['ar', 'en'] as const) {
         test('reset-password confirmation', async ({ page }, testInfo) => {
             skipUnlessInteractionWidth(testInfo);
 
-            await signIn(page, locale, ADMIN);
+            await signIn(page, locale, adminFor(locale));
             await page.goto('/users');
 
             const trigger = page
@@ -280,7 +287,7 @@ for (const locale of ['ar', 'en'] as const) {
         });
 
         test('profile and change password', async ({ page }) => {
-            await signIn(page, locale, ADMIN);
+            await signIn(page, locale, adminFor(locale));
             await page.goto('/profile');
             await stabilise(page);
 

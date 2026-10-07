@@ -26,6 +26,27 @@ namespace App\Modules\Audit\Services;
  */
 final class AuditLabels
 {
+    /**
+     * Every action key the platform defines, in the order the lang file lists them.
+     *
+     * The lang file is the source because AuditLabelsTest already pins it to contracts/audit.md in
+     * both directions — every contract key has a label, and no label exists for a key the contract
+     * does not define. Reading it here means the filter dropdown cannot offer an action the system
+     * never emits, and cannot omit one it does.
+     *
+     * @return list<string>
+     */
+    public static function contractActions(): array
+    {
+        /** @var array<string, string> $labels */
+        $labels = (array) __('audit.actions');
+
+        return array_values(array_filter(
+            array_keys($labels),
+            static fn (string $key): bool => $key !== 'unknown',
+        ));
+    }
+
     public static function for(string $action): string
     {
         /** @var array<string, string> $labels */

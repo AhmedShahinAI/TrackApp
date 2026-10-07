@@ -28,6 +28,19 @@ class Program extends Model
     /** @use HasFactory<ProgramFactory> */
     use Auditable, HasFactory, SoftDeletes;
 
+    /**
+     * A soft delete is recorded as a deactivation (T167).
+     *
+     * Constitution V forbids a hard delete, so `delete()` sets `deleted_at` and the row stays.
+     * contracts/audit.md names the event accordingly and lists no `.deleted` key at all, so the
+     * trait's default would emit one outside the contract's closed list of 38 — a key no filter
+     * offers, no label covers, and which tells a reader the row is gone when it is not.
+     */
+    public function auditActionFor(string $event): string
+    {
+        return $this->auditEntityKey().'.'.($event === 'deleted' ? 'deactivated' : $event);
+    }
+
     /** @return BelongsTo<Organization, $this> */
     public function organization(): BelongsTo
     {

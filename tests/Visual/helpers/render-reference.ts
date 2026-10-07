@@ -88,7 +88,39 @@ export async function openReference(page: Page, locale: ReferenceLocale): Promis
     }
 
     await page.evaluate(() => document.fonts.ready);
+
+    // Never photograph an exception page — see refuseErrorPages() for the three times this project
+    // did exactly that and committed the result.
+    await refuseErrorPages(page);
 }
+
+/**
+ * Refuse to photograph a Laravel error page.
+ *
+ * Three baselines in this project have been an unhandled exception rendered at 500 and frozen as
+ * the reference for the screen they replaced: a sections list whose Blade threw `Undefined variable
+ * $slot`, a landing page whose stylesheet never loaded while the machine slept, and a 403 whose
+ * audit write hit a locked database. Each was written by `--update-snapshots`, each passed every
+ * run afterwards, and each was found only by opening the PNG and looking at it.
+ *
+ * A screenshot tool cannot tell a designed page from an exception page — both are pixels. This can,
+ * and it costs one DOM query per shot.
+ */
+export async function refuseErrorPages(page: Page): Promise<void> {
+    const looksLikeAnException = await page.evaluate(() => {
+        const text = document.body?.innerText ?? '';
+
+        return (
+            /Internal Server Error|Whoops, something went wrong|SQLSTATE\[/i.test(text)
+            || document.querySelector('.exception-message') !== null
+        );
+    });
+
+    if (looksLikeAnException) {
+        throw new Error('the page rendered as an exception — refusing to capture it as a baseline');
+    }
+}
+
 
 /**
  * Whether the kit actually mounted.

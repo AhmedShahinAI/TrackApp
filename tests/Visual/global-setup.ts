@@ -14,9 +14,24 @@
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 
-const DATABASE = 'database/visual.sqlite';
+/*
+ * Outside the repository, deliberately.
+ *
+ * The project lives in a OneDrive-synced folder, and the suite's SQLite file was in it. Two things
+ * followed. The sync service holds handles on files it is uploading, and US3 turned every refused
+ * request into a write — `AuditDeniedAccess` records `access.denied` — so four parallel workers now
+ * write to one SQLite file that a background process is also touching. The result was
+ * "SQLSTATE[HY000]: General error: 8 attempt to write a readonly database" rendered as a Laravel
+ * error page, captured by --update-snapshots, and committed as the reference for a 403 screen.
+ *
+ * The system temp directory is local, unsynced, and nobody's backup.
+ */
+export const VISUAL_DATABASE = join(tmpdir(), 'track-visual.sqlite');
+
+const DATABASE = VISUAL_DATABASE;
 
 const ENV = {
     ...process.env,
@@ -41,9 +56,22 @@ function artisan(...args: string[]): void {
 export default function globalSetup(): void {
     // Rebuilt from scratch every run. A database carried over between runs is a database whose
     // contents nobody can state, and a baseline is only meaningful against known fixtures.
-    rmSync(DATABASE, { force: true });
+    for (const suffix of ['', '-wal', '-shm']) {
+        rmSync(DATABASE + suffix, { force: true });
+    }
     mkdirSync(dirname(DATABASE), { recursive: true });
     writeFileSync(DATABASE, '');
+
+    /*
+     * WAL before anything else. The default journal mode takes a database-wide write lock, and with
+     * four workers each writing an audit row per refused request, that is a lock contention problem
+     * rather than a theoretical one. WAL lets readers continue while one writer works.
+     */
+    execFileSync('php', ['-r', `$db = new PDO('sqlite:' . ${JSON.stringify(DATABASE)}); $db->exec('PRAGMA journal_mode=WAL');`], {
+        env: ENV,
+        stdio: 'pipe',
+        encoding: 'utf8',
+    });
 
     artisan('migrate');
     artisan('db:seed');

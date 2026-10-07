@@ -138,7 +138,10 @@
                 ['key' => 'branches', 'label' => __('users.fields.branches'), 'sortable' => false],
                 ['key' => 'status', 'label' => __('users.fields.status')],
                 ['key' => 'last_login', 'label' => __('users.fields.last_login')],
-                ['key' => 'row_actions', 'label' => __('common.labels.more'), 'sortable' => false],
+                // `actions.more`, not `labels.more`. The key lives under `actions` in lang/{ar,en}/common.php,
+                // so the wrong path resolved to nothing and Laravel printed the key itself as a column
+                // heading — in both locales, at every width, frozen into the baselines since Phase 4.
+                ['key' => 'row_actions', 'label' => __('common.actions.more'), 'sortable' => false],
             ]"
             :rows="$rows"
             :renderers="$renderers"

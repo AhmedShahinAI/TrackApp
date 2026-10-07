@@ -128,7 +128,14 @@ test('the Auditable trait records a create, an update, and a delete', function (
         ->pluck('action')
         ->all();
 
-    expect($actions)->toBe(['branch.created', 'branch.updated', 'branch.deleted']);
+    /*
+     * `branch.deactivated`, not `branch.deleted` — changed in US3 (T167).
+     *
+     * The row is soft-deleted and stays, and contracts/audit.md names the event accordingly; its
+     * list of 38 keys contains no `.deleted` at all. This assertion was written in Phase 2 against
+     * the trait's default key, before the contract's list became an enforced allowlist.
+     */
+    expect($actions)->toBe(['branch.created', 'branch.updated', 'branch.deactivated']);
 
     $update = DB::table('audit_logs')->where('action', 'branch.updated')->first();
 

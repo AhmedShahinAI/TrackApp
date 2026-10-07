@@ -949,3 +949,86 @@
 @media (max-width: 991.98px) {
     .track-home-grid { grid-template-columns: 1fr; }
 }
+
+// ── Audit screen (US3) ──────────────────────────────────────────────────────────────────────────
+//
+// The filter row collapses to one column on a phone rather than scrolling sideways: five selects
+// side by side at 390px would each be too narrow to read their own label.
+
+.track-audit__filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--space-3);
+    align-items: end;
+}
+
+.track-audit__filter-actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.track-audit__action {
+    font: var(--text-body-strong);
+    color: var(--track-blue);
+}
+
+// The before/after disclosure. <details> rather than a dialog or an expanding row: no JavaScript,
+// keyboard-operable and announced by the browser, and it degrades to visible text without styling.
+.track-audit__diff > summary {
+    cursor: pointer;
+    color: var(--text-secondary);
+    font: var(--text-caption);
+}
+
+.track-audit__diff > summary:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+.track-audit__diff-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+}
+
+.track-audit__side {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+}
+
+// Tone, not meaning: the heading says which side it is, so the colour is reinforcement and the
+// panel stays readable to anyone who cannot tell the two apart.
+.track-audit__side--old { background: var(--red-50); }
+.track-audit__side--new { background: var(--green-50); }
+
+.track-audit__side h3 {
+    font: var(--text-caption-strong);
+    margin: 0 0 var(--space-2);
+    color: var(--text-secondary);
+}
+
+.track-audit__side dl { margin: 0; }
+
+.track-audit__side dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
+}
+
+.track-audit__side dt {
+    color: var(--text-secondary);
+    font: var(--text-caption);
+}
+
+.track-audit__side dd {
+    margin: 0;
+    font: var(--text-caption);
+}
+
+.track-activity__more {
+    padding: var(--space-3);
+    text-align: center;
+}

@@ -264,9 +264,27 @@ class UiFixtureSeeder extends Seeder
             [6, 'أ. سلمان الرشيدي', 'Salman Al-Rashidi', 's.alrashidi@mu.edu.sa', 'INSTRUCTOR', [], false, '2026-01-20 08:00:00', '2026-05-10 08:00:00'],
 
             [7, 'د. هند المطيري', 'Dr. Hind Al-Mutairi', 'h.almutairi@mu.edu.sa', 'INSTRUCTOR', [], true, '2026-09-01 08:00:00', '2026-09-26 06:40:00'],
+
+            /*
+             * An English-preference Super Admin, added for the visual suite — and it is a fixture
+             * change rather than a test-only trick for a reason.
+             *
+             * SetLocale resolves user -> session -> query, so the only way to photograph a
+             * signed-in screen in English is an account whose stored locale IS English. The suite
+             * previously signed in as user 1 and flipped that row through /locale, which works
+             * until two of four parallel workers do it at once: a baseline named `ar-*` was
+             * captured in English mid-race, and committed. One account per locale removes the
+             * shared row the race needs.
+             */
+            [8, 'منى الحربي', 'Mona Al-Harbi', 'm.alharbi@mu.edu.sa', 'SUPER_ADMIN', [], true, '2026-08-21 08:10:00', '2026-09-26 08:05:00', 'en'],
+            [9, 'د. سارة القحطاني', 'Dr. Sara Al-Qahtani', 's.alqahtani@mu.edu.sa', 'BRANCH_COORDINATOR', [1, 2], true, '2026-09-02 11:00:00', '2026-09-24 10:10:00', 'en'],
+            [10, 'أ. عمر الزهراني', 'Omar Al-Zahrani', 'o.alzahrani@mu.edu.sa', 'INSTRUCTOR', [], true, '2026-09-03 12:00:00', '2026-09-22 14:00:00', 'en'],
         ];
 
-        foreach ($users as [$id, $ar, $en, $email, $role, $branchIds, $active, $firstLogin, $lastLogin]) {
+        foreach ($users as $row) {
+            [$id, $ar, $en, $email, $role, $branchIds, $active, $firstLogin, $lastLogin] = $row;
+            $locale = $row[9] ?? 'ar';
+
             // forceFill rather than updateOrCreate: `password` is deliberately absent from the
             // fillable list (it is set through an audited action), and the column is NOT NULL, so a
             // mass-assigned create would fail on the very first row.
@@ -279,7 +297,7 @@ class UiFixtureSeeder extends Seeder
                 'name_en' => $en,
                 'email' => $email,
                 'password' => $password,
-                'locale' => 'ar',
+                'locale' => $locale,
                 'is_active' => $active,
                 'first_login_at' => $firstLogin,
                 'last_login_at' => $lastLogin,

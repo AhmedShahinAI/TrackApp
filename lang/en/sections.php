@@ -24,6 +24,11 @@ return [
         'female' => 'Female',
     ],
 
+    'tabs' => [
+        'details' => 'Details',
+        'activity' => 'History',
+    ],
+
     'detail' => [
         'title' => 'Section :number',
     ],

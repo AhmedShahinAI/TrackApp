@@ -31,6 +31,11 @@ return [
         'female' => 'طالبات',
     ],
 
+    'tabs' => [
+        'details' => 'التفاصيل',
+        'activity' => 'السجل',
+    ],
+
     'detail' => [
         'title' => 'الشعبة :number',
     ],

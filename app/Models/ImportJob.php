@@ -43,6 +43,19 @@ class ImportJob extends Model implements ConstrainableToBranches, ConstrainableT
         return $this->belongsTo(Section::class);
     }
 
+    /**
+     * T167 — the contract names this entity `import`, not `import_job`.
+     *
+     * contracts/audit.md lists 38 action keys and a Pest test treats that list as closed. The
+     * trait's default is snake(class_basename), which would emit `import_job.created` — a key the
+     * contract does not contain, and therefore an action no audit screen has a label or a filter
+     * for.
+     */
+    public function auditEntityKey(): string
+    {
+        return 'import';
+    }
+
     /** @return list<string> */
     public function auditedAttributes(): array
     {

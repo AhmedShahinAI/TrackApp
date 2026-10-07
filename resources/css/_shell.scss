@@ -210,8 +210,26 @@
 }
 
 // ── Drawer breakpoint ────────────────────────────────────────────────────────────────────────────
-// Below 768px the sidebar becomes an off-canvas drawer. `translate` on the inline axis rather than
-// `left`, so the transform follows direction without a separate RTL rule.
+//
+// Below 768px the sidebar becomes an off-canvas drawer.
+//
+// ## There is no [dir='rtl'] rule here, and that is the fix
+//
+// There used to be one — `translateX(100%)` — written because the drawer anchors to the inline-end
+// edge and has to slide the other way in Arabic. It produced the opposite of what it says.
+//
+// The Arabic stylesheet is not authored; it is the compiled sheet run through RTLCSS, which negates
+// `translateX` for the whole file. So the base rule's -100% became +100% correctly, and the manual
+// +100% became -100% — and being later in the cascade, the wrong one won. The drawer did not sit
+// off-canvas at all: measured at 390px it occupied x ∈ [-90, 150], `position: fixed` with
+// `z-index: 1040` and `pointer-events: auto`, directly over the content.
+//
+// It was not a cosmetic bug. Every control in the left 150px of every screen below 768px was
+// unclickable: the row actions on the accounts list, which the T114 amendment misread as "present
+// but not visible", and the locale switch in the topbar, which is what finally made it unmissable —
+// eighteen baselines failed because `elementFromPoint` on the switch returned the drawer's logo.
+//
+// One authored rule, flipped once by the tool whose job that is.
 .track-sidebar__scrim {
     display: none;
 }
@@ -222,12 +240,7 @@
         transition: transform var(--dur-base) var(--ease-standard);
     }
 
-    [dir='rtl'] .track-sidebar {
-        transform: translateX(100%);
-    }
-
-    .track-sidebar--open,
-    [dir='rtl'] .track-sidebar--open {
+    .track-sidebar--open {
         transform: translateX(0);
     }
 

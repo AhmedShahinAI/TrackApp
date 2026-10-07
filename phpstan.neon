@@ -76,12 +76,16 @@ parameters:
             identifier: method.notFound
             # Matched without the namespace, because a backslash-P in a PCRE pattern is the
             # unicode-property escape and the compile fails.
-            message: '#Call to an undefined method .*TestCall::#'
-            # Only the directories that currently make HTTP requests. Performance still holds
-            # placeholders; when its first real test lands, add it here — an unmatched pattern fails
-            # the build, which is what keeps this list honest. tests/Scope was added in US2, when
-            # the scope suite started driving real requests.
+            # Matches both shapes Pest produces: `TestCall::` when $this is a pending call, and
+            # `TestCall|Pest\Support\HigherOrderTapProxy::` when the helper `test()` is used
+            # outside a bound closure — which US3's action performers need, since they are
+            # standalone closures and $this is not bound in them.
+            message: '#Call to an undefined method .*TestCall(\||::)#'
+            # Only the directories that make HTTP requests. tests/Scope was added in US2 and
+            # tests/Performance in US3, each when its first real test landed — an unmatched pattern
+            # fails the build, which is what keeps this list honest rather than aspirational.
             paths:
                 - tests/Feature
                 - tests/Authorization
                 - tests/Scope
+                - tests/Performance

@@ -51,7 +51,8 @@ return [
         'sections' => ['icon' => 'users', 'route' => 'sections.index', 'permission' => 'section.view'],
         'mysections' => ['icon' => 'users', 'route' => 'sections.index', 'permission' => 'section.view'],
         'imports' => ['icon' => 'file-up', 'route' => null, 'permission' => 'import.view', 'stub' => true],
-        'audit' => ['icon' => 'shield-check', 'route' => null, 'permission' => 'audit.view', 'stub' => true],
+        // US3 built the screen, so this is no longer a stub.
+        'audit' => ['icon' => 'shield-check', 'route' => 'audit.index', 'permission' => 'audit.view'],
     ],
 
     /*

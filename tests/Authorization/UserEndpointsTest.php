@@ -176,6 +176,8 @@ test('every api/v1 route in this feature appears in the matrix above', function 
         'GET|HEAD api/v1/students',
         'GET|HEAD api/v1/students/{student}',
         'GET|HEAD api/v1/users',
+        // US3 — one entity's history. Its allow/deny pairs are in AuditEndpointsTest.
+        'GET|HEAD api/v1/{entity}/{id}/activity',
         'PATCH api/v1/users/{user}/deactivate',
         'POST api/v1/auth/login',
         'POST api/v1/auth/logout',

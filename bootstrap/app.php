@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Shared\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -29,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // resolved. Prepending it would mean $request->user() is still null and every page renders
         // in the default locale rather than the user's own (FR-074).
         $middleware->web(append: [
-            App\Modules\Shared\Http\Middleware\SetLocale::class,
+            SetLocale::class,
         ]);
 
         /*
@@ -82,6 +83,18 @@ return Application::configure(basePath: dirname(__DIR__))
          * Normalising it here rather than in each controller means a route added later inherits the
          * silence. The status is untouched; only the prose is replaced.
          */
+        /*
+         * The locale, before any refusal is rendered.
+         *
+         * SubstituteBindings throws its 404 from inside the web group, before SetLocale has run, so
+         * the error view resolved its strings against the default locale — an English-speaking
+         * member of staff who mistyped a URL was answered in Arabic, while every other page they
+         * saw was English. Asking the middleware's own resolver keeps one answer for the question.
+         */
+        $exceptions->render(function (Throwable $e, Request $request): void {
+            app()->setLocale(SetLocale::resolveFor($request));
+        });
+
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
             if (! ($request->is('api/*') || $request->expectsJson())) {
                 return null;

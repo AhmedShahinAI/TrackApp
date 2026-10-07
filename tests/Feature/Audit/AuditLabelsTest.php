@@ -20,60 +20,43 @@ use Illuminate\Support\Facades\DB;
 |
 */
 
-test('every action the application records has a label in both locales', function (): void {
+test('all 38 contract actions have a label in both locales', function (): void {
     /*
-     * Harvested from the source rather than hand-listed, so an action added next month without a
-     * translation fails here instead of rendering as "unknown" to a user.
+     * The contract is the source, not a harvest of the source code.
+     *
+     * The first version scanned app/ for emitted keys, which answered a different question and
+     * answered it wrongly: it demanded labels for `course.deleted` and `section.deleted`, keys the
+     * Auditable trait *could* emit but that contracts/audit.md does not list and no implemented
+     * flow produces. Whether the system emits anything outside the 38 is ActionCoverageTest's
+     * question; whether each of the 38 can be displayed is this one's.
      */
-    $recorded = [];
-
-    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path()));
-
-    foreach ($files as $file) {
-        if (! $file->isFile() || $file->getExtension() !== 'php') {
-            continue;
-        }
-
-        preg_match_all(
-            "/record\(\s*'([a-z_]+\.[a-z_]+)'/",
-            (string) file_get_contents($file->getPathname()),
-            $matches,
-        );
-
-        $recorded = array_merge($recorded, $matches[1]);
-    }
-
-    /*
-     * The trait-generated half. Auditable turns every created/updated/deleted event on an audited
-     * model into `{snake(class_basename)}.{event}` without any literal appearing in the source, so
-     * harvesting `record(...)` alone found 1 missing label where there were 23.
-     */
-    foreach (glob(app_path('Models/*.php')) ?: [] as $model) {
-        $source = (string) file_get_contents($model);
-
-        if (! str_contains($source, 'use App\Modules\Audit\Concerns\Auditable;')) {
-            continue;
-        }
-
-        $key = str(basename($model, '.php'))->snake()->toString();
-
-        foreach (['created', 'updated', 'deleted'] as $event) {
-            $recorded[] = $key.'.'.$event;
-        }
-    }
-
-    $recorded = array_values(array_unique($recorded));
-    expect($recorded)->not->toBeEmpty();
-
     foreach (['ar', 'en'] as $locale) {
         app()->setLocale($locale);
 
         $unknown = __('audit.actions.unknown');
 
-        foreach ($recorded as $action) {
+        foreach (contractActionKeys() as $action) {
             expect(AuditLabels::for($action))
-                ->not->toBe($unknown, "[$locale] no label for the recorded action '$action'");
+                ->not->toBe($unknown, "[$locale] no label for the contract action '$action'");
         }
+    }
+});
+
+test('the label file carries the 38 contract keys and nothing else', function (): void {
+    foreach (['ar', 'en'] as $locale) {
+        app()->setLocale($locale);
+
+        /** @var array<string, string> $labels */
+        $labels = (array) __('audit.actions');
+
+        $declared = array_values(array_diff(array_keys($labels), ['unknown']));
+
+        sort($declared);
+        $contract = contractActionKeys();
+        sort($contract);
+
+        // A label for a key the contract does not define is a key somebody is about to emit.
+        expect($declared)->toBe($contract, "[$locale] the label file has drifted from the contract");
     }
 });
 

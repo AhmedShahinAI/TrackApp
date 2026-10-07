@@ -148,3 +148,74 @@ function firstError(string $field): ?string
 
     return null;
 }
+
+/**
+ * The 38 action keys contracts/audit.md defines, in the order it lists them.
+ *
+ * Transcribed rather than parsed out of the markdown table: a parser that drifts turns a contract
+ * test into a test of the parser, and a transcription that drifts is caught the moment someone
+ * compares the two — which is the whole job of the tests that consume this.
+ *
+ * C-11 settled the naming: where the design kit and the specification disagree
+ * (`auth.signed_in`/`auth.login`, `term.current_set`/`term.set_current`,
+ * `user.role_changed`/`user.roles_changed`, `import.completed`/`import.committed`), the
+ * specification's key is the identifier and the kit's string is only its label.
+ *
+ * @return list<string>
+ */
+function contractActionKeys(): array
+{
+    return [
+        'auth.login', 'auth.logout', 'auth.login_failed', 'auth.login_blocked',
+
+        'user.created', 'user.updated', 'user.deactivated', 'user.password_changed',
+        'user.password_reset', 'user.roles_changed', 'user.branches_changed',
+
+        'access.denied', 'section.access_granted',
+
+        'term.created', 'term.updated', 'term.status_changed', 'term.set_current',
+
+        'branch.created', 'branch.updated', 'branch.deactivated',
+        'course.created', 'course.updated',
+
+        'program.created', 'program.updated', 'program.deactivated', 'program.courses_changed',
+
+        'section.created', 'section.updated', 'section.instructor_changed',
+
+        'student.created', 'student.updated', 'enrollment.created', 'enrollment.withdrawn',
+
+        'import.uploaded', 'import.committed', 'import.resumed', 'import.error_report_downloaded',
+
+        'audit.exported',
+    ];
+}
+
+/**
+ * The contract actions no implemented flow can emit yet, and the phase that will emit each.
+ *
+ * ActionCoverageTest performs every *other* key once and asserts exactly one entry. These cannot be
+ * performed — their features do not exist — so listing them here is how the test stays honest about
+ * its own coverage instead of quietly asserting 25 while the task says 38.
+ *
+ * Each line is removed when its phase lands, and the test's reach grows by itself.
+ *
+ * @return array<string, string>
+ */
+function actionsAwaitingTheirPhase(): array
+{
+    return [
+        'term.created' => 'Phase 7 — US4, academic structure',
+        'term.updated' => 'Phase 7 — US4',
+        'term.status_changed' => 'Phase 7 — US4',
+        'term.set_current' => 'Phase 7 — US4',
+        'branch.deactivated' => 'Phase 7 — US4',
+        'program.deactivated' => 'Phase 14 — programs, endpoints and screens',
+        'program.courses_changed' => 'Phase 14 — programs',
+        'section.instructor_changed' => 'Phase 7 — US4',
+        'enrollment.withdrawn' => 'Phase 9 — US6, instructor rosters',
+        'import.uploaded' => 'Phase 8 — US5, roster import',
+        'import.committed' => 'Phase 8 — US5',
+        'import.resumed' => 'Phase 8 — US5',
+        'import.error_report_downloaded' => 'Phase 8 — US5',
+    ];
+}

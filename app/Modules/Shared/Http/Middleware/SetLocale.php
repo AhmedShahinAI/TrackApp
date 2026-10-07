@@ -38,6 +38,23 @@ final class SetLocale
         return $next($request);
     }
 
+    /**
+     * The locale this request should render in.
+     *
+     * Public and static because the exception handler needs it too. A 404 raised by route-model
+     * binding is thrown from inside the web group, *before* this middleware has run — it is
+     * appended to the group so that `$request->user()` is resolvable, and SubstituteBindings sits
+     * earlier. So the refusal page rendered in the default locale: measured as `ar/rtl` for a user
+     * whose every other page was `en/ltr`.
+     *
+     * Reordering the group would trade that bug for the one the append was written to avoid. Giving
+     * the handler the same answer this middleware uses costs nothing and keeps one source for it.
+     */
+    public static function resolveFor(Request $request): string
+    {
+        return (new self)->resolve($request);
+    }
+
     private function resolve(Request $request): string
     {
         $user = $request->user();
@@ -49,9 +66,16 @@ final class SetLocale
             return $user->locale;
         }
 
-        if ($user === null) {
-            // A guest's choice, from the sign-in screen's switch. There is no record to write to
-            // until they have an account.
+        if ($user === null && $request->hasSession()) {
+            /*
+             * A guest's choice, from the sign-in screen's switch. There is no record to write to
+             * until they have an account.
+             *
+             * hasSession() guards it because this resolver is also called from the exception
+             * handler, and a request for a URL that matches no route never enters the web group —
+             * so it has no session store at all. Reading one threw "Session store not set on
+             * request" and turned sixteen 404 assertions into errors.
+             */
             $chosen = $request->session()->get('locale');
 
             if (is_string($chosen) && in_array($chosen, self::SUPPORTED, true)) {
