@@ -7,6 +7,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,6 +30,20 @@ return Application::configure(basePath: dirname(__DIR__))
         // in the default locale rather than the user's own (FR-074).
         $middleware->web(append: [
             App\Modules\Shared\Http\Middleware\SetLocale::class,
+        ]);
+
+        /*
+         * T148 — PREPENDED, not appended, and the distinction is the whole of whether it works.
+         *
+         * Both refusals this records are thrown, not returned: `can:` throws AuthorizationException
+         * and a scoped route binding throws ModelNotFoundException. An exception propagates upward
+         * through the middleware stack, so only a middleware that *wraps* the thrower ever sees it.
+         * substituteBindings sits inside the web group, so appending would place this after the
+         * binding — and every scope miss would go unrecorded while the 403 path kept working, which
+         * is the worst kind of half-working.
+         */
+        $middleware->web(prepend: [
+            App\Modules\Authorization\Http\Middleware\AuditDeniedAccess::class,
         ]);
 
         $middleware->alias([
@@ -53,4 +69,32 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        /*
+         * FR-024, FR-025 — a refusal says nothing about what exists.
+         *
+         * Laravel turns ModelNotFoundException into a 404 whose message is
+         * "No query results for model [App\Models\Section] 1204". That message reaches the client,
+         * in production as well as in debug, and it defeats the entire 404-not-403 design: a
+         * coordinator probing another branch's ids gets back the model name and the id they asked
+         * for, which is confirmation that the route and the record are real.
+         *
+         * Normalising it here rather than in each controller means a route added later inherits the
+         * silence. The status is untouched; only the prose is replaced.
+         */
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if (! ($request->is('api/*') || $request->expectsJson())) {
+                return null;
+            }
+
+            return response()->json(['message' => __('authorization.refusal.missing_title')], 404);
+        });
+
+        $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
+            if (! ($request->is('api/*') || $request->expectsJson())) {
+                return null;
+            }
+
+            return response()->json(['message' => __('authorization.refusal.forbidden_title')], 403);
+        });
     })->create();

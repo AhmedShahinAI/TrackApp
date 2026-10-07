@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * T038 - shared access to a section, which is how a substitute reaches a roster without becoming the
  * instructor of record and rewriting the section's history.
  */
+/**
+ * @property \Illuminate\Support\Carbon|null $granted_at
+ */
 #[Fillable(['section_id', 'user_id', 'granted_by', 'granted_at'])]
 class SectionAccessGrant extends Model
 {

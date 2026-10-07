@@ -55,7 +55,10 @@
     </div>
 
     <div class="track-home-grid">
-        <x-track-card :title="__('home.recent.title')" :padding="0">
+        {{-- US2 — `who` reads through the `user` relation: this query moved from DB::table() to
+             the AuditLog model so the branch scope applies, and the actor's name is no longer a
+             joined column on the row. --}}
+        <x-track-card id="recent-activity" :title="__('home.recent.title')" :padding="0">
             @if ($recent->isEmpty())
                 <x-track-empty-state icon="inbox" :title="__('home.recent.empty')" :message="false" />
             @else
@@ -69,10 +72,10 @@
                     ]"
                     :rows="$recent->map(fn ($entry) => [
                         'when' => \Illuminate\Support\Carbon::parse($entry->created_at)->format('d/m/Y H:i'),
-                        'what' => \Illuminate\Support\Facades\Lang::has('audit.actions.'.$entry->action)
-                            ? __('audit.actions.'.$entry->action)
-                            : __('audit.actions.unknown'),
-                        'who' => $locale === 'en' ? ($entry->name_en ?? '—') : ($entry->name_ar ?? '—'),
+                        'what' => \App\Modules\Audit\Services\AuditLabels::for($entry->action),
+                        'who' => $locale === 'en'
+                            ? ($entry->user?->name_en ?? '—')
+                            : ($entry->user?->name_ar ?? '—'),
                     ])->all()"
                 />
             @endif

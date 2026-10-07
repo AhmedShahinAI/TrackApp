@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Modules\Audit\Concerns\Auditable;
+use App\Modules\Authorization\Concerns\BelongsToBranchScope;
+use App\Modules\Authorization\Concerns\BelongsToSectionScope;
+use App\Modules\Authorization\Contracts\ConstrainableToBranches;
+use App\Modules\Authorization\Contracts\ConstrainableToSections;
 use Database\Factories\SectionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,10 +34,46 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'term_id', 'branch_id', 'course_id', 'program_id', 'section_number', 'instructor_id',
     'degree', 'activity',
 ])]
-class Section extends Model
+class Section extends Model implements ConstrainableToBranches, ConstrainableToSections
 {
     /** @use HasFactory<SectionFactory> */
-    use Auditable, HasFactory;
+    use Auditable, BelongsToBranchScope, BelongsToSectionScope, HasFactory;
+
+    /**
+     * T150 — FR-026: true when the caller reaches this section only through a grant.
+     *
+     * Computed per caller, not stored. "Shared" is not a property of the section — the same row is
+     * an instructor's own section, another instructor's shared one, and neither to a coordinator.
+     * Storing it would be storing one viewer's perspective on everyone's behalf.
+     *
+     * Reads the caller's memoized grant list rather than querying, so rendering a page of sections
+     * costs one query for the list and none per row.
+     *
+     * @return Attribute<bool, never>
+     */
+    protected function sharedAccess(): Attribute
+    {
+        return Attribute::make(
+            get: function (): bool {
+                $user = \Illuminate\Support\Facades\Auth::user();
+
+                return $user instanceof User
+                    && in_array((int) $this->getKey(), $user->grantedSectionIds(), true);
+            },
+        );
+    }
+
+    /**
+     * T145 — a section IS the section, so the constraint is on its own key rather than on a
+     * `section_id` column it does not have.
+     *
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     * @param  list<int>  $sectionIds
+     */
+    public function constrainToSections(Builder $query, array $sectionIds): void
+    {
+        $query->whereIn($this->qualifyColumn($this->getKeyName()), $sectionIds);
+    }
 
     /** @return BelongsTo<AcademicTerm, $this> */
     public function term(): BelongsTo

@@ -17,6 +17,10 @@ return [
     'programs' => 'البرامج',
     'courses' => 'المقررات',
     'sections' => 'الشعب الدراسية',
+
+    // The instructor's own sections. Same destination as `sections`, different name, because
+    // "my" is the whole of what distinguishes an instructor's view (reference Shell.jsx NAV).
+    'mysections' => 'شعبي',
     'users' => 'المستخدمون',
     'terms' => 'الفصول الدراسية',
     'imports' => 'الاستيراد',

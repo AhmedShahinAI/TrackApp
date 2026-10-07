@@ -63,6 +63,9 @@ class User extends Authenticatable
     /** @var list<int>|null */
     private ?array $memoizedAccessibleSectionIds = null;
 
+    /** @var list<int>|null */
+    private ?array $memoizedGrantedSectionIds = null;
+
     /** @return BelongsTo<Organization, $this> */
     public function organization(): BelongsTo
     {
@@ -118,7 +121,17 @@ class User extends Authenticatable
             return $this->memoizedAccessibleSectionIds;
         }
 
-        $taught = $this->taughtSections()->pluck('sections.id');
+        /*
+         * withoutGlobalScopes(), and this is not an optimisation.
+         *
+         * SectionScope asks this method which sections the user may see. Asking it through a
+         * *scoped* query means the scope calls this method, which runs a scoped query, which calls
+         * the scope — a recursion that ends as a 512 MB memory exhaustion inside Spatie's
+         * permission registrar, several frames from anything that looks related.
+         *
+         * The rule generalises: a query that DEFINES a caller's scope must never be subject to it.
+         */
+        $taught = $this->taughtSections()->withoutGlobalScopes()->pluck('sections.id');
         $granted = $this->sectionAccessGrants()->pluck('section_id');
 
         return $this->memoizedAccessibleSectionIds = $taught
@@ -138,6 +151,38 @@ class User extends Authenticatable
     {
         $this->memoizedCoordinatorBranchIds = null;
         $this->memoizedAccessibleSectionIds = null;
+        $this->memoizedGrantedSectionIds = null;
+    }
+
+    /**
+     * The sections this user reaches **only** through a grant (FR-026).
+     *
+     * Separate from accessibleSectionIds() because the two answer different questions: that one
+     * decides visibility, this one decides the label. A section the user both teaches and holds a
+     * stale grant for is not "shared" — it is theirs — so the taught set is subtracted here rather
+     * than at the call site, where every caller would have to remember to do it.
+     *
+     * @return list<int>
+     */
+    public function grantedSectionIds(): array
+    {
+        if ($this->memoizedGrantedSectionIds !== null) {
+            return $this->memoizedGrantedSectionIds;
+        }
+
+        // Unscoped for the same reason as accessibleSectionIds() above.
+        $taught = $this->taughtSections()->withoutGlobalScopes()->pluck('sections.id')
+            ->map(static fn (mixed $id): int => (int) $id)
+            ->all();
+
+        return $this->memoizedGrantedSectionIds = $this->sectionAccessGrants()
+            ->pluck('section_id')
+            ->map(static fn (mixed $id): int => (int) $id)
+            ->reject(static fn (int $id): bool => in_array($id, $taught, true))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 
     /** @return list<string> */

@@ -37,6 +37,11 @@ const ICONS = {
     status: [
         'check', 'circle-check', 'circle-alert', 'circle-x', 'triangle-alert', 'info',
         'loader-circle', 'timer', 'inbox', 'ban',
+
+        // US2's two refusal pages (T152). Named by the task, and absent from the sprite until the
+        // 403 baseline was looked at: an unknown name renders nothing at all, so the page came out
+        // correct in every respect except the icon that was supposed to carry its meaning.
+        'shield-off', 'file-question',
     ],
     direction: [
         'chevron-down', 'chevron-up', 'chevron-left', 'chevron-right',

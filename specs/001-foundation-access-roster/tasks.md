@@ -322,28 +322,28 @@ keyboard.
 
 ### Tests for User Story 2
 
-- [ ] T135 [P] [US2] Write `tests/Scope/OutOfScopeReturns404Test.php` asserting **404, never 403** for a cross-branch section, student, enrollment, import job, and audit entry, through the API route, the Blade route, the list endpoint, and the export endpoint (FR-024)
-- [ ] T136 [P] [US2] Write `tests/Scope/CoordinatorBranchScopeTest.php` asserting a coordinator's lists and their totals contain only their branches' records
-- [ ] T137 [P] [US2] Write `tests/Scope/InstructorSectionScopeTest.php` asserting an instructor sees only sections where they are `instructor_id`, plus granted sections flagged `shared_access`
-- [ ] T138 [P] [US2] Write `tests/Scope/ExportRespectsScopeTest.php` asserting no export can contain a record the same caller cannot retrieve individually (FR-023)
-- [ ] T139 [P] [US2] Write `tests/Scope/ScopeChangeTakesEffectImmediatelyTest.php` asserting a role or branch change is in force on the target's next request with no re-authentication and no stale cached permission set (FR-027)
-- [ ] T140 [P] [US2] Write `tests/Feature/Authorization/MissingPermissionReturns403Test.php` asserting a **visible** record with a missing permission yields 403 plus an `access.denied` audit entry — so 403 and 404 are never conflated
-- [ ] T141 [P] [US2] Write `tests/Feature/Authorization/NewRoleNeedsNoCodeChangeTest.php` creating a fourth role by seeding permissions only, and asserting it works with no policy or screen modification (FR-020)
-- [ ] T142 [P] [US2] Write `tests/Authorization/AccessGrantEndpointTest.php` with allow and deny cases for `POST /sections/{id}/access-grants`
-- [ ] T143 [P] [US2] Write `tests/Visual/us2.spec.ts` screenshotting the full-page 403 and 404, the shared-access badge in the section list, and each role's sidebar against the `RefusalScreen` and `Shell` references, both locales
+- [X] T135 [P] [US2] Write `tests/Scope/OutOfScopeReturns404Test.php` asserting **404, never 403** for a cross-branch section, student, enrollment, import job, and audit entry, through the API route, the Blade route, the list endpoint, and the export endpoint (FR-024)
+- [X] T136 [P] [US2] Write `tests/Scope/CoordinatorBranchScopeTest.php` asserting a coordinator's lists and their totals contain only their branches' records
+- [X] T137 [P] [US2] Write `tests/Scope/InstructorSectionScopeTest.php` asserting an instructor sees only sections where they are `instructor_id`, plus granted sections flagged `shared_access`
+- [X] T138 [P] [US2] Write `tests/Scope/ExportRespectsScopeTest.php` asserting no export can contain a record the same caller cannot retrieve individually (FR-023)
+- [X] T139 [P] [US2] Write `tests/Scope/ScopeChangeTakesEffectImmediatelyTest.php` asserting a role or branch change is in force on the target's next request with no re-authentication and no stale cached permission set (FR-027)
+- [X] T140 [P] [US2] Write `tests/Feature/Authorization/MissingPermissionReturns403Test.php` asserting a **visible** record with a missing permission yields 403 plus an `access.denied` audit entry — so 403 and 404 are never conflated
+- [X] T141 [P] [US2] Write `tests/Feature/Authorization/NewRoleNeedsNoCodeChangeTest.php` creating a fourth role by seeding permissions only, and asserting it works with no policy or screen modification (FR-020)
+- [X] T142 [P] [US2] Write `tests/Authorization/AccessGrantEndpointTest.php` with allow and deny cases for `POST /sections/{id}/access-grants`
+- [X] T143 [P] [US2] Write `tests/Visual/us2.spec.ts` screenshotting the full-page 403 and 404, the shared-access badge in the section list, and each role's sidebar against the `RefusalScreen` and `Shell` references, both locales
 
 ### Implementation for User Story 2
 
-- [ ] T144 [US2] Implement `app/Modules/Authorization/Scopes/BranchScope.php` as an Eloquent **global** scope constraining `branch_id` directly or through the `section` relation to `coordinatorBranchIds()`, inert for `scope.bypass_all` holders and when no user is authenticated
-- [ ] T145 [US2] Implement `app/Modules/Authorization/Scopes/SectionScope.php` constraining to `accessibleSectionIds()` — the union of taught sections and `section_access_grants` — with the same two inert conditions
-- [ ] T146 [US2] Implement the `BelongsToBranchScope.php` and `BelongsToSectionScope.php` traits in `app/Modules/Authorization/Concerns/` and apply them to `Section`, `Student`, `SectionEnrollment`, `ImportJob`, and `AuditLog`
-- [ ] T147 [US2] Configure route-model binding in `app/Providers/RouteServiceProvider.php` to resolve **through** the scoped query so an out-of-scope id raises `ModelNotFoundException` → 404 before any policy runs, per [research.md](./research.md) R-01
-- [ ] T148 [US2] Implement `app/Modules/Authorization/Http/Middleware/AuditDeniedAccess.php` recording `access.denied` on a 403 or on a 404 arising from a scope miss, capturing the attempted route and id
-- [ ] T149 [P] [US2] Implement `app/Modules/Authorization/Actions/GrantSectionAccess.php` and `POST /sections/{id}/access-grants`, auditing `section.access_granted`
-- [ ] T150 [P] [US2] Add the `shared_access` computed attribute to `app/Models/Section.php` and render it as `x-track-status-badge status="shared"` in the section list (FR-026)
-- [ ] T151 [P] [US2] Implement `PUT /users/{id}/roles` and `PUT /users/{id}/branches` in `UserRoleController.php` and `UserBranchController.php`, auditing `user.roles_changed` and `user.branches_changed` with previous and new sets
-- [ ] T152 [US2] Build `resources/views/errors/403.blade.php` and `404.blade.php` to the `RefusalScreen` reference — full-page `x-track-empty-state` with a `shield-off` / `file-question` icon, the approved Arabic copy, and a link back to the caller's landing page, exposing no internal detail (FR-025, FR-080)
-- [ ] T153 [P] [US2] Implement the per-role navigation map in `config/navigation.php` matching the reference `NAV` exactly — Super Admin: home, dashboard\*, initiatives\*, users, terms, branches, courses, sections, imports, audit · Coordinator: home, initiatives\*, sections, imports, audit · Instructor: home, mysections, imports. Entries marked \* are **stubbed** to a "coming in a later phase" placeholder so the sidebar matches the approved design without dead links. `programs` is **omitted** pending C-04
+- [X] T144 [US2] Implement `app/Modules/Authorization/Scopes/BranchScope.php` as an Eloquent **global** scope constraining `branch_id` directly or through the `section` relation to `coordinatorBranchIds()`, inert for `scope.bypass_all` holders and when no user is authenticated
+- [X] T145 [US2] Implement `app/Modules/Authorization/Scopes/SectionScope.php` constraining to `accessibleSectionIds()` — the union of taught sections and `section_access_grants` — with the same two inert conditions
+- [X] T146 [US2] Implement the `BelongsToBranchScope.php` and `BelongsToSectionScope.php` traits in `app/Modules/Authorization/Concerns/` and apply them to `Section`, `Student`, `SectionEnrollment`, `ImportJob`, and `AuditLog`
+- [X] T147 [US2] Configure route-model binding in `app/Providers/RouteServiceProvider.php` to resolve **through** the scoped query so an out-of-scope id raises `ModelNotFoundException` → 404 before any policy runs, per [research.md](./research.md) R-01
+- [X] T148 [US2] Implement `app/Modules/Authorization/Http/Middleware/AuditDeniedAccess.php` recording `access.denied` on a 403 or on a 404 arising from a scope miss, capturing the attempted route and id
+- [X] T149 [P] [US2] Implement `app/Modules/Authorization/Actions/GrantSectionAccess.php` and `POST /sections/{id}/access-grants`, auditing `section.access_granted`
+- [X] T150 [P] [US2] Add the `shared_access` computed attribute to `app/Models/Section.php` and render it as `x-track-status-badge status="shared"` in the section list (FR-026)
+- [X] T151 [P] [US2] Implement `PUT /users/{id}/roles` and `PUT /users/{id}/branches` in `UserRoleController.php` and `UserBranchController.php`, auditing `user.roles_changed` and `user.branches_changed` with previous and new sets
+- [X] T152 [US2] Build `resources/views/errors/403.blade.php` and `404.blade.php` to the `RefusalScreen` reference — full-page `x-track-empty-state` with a `shield-off` / `file-question` icon, the approved Arabic copy, and a link back to the caller's landing page, exposing no internal detail (FR-025, FR-080)
+- [X] T153 [P] [US2] Implement the per-role navigation map in `config/navigation.php` matching the reference `NAV` exactly — Super Admin: home, dashboard\*, initiatives\*, users, terms, branches, courses, sections, imports, audit · Coordinator: home, initiatives\*, sections, imports, audit · Instructor: home, mysections, imports. Entries marked \* are **stubbed** to a "coming in a later phase" placeholder so the sidebar matches the approved design without dead links. `programs` is **omitted** pending C-04
 
 **Checkpoint**: Stories 1 and 2 work independently. Cross-branch data is unreachable through every access path.
 

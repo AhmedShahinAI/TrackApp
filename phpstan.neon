@@ -77,9 +77,11 @@ parameters:
             # Matched without the namespace, because a backslash-P in a PCRE pattern is the
             # unicode-property escape and the compile fails.
             message: '#Call to an undefined method .*TestCall::#'
-            # Only the directories that currently make HTTP requests. Scope and Performance hold
-            # placeholders so far; when their first real test lands, add them here — an unmatched
-            # pattern fails the build, which is what keeps this list honest.
+            # Only the directories that currently make HTTP requests. Performance still holds
+            # placeholders; when its first real test lands, add it here — an unmatched pattern fails
+            # the build, which is what keeps this list honest. tests/Scope was added in US2, when
+            # the scope suite started driving real requests.
             paths:
                 - tests/Feature
                 - tests/Authorization
+                - tests/Scope

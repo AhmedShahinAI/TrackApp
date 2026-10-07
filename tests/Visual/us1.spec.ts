@@ -183,7 +183,24 @@ for (const locale of ['ar', 'en'] as const) {
             await signIn(page, locale, ADMIN);
             await stabilise(page);
 
-            await expect(page).toHaveScreenshot(`${locale}-home.png`, { fullPage: true });
+            /*
+             * The recent-activity rows are masked, and the reasoning is the one already written out
+             * on the accounts list below — it simply was not applied here.
+             *
+             * This panel renders live audit entries, and the suite writes its own: every signIn() is
+             * an auth.login, every lockout test an auth.login_failed. So both the timestamps and the
+             * rows themselves depend on which tests ran first and at what minute. The baseline
+             * passed for weeks only because capture and run happened inside the same minute; the
+             * first run that straddled one would have failed for a reason with nothing to do with
+             * the design.
+             *
+             * What the baseline still pins is the panel's layout, which is what a pixel is good for.
+             * That the rows carry the right labels is asserted in Pest, where it belongs.
+             */
+            await expect(page).toHaveScreenshot(`${locale}-home.png`, {
+                fullPage: true,
+                mask: [page.locator('#recent-activity tbody')],
+            });
         });
 
         test('accounts list', async ({ page }) => {

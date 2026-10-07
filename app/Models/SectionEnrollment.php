@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Modules\Audit\Concerns\Auditable;
+use App\Modules\Authorization\Concerns\BelongsToBranchScope;
+use App\Modules\Authorization\Concerns\BelongsToSectionScope;
+use App\Modules\Authorization\Contracts\ConstrainableToBranches;
+use App\Modules\Authorization\Contracts\ConstrainableToSections;
 use Database\Factories\SectionEnrollmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,14 +24,37 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * the other (FR-110, FR-111) - an import that could clear a TRACK withdrawal would erase the reason
  * and the audit trail FR-047 requires.
  */
+/**
+ * @property \Illuminate\Support\Carbon|null $enrolled_at
+ * @property \Illuminate\Support\Carbon|null $withdrawn_at
+ */
 #[Fillable([
     'student_id', 'section_id', 'status', 'enrolled_at', 'withdrawn_at', 'withdraw_reason',
     'academic_status', 'roster_sequence',
 ])]
-class SectionEnrollment extends Model
+class SectionEnrollment extends Model implements ConstrainableToBranches, ConstrainableToSections
 {
     /** @use HasFactory<SectionEnrollmentFactory> */
-    use Auditable, HasFactory;
+    use Auditable, BelongsToBranchScope, BelongsToSectionScope, HasFactory;
+
+    /**
+     * T146 — an enrollment reaches its branch through its section.
+     *
+     * The subquery runs `withoutGlobalScopes()` deliberately. Sections are themselves scoped, so
+     * leaving them on would apply the caller's constraint twice — harmless for a coordinator, but
+     * for any future caller whose two claims differ it would silently narrow the result in a way
+     * nobody could read off this method.
+     *
+     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
+     * @param  list<int>  $branchIds
+     */
+    public function constrainToBranches(Builder $query, array $branchIds): void
+    {
+        $query->whereIn(
+            $this->qualifyColumn('section_id'),
+            Section::query()->withoutGlobalScopes()->whereIn('branch_id', $branchIds)->select('id'),
+        );
+    }
 
     /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo

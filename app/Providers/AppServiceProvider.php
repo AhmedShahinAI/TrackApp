@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Modules\Shared\Navigation\Navigation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -94,6 +96,17 @@ class AppServiceProvider extends ServiceProvider
          * written as.
          */
         Blade::component('layouts.app', 'app-layout');
+
+        /*
+         * T153 — the sidebar, on every screen that uses the shell.
+         *
+         * A view composer rather than a variable each controller passes: the sidebar is a property
+         * of being signed in, not of any one screen, and threading $navItems through twelve
+         * controllers would mean the first one that forgot rendered a shell with no navigation.
+         */
+        View::composer('layouts.app', function ($view): void {
+            $view->with('navItems', Navigation::forUser(request()->user()));
+        });
     }
 
     /**

@@ -338,6 +338,22 @@ class UiFixtureSeeder extends Seeder
             ['granted_by' => 1, 'granted_at' => '2026-09-10 10:00:00'],
         );
 
+        /*
+         * A second grant, for instructor 5 on section 14 (taught by 7).
+         *
+         * Added in US2 so the visual suite can shoot the shared-access badge without signing in as
+         * instructor 3 — that account is the never-signed-in one, and us1.spec.ts owns it for the
+         * first-sign-in banner. Two specs consuming one account means whichever runs first wins and
+         * the other photographs the wrong state.
+         *
+         * Instructor 5 teaches 13 and 16, so their list shows both states at once: two of their own
+         * and one shared.
+         */
+        SectionAccessGrant::query()->updateOrCreate(
+            ['section_id' => 14, 'user_id' => 5],
+            ['granted_by' => 1, 'granted_at' => '2026-09-12 09:00:00'],
+        );
+
         // Section 11 changed hands: one closed period and one open. The closed row names a user who
         // has since been deactivated, and it still reads correctly (FR-048).
         $history = [

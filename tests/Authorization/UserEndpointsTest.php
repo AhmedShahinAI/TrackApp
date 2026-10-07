@@ -162,26 +162,49 @@ test('every api/v1 route in this feature appears in the matrix above', function 
      * allow/deny pair, which is the exact gap constitution VIII exists to close.
      */
     expect($registered)->toBe([
+        // US2 — the scoped read surface and the three assignment endpoints. Their allow/deny pairs
+        // live in tests/Scope and tests/Authorization/AccessGrantEndpointTest rather than in the
+        // matrix above, which is US1's; the guard this test provides is that none of them arrived
+        // without *some* authorization test, and the list is reviewed when it changes.
+        'GET|HEAD api/v1/audit-logs',
+        'GET|HEAD api/v1/audit-logs/export',
         'GET|HEAD api/v1/auth/me',
+        'GET|HEAD api/v1/imports/{import}',
+        'GET|HEAD api/v1/sections',
+        'GET|HEAD api/v1/sections/export',
+        'GET|HEAD api/v1/sections/{section}',
+        'GET|HEAD api/v1/students',
+        'GET|HEAD api/v1/students/{student}',
         'GET|HEAD api/v1/users',
         'PATCH api/v1/users/{user}/deactivate',
         'POST api/v1/auth/login',
         'POST api/v1/auth/logout',
+        'POST api/v1/sections/{section}/access-grants',
         'POST api/v1/users',
         'POST api/v1/users/{user}/reset-password',
         'PUT api/v1/auth/password',
         'PUT api/v1/users/{user}',
+        'PUT api/v1/users/{user}/branches',
+        'PUT api/v1/users/{user}/roles',
     ]);
 });
 
-test('the three US2 endpoints are not yet registered', function (string $uri): void {
-    // Asserted absent rather than assumed: the contract lists them, and shipping one early would
-    // mean an endpoint with no authorization test.
-    $matches = collect(app('router')->getRoutes()->getRoutes())
-        ->filter(fn ($route) => str_contains($route->uri(), $uri))
-        ->count();
+test('the three US2 endpoints are registered, each behind its own permission', function (string $uri): void {
+    /*
+     * This test asserted these three were ABSENT through US1 — shipping one early would have meant
+     * an endpoint with no authorization test. US2 is where they arrive, so the assertion inverts:
+     * present, and each carrying a `can:` middleware rather than relying on a check in a controller
+     * body where route:list cannot show it.
+     */
+    $route = collect(app('router')->getRoutes()->getRoutes())
+        ->first(fn ($r) => str_contains($r->uri(), $uri));
 
-    expect($matches)->toBe(0);
+    expect($route)->not->toBeNull();
+
+    $permissions = collect($route->gatherMiddleware())
+        ->filter(fn ($m) => is_string($m) && str_starts_with($m, 'can:'));
+
+    expect($permissions)->toHaveCount(1);
 })->with([
     'users/{user}/roles',
     'users/{user}/branches',

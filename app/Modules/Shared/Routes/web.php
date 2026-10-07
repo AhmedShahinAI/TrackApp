@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\AcademicTerm;
+use App\Models\AuditLog;
 use App\Models\Branch;
+use App\Models\ImportJob;
 use App\Models\Section;
 use App\Models\SectionEnrollment;
 use App\Models\Student;
@@ -59,16 +61,29 @@ Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
                 : $scopedEnrollments()->distinct()->count('student_id'),
             'users' => $user->can('user.view') ? User::query()->count() : null,
             'enrollments' => $scopedEnrollments()->where('status', 'active')->count(),
-            'imports' => $user->can('import.view') ? DB::table('import_jobs')->count() : null,
+            /*
+             * Through the model, not DB::table(). A query-builder count bypasses every global
+             * scope, which is how this tile came to show a coordinator the college-wide number of
+             * imports while every tile beside it was branch-scoped. ImportJob carries both scope
+             * traits, so this counts what the caller can actually open.
+             */
+            'imports' => $user->can('import.view') ? ImportJob::query()->count() : null,
         ];
 
-        // The audit log is scoped by permission, not by branch: a coordinator sees their own
-        // actions, a Super Admin sees everything. Branch-scoped audit arrives with US2's scopes.
+        /*
+         * US2 — scoped by branch now, not only by permission.
+         *
+         * This query used to run through DB::table('audit_logs'), with a comment claiming a
+         * coordinator saw only their own actions. It did no such thing: a query-builder query
+         * carries no global scope, so every `audit.view` holder saw college-wide activity. Going
+         * through the model applies AuditLog's branch and section constraints — entries whose
+         * entity resolves into the caller's branches, plus their own actions, exactly as
+         * contracts/audit.md specifies.
+         */
         $recent = $user->can('audit.view')
-            ? DB::table('audit_logs')
-                ->leftJoin('users', 'users.id', '=', 'audit_logs.user_id')
-                ->select('audit_logs.action', 'audit_logs.created_at', 'users.name_ar', 'users.name_en')
-                ->orderByDesc('audit_logs.created_at')
+            ? AuditLog::query()
+                ->with('user:id,name_ar,name_en')
+                ->orderByDesc('created_at')
                 ->limit(8)
                 ->get()
             : collect();

@@ -6,6 +6,36 @@ declare(strict_types=1);
 
 return [
     'actions' => [
+        /*
+         * The actions Auditable generates on its own: {model}.{created|updated|deleted} for every
+         * model carrying the trait. All twenty-three were missing, so the audit log and the landing
+         * page read "unknown action" for most entries. AuditLabelsTest harvests the keys from the
+         * source and fails when an action arrives without a label.
+         */
+        'academic_term.created' => 'Term created',
+        'academic_term.updated' => 'Term updated',
+        'academic_term.deleted' => 'Term deleted',
+        'course.created' => 'Course created',
+        'course.updated' => 'Course updated',
+        'course.deleted' => 'Course deleted',
+        'program.created' => 'Program created',
+        'program.updated' => 'Program updated',
+        'program.deleted' => 'Program deleted',
+        'section.created' => 'Section created',
+        'section.updated' => 'Section updated',
+        'section.deleted' => 'Section deleted',
+        'section_enrollment.created' => 'Student enrolled',
+        'section_enrollment.updated' => 'Enrollment updated',
+        'section_enrollment.deleted' => 'Enrollment deleted',
+        'student.created' => 'Student created',
+        'student.updated' => 'Student updated',
+        'student.deleted' => 'Student deleted',
+        'import_job.created' => 'Import started',
+        'import_job.updated' => 'Import updated',
+        'import_job.deleted' => 'Import deleted',
+        'user.deleted' => 'Account deleted',
+        'audit.exported' => 'Audit log exported',
+
         'unknown' => 'Unknown action',
 
         'auth.login' => 'Signed in',

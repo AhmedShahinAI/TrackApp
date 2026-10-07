@@ -17,6 +17,36 @@ declare(strict_types=1);
 
 return [
     'actions' => [
+        /*
+         * الأفعال التي يولّدها Auditable تلقائياً: {النموذج}.{created|updated|deleted} لكل نموذج
+         * يحمل السمة. كانت ناقصة بالكامل، فكان سجل التدقيق والصفحة الرئيسية يقولان «إجراء غير معروف»
+         * عن ثلاثة وعشرين فعلاً من ثمانية وعشرين. AuditLabelsTest يحصد المفاتيح من الشيفرة ويفشل
+         * إذا أُضيف فعل بلا تسمية.
+         */
+        'academic_term.created' => 'إضافة فصل دراسي',
+        'academic_term.updated' => 'تعديل فصل دراسي',
+        'academic_term.deleted' => 'حذف فصل دراسي',
+        'course.created' => 'إضافة مقرر',
+        'course.updated' => 'تعديل مقرر',
+        'course.deleted' => 'حذف مقرر',
+        'program.created' => 'إضافة برنامج',
+        'program.updated' => 'تعديل برنامج',
+        'program.deleted' => 'حذف برنامج',
+        'section.created' => 'إضافة شعبة',
+        'section.updated' => 'تعديل شعبة',
+        'section.deleted' => 'حذف شعبة',
+        'section_enrollment.created' => 'تسجيل طالب في شعبة',
+        'section_enrollment.updated' => 'تعديل تسجيل',
+        'section_enrollment.deleted' => 'حذف تسجيل',
+        'student.created' => 'إضافة طالب',
+        'student.updated' => 'تعديل بيانات طالب',
+        'student.deleted' => 'حذف طالب',
+        'import_job.created' => 'بدء عملية استيراد',
+        'import_job.updated' => 'تحديث عملية استيراد',
+        'import_job.deleted' => 'حذف عملية استيراد',
+        'user.deleted' => 'حذف حساب',
+        'audit.exported' => 'تصدير سجل التدقيق',
+
         'unknown' => 'إجراء غير معروف',
 
         'auth.login' => 'تسجيل دخول',
