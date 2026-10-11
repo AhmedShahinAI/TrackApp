@@ -368,6 +368,8 @@ Seven token pairings in the approved palette fail the AA floor that constitution
 SC-014 gates. Measured ratios, required ratios, and the corrections are in
 [design-system.md](./design-system.md) §6.
 
+*Update 2026-10-09:* nine, not seven — Phase 3's axe sweep over built components found two surface-dependent pairings (A11Y-08, A11Y-09). The acknowledgement sheet for the design author is `docs/requests/C-17-accessibility-acknowledgement.md`.
+
 Summary: green `#10B981` fails as text and as a focus indicator (2.54:1); amber `#D97706` fails as
 text (3.19:1) and as a badge label on amber-100 (2.86:1); red `#DC2626` fails as a badge label on
 red-100 (3.95:1); gray-400 fails as text (2.54:1).
@@ -378,7 +380,7 @@ use (chart fills, progress bars, the active sidebar indicator, switch fills, bad
 
 This is the one place where the UI is overridden, and only because accessibility is a stated
 constitutional floor and a legal-adjacent obligation, not a preference. Every change is recorded
-in `design-system/ACCESSIBILITY-DELTA.md` for the design author's review, and a task exists to
+in `ACCESSIBILITY-DELTA.md` (beside this file — `design-system/` is vendored read-only) for the design author's review, and a task exists to
 walk them through it.
 
 ---

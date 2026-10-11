@@ -390,48 +390,83 @@ keyboard.
 
 ### Tests for User Story 4
 
-- [ ] T171 [P] [US4] Write `tests/Feature/Terms/TermLifecycleTest.php` covering creation in `draft`, the permitted transitions from [data-model.md](./data-model.md), and 409 on a disallowed transition such as `draft → archived`
-- [ ] T172 [P] [US4] Write `tests/Feature/Terms/SingleCurrentTermTest.php` asserting exactly one row has `is_current = true` after sequential and concurrent set-current attempts (FR-036)
-- [ ] T173 [P] [US4] Write `tests/Feature/Terms/ClosedStatusStorableTest.php` asserting the enum accepts `closed` and `archived` and that **no seeder or screen in this feature sets a term to `closed`**, per plan.md Complexity Tracking
-- [ ] T174 [P] [US4] Write `tests/Feature/Sections/SectionUniquenessTest.php` asserting the same `section_number` coexists across differing term, branch, or course, and that a genuine duplicate is refused **at the database index level** as well as by the form request (FR-041)
-- [ ] T175 [P] [US4] Write `tests/Feature/Sections/ChangeInstructorTest.php` asserting access moves, `section_instructor_history` gains a closed row and a new open row, and **every existing record keeps its original author** (FR-048, SC-018)
-- [ ] T176 [P] [US4] Write `tests/Feature/Students/SingleStudentRecordTest.php` asserting one `students` row per University ID across multiple enrollments, and that a student appears once in a scoped list despite several enrollments (FR-043, SC-012)
-- [ ] T177 [P] [US4] Write `tests/Feature/Students/WithdrawEnrollmentTest.php` asserting the reason is mandatory, the date is recorded, the student record survives, and 409 on an already-withdrawn enrollment (FR-047)
-- [ ] T178 [P] [US4] Write `tests/Feature/AcademicStructure/NoHardDeleteTest.php` asserting a branch or term holding records refuses permanent removal and offers only deactivation or archiving (FR-049)
-- [ ] T179 [P] [US4] Write `tests/Feature/Sections/TermRequiredFirstTest.php` asserting section creation returns 409 with the explanatory message when no term exists (FR-037)
-- [ ] T180 [P] [US4] Write `tests/Authorization/AcademicEndpointsTest.php` with allow and deny cases for all 18 endpoints in [contracts/academic.md](./contracts/academic.md)
-- [ ] T181 [P] [US4] Write `tests/Unit/UniversityIdRuleTest.php` asserting the rule reads `university_id_pattern` from settings, defaults to `^\d{9}$`, and produces a message naming the expected format (FR-044)
-- [ ] T182 [P] [US4] Write `tests/Visual/us4.spec.ts` screenshotting the terms, branches, courses, sections, and students lists, the section detail with its roster and activity tabs, the student detail, and each create/edit/confirm dialog against the `StructureScreens` and `SectionsScreens` references, both locales, including the <768px stacked-card table
+- [X] T171 [P] [US4] Write `tests/Feature/Terms/TermLifecycleTest.php` covering creation in `draft`, the permitted transitions from [data-model.md](./data-model.md), and 409 on a disallowed transition such as `draft → archived`
+- [X] T172 [P] [US4] Write `tests/Feature/Terms/SingleCurrentTermTest.php` asserting exactly one row has `is_current = true` after sequential and concurrent set-current attempts (FR-036)
+- [X] T173 [P] [US4] Write `tests/Feature/Terms/ClosedStatusStorableTest.php` asserting the enum accepts `closed` and `archived` and that **no seeder or screen in this feature sets a term to `closed`**, per plan.md Complexity Tracking
+- [X] T174 [P] [US4] Write `tests/Feature/Sections/SectionUniquenessTest.php` asserting the same `section_number` coexists across differing term, branch, or course, and that a genuine duplicate is refused **at the database index level** as well as by the form request (FR-041)
+- [X] T175 [P] [US4] Write `tests/Feature/Sections/ChangeInstructorTest.php` asserting access moves, `section_instructor_history` gains a closed row and a new open row, and **every existing record keeps its original author** (FR-048, SC-018)
+- [X] T176 [P] [US4] Write `tests/Feature/Students/SingleStudentRecordTest.php` asserting one `students` row per University ID across multiple enrollments, and that a student appears once in a scoped list despite several enrollments (FR-043, SC-012)
+- [X] T177 [P] [US4] Write `tests/Feature/Students/WithdrawEnrollmentTest.php` asserting the reason is mandatory, the date is recorded, the student record survives, and 409 on an already-withdrawn enrollment (FR-047)
+- [X] T178 [P] [US4] Write `tests/Feature/AcademicStructure/NoHardDeleteTest.php` asserting a branch or term holding records refuses permanent removal and offers only deactivation or archiving (FR-049)
+- [X] T179 [P] [US4] Write `tests/Feature/Sections/TermRequiredFirstTest.php` asserting section creation returns 409 with the explanatory message when no term exists (FR-037)
+- [X] T180 [P] [US4] Write `tests/Authorization/AcademicEndpointsTest.php` with allow and deny cases for all 18 endpoints in [contracts/academic.md](./contracts/academic.md)
+- [X] T181 [P] [US4] Write `tests/Unit/UniversityIdRuleTest.php` asserting the rule reads `university_id_pattern` from settings, defaults to `^\d{9}$`, and produces a message naming the expected format (FR-044)
+- [X] T182 [P] [US4] Write `tests/Visual/us4.spec.ts` screenshotting the terms, branches, courses, sections, and students lists, the section detail with its roster and activity tabs, the student detail, and each create/edit/confirm dialog against the `StructureScreens` and `SectionsScreens` references, both locales, including the <768px stacked-card table
 
 ### Backend implementation for User Story 4
 
-- [ ] T183 [P] [US4] Implement `app/Modules/Shared/Rules/UniversityId.php` as the single rule used by both manual entry and the import row validator
-- [ ] T184 [US4] Implement `app/Modules/AcademicTerms/Actions/SetCurrentTerm.php` extending `TransactionalAction`, clearing the previous flag and setting the new one in one transaction, and auditing `term.set_current` naming both terms
-- [ ] T185 [US4] Implement `app/Modules/AcademicTerms/Actions/ChangeTermStatus.php` enforcing the state machine, requiring a reason when leaving `closed`, returning 409 on a disallowed transition, and auditing `term.status_changed`
-- [ ] T186 [US4] Implement `app/Modules/AcademicTerms/Http/Controllers/TermController.php` with `GET`, `POST`, `PUT /terms`, `PATCH /terms/{id}/status`, and `PATCH /terms/{id}/set-current`, excluding archived terms from the default list
-- [ ] T187 [P] [US4] Implement `app/Modules/AcademicStructure/Http/Controllers/BranchController.php` with `GET`, `POST`, and `PUT /branches`, where `is_active = false` is the only removal path, auditing `branch.created`, `branch.updated`, and `branch.deactivated`
-- [ ] T188 [P] [US4] Implement `app/Modules/AcademicStructure/Http/Controllers/CourseController.php` with `GET` and `POST /courses`, refusing a duplicate `(organization_id, code)` with 422
-- [ ] T189 [US4] Implement `app/Modules/Sections/Http/Requests/StoreSectionRequest.php` producing the localized message "توجد شعبة بهذا الرقم لنفس المقرر والفرع والفصل", with the unique index as the authority
-- [ ] T190 [US4] Implement `app/Modules/Sections/Http/Controllers/SectionController.php` with `GET`, `POST`, and `PUT /sections`, returning branch `gender` as a derived field and `shared_access` where applicable
-- [ ] T191 [US4] Implement `app/Modules/Sections/Actions/ChangeSectionInstructor.php` extending `TransactionalAction`: update `instructor_id`, close the open history row's `unassigned_at`, insert a new open row, never rewrite any existing record's author, and audit `section.instructor_changed`
-- [ ] T192 [P] [US4] Implement `app/Modules/Students/Http/Controllers/StudentController.php` with `GET /students` (distinct across enrollments) and `GET /students/{id}` returning enrollments plus an empty initiative-history placeholder
-- [ ] T193 [US4] Implement `app/Modules/Students/Actions/EnrollStudent.php` linking an existing University ID rather than duplicating, keeping the stored name on a mismatch and returning a `warnings` array, and auditing `student.created` when new plus `enrollment.created` always
-- [ ] T194 [US4] Implement `app/Modules/Students/Actions/WithdrawEnrollment.php` requiring a reason, setting `withdrawn_at`, preserving the student record, and auditing `enrollment.withdrawn`
-- [ ] T195 [P] [US4] Implement the policies `TermPolicy`, `BranchPolicy`, `CoursePolicy`, `SectionPolicy`, `StudentPolicy`, and `EnrollmentPolicy` under their modules and register them in `app/Providers/AuthServiceProvider.php`
+- [X] T183 [P] [US4] Implement `app/Modules/Shared/Rules/UniversityId.php` as the single rule used by both manual entry and the import row validator
+- [X] T184 [US4] Implement `app/Modules/AcademicTerms/Actions/SetCurrentTerm.php` extending `TransactionalAction`, clearing the previous flag and setting the new one in one transaction, and auditing `term.set_current` naming both terms
+- [X] T185 [US4] Implement `app/Modules/AcademicTerms/Actions/ChangeTermStatus.php` enforcing the state machine, requiring a reason when leaving `closed`, returning 409 on a disallowed transition, and auditing `term.status_changed`
+- [X] T186 [US4] Implement `app/Modules/AcademicTerms/Http/Controllers/TermController.php` with `GET`, `POST`, `PUT /terms`, `PATCH /terms/{id}/status`, and `PATCH /terms/{id}/set-current`, excluding archived terms from the default list
+- [X] T187 [P] [US4] Implement `app/Modules/AcademicStructure/Http/Controllers/BranchController.php` with `GET`, `POST`, and `PUT /branches`, where `is_active = false` is the only removal path, auditing `branch.created`, `branch.updated`, and `branch.deactivated`
+- [X] T188 [P] [US4] Implement `app/Modules/AcademicStructure/Http/Controllers/CourseController.php` with `GET` and `POST /courses`, refusing a duplicate `(organization_id, code)` with 422
+- [X] T189 [US4] Implement `app/Modules/Sections/Http/Requests/StoreSectionRequest.php` producing the localized message "توجد شعبة بهذا الرقم لنفس المقرر والفرع والفصل", with the unique index as the authority
+- [X] T190 [US4] Implement `app/Modules/Sections/Http/Controllers/SectionController.php` with `GET`, `POST`, and `PUT /sections`, returning branch `gender` as a derived field and `shared_access` where applicable
+- [X] T191 [US4] Implement `app/Modules/Sections/Actions/ChangeSectionInstructor.php` extending `TransactionalAction`: update `instructor_id`, close the open history row's `unassigned_at`, insert a new open row, never rewrite any existing record's author, and audit `section.instructor_changed`
+- [X] T192 [P] [US4] Implement `app/Modules/Students/Http/Controllers/StudentController.php` with `GET /students` (distinct across enrollments) and `GET /students/{id}` returning enrollments plus an empty initiative-history placeholder
+- [X] T193 [US4] Implement `app/Modules/Students/Actions/EnrollStudent.php` linking an existing University ID rather than duplicating, keeping the stored name on a mismatch and returning a `warnings` array, and auditing `student.created` when new plus `enrollment.created` always
+- [X] T194 [US4] Implement `app/Modules/Students/Actions/WithdrawEnrollment.php` requiring a reason, setting `withdrawn_at`, preserving the student record, and auditing `enrollment.withdrawn`
+- [X] T195 [P] [US4] Implement the policies `TermPolicy`, `BranchPolicy`, `CoursePolicy`, `SectionPolicy`, `StudentPolicy`, and `EnrollmentPolicy` under their modules and register them in `app/Providers/AuthServiceProvider.php`
 
 ### Screens for User Story 4 — built to the design system
 
-- [ ] T196 [US4] Build `resources/views/terms/index.blade.php` and `_dialog.blade.php` to the `TermsScreen` + `TermDialog` reference — list with `x-track-status-badge` for draft/active/closed/archived plus a `current` badge, section counts, a status-change `x-track-dialog` confirming the transition, and a set-current confirmation restating that the previous current term will be cleared
-- [ ] T197 [P] [US4] Build `resources/views/branches/index.blade.php` and `_dialog.blade.php` to the `BranchesScreen` reference — campus name in both languages, a gender `x-track-select`, an active `x-track-switch`, section and student counts, and an `x-track-alert` tone info stating a branch with sections is deactivated rather than deleted
-- [ ] T198 [P] [US4] Build `resources/views/courses/index.blade.php` and `_dialog.blade.php` to the `CoursesScreen` reference — code in LTR, both names, section count, and the duplicate-code inline error
-- [ ] T199 [US4] Build `resources/views/sections/index.blade.php` to the `SectionsScreen` reference — filter row of term/branch/course/instructor `x-track-select` plus search, `x-track-data-table` showing section number (numeric), course, branch with derived gender, instructor, enrollment count, and the `shared` badge; the instructor variant (`mysections`) drops the branch filter and shows `x-track-empty-state` "لم تُسند إليك أي شعبة بعد" when empty
-- [ ] T200 [US4] Build `resources/views/sections/show.blade.php` to the `SectionDetail` + `SectionMeta` + `RosterTable` reference — `x-track-breadcrumbs`, a metadata panel, and `x-track-tabs` for Roster / Instructor history / Activity, with the roster table carrying per-row withdraw actions and the withdrawn rows rendered greyed with their reason
-- [ ] T201 [P] [US4] Build `resources/views/sections/_dialog.blade.php` and `_assign-dialog.blade.php` to the `SectionDialog` + `AssignDialog` reference — create/edit with the duplicate-key error, and instructor change as a confirmation restating that access moves while past entries keep their author
-- [ ] T202 [P] [US4] Build `resources/views/students/index.blade.php` and `show.blade.php` to the `StudentsScreen` + `StudentDetail` reference — University ID in LTR numerics, both names, enrollment count, and the detail page's enrollment table plus activity tab
-- [ ] T203 [P] [US4] Build the enroll-student and withdraw-student dialogs — enroll with University ID validation and the name-mismatch warning, withdraw with a **mandatory** reason textarea and a danger confirmation (FR-047, FR-082)
-- [ ] T204 [P] [US4] Add the `terms`, `branches`, `courses`, `sections`, and `students` translation keys to `lang/ar/` and `lang/en/`, taking Arabic strings from the reference `i18n.js`
+- [X] T196 [US4] Build `resources/views/terms/index.blade.php` and `_dialog.blade.php` to the `TermsScreen` + `TermDialog` reference — list with `x-track-status-badge` for draft/active/closed/archived plus a `current` badge, section counts, a status-change `x-track-dialog` confirming the transition, and a set-current confirmation restating that the previous current term will be cleared
+- [X] T197 [P] [US4] Build `resources/views/branches/index.blade.php` and `_dialog.blade.php` to the `BranchesScreen` reference — campus name in both languages, a gender `x-track-select`, an active `x-track-switch`, section and student counts, and an `x-track-alert` tone info stating a branch with sections is deactivated rather than deleted
+- [X] T198 [P] [US4] Build `resources/views/courses/index.blade.php` and `_dialog.blade.php` to the `CoursesScreen` reference — code in LTR, both names, section count, and the duplicate-code inline error
+- [X] T199 [US4] Build `resources/views/sections/index.blade.php` to the `SectionsScreen` reference — filter row of term/branch/course/instructor `x-track-select` plus search, `x-track-data-table` showing section number (numeric), course, branch with derived gender, instructor, enrollment count, and the `shared` badge; the instructor variant (`mysections`) drops the branch filter and shows `x-track-empty-state` "لم تُسند إليك أي شعبة بعد" when empty
+- [X] T200 [US4] Build `resources/views/sections/show.blade.php` to the `SectionDetail` + `SectionMeta` + `RosterTable` reference — `x-track-breadcrumbs`, a metadata panel, and `x-track-tabs` for Roster / Instructor history / Activity, with the roster table carrying per-row withdraw actions and the withdrawn rows rendered greyed with their reason
+- [X] T201 [P] [US4] Build `resources/views/sections/_dialog.blade.php` and `_assign-dialog.blade.php` to the `SectionDialog` + `AssignDialog` reference — create/edit with the duplicate-key error, and instructor change as a confirmation restating that access moves while past entries keep their author
+- [X] T202 [P] [US4] Build `resources/views/students/index.blade.php` and `show.blade.php` to the `StudentsScreen` + `StudentDetail` reference — University ID in LTR numerics, both names, enrollment count, and the detail page's enrollment table plus activity tab
+- [X] T203 [P] [US4] Build the enroll-student and withdraw-student dialogs — enroll with University ID validation and the name-mismatch warning, withdraw with a **mandatory** reason textarea and a danger confirmation (FR-047, FR-082)
+- [X] T204 [P] [US4] Add the `terms`, `branches`, `courses`, `sections`, and `students` translation keys to `lang/ar/` and `lang/en/`, taking Arabic strings from the reference `i18n.js`
 
 **Checkpoint**: Real academic data can be created and maintained by hand, matching the approved UI.
+
+**Post-review corrections (2026-10-08).** An engineering review of this phase found fifteen issues
+over a green suite. The eleven that were fixed are recorded here because each one marks a place
+where a test passed while the behaviour it named was absent — which is the only thing worth
+remembering about them. Regression cover lives in
+`tests/Feature/AcademicStructure/ReviewRegressionsTest.php`, and every test there was confirmed to
+fail against the original code before being kept.
+
+- **Enrolment 500'd for every role it was built for.** `EnrollStudent` looked the student up through
+  the *scoped* `Student` query, so a coordinator enrolling a student from another campus never found
+  them, created a second row and hit the unique index. The phase's tests all acted as `SUPER_ADMIN`,
+  who bypasses the scope. Same fault, same fix, in the existing-enrolment lookup.
+- **No dialog could be submitted from a browser.** All eight dialogs post as ordinary forms to
+  `api.v1.*` routes that returned JSON unconditionally, and Laravel's default renders validation
+  errors as JSON for anything under `api/*`. Every write test used `postJson`, so the one caller
+  that already worked was the only one exercised. Fixed with `RespondsToBoth` and by making content
+  negotiation, not the URL prefix, decide the response format.
+- **Instructor history was unmet in both directions.** Section creation opened no history row, so the
+  founding instructor appeared nowhere; and `PUT /sections/{id}` mass-assigned `instructor_id`,
+  moving access with no history and no `section.instructor_changed`. `ChangeInstructorTest` passed
+  because it seeded by hand the row the application never created — the factory now opens it, so
+  tests run against a section that could actually exist.
+- **A settings-held regex was interpolated raw.** A pattern containing `/` closed the regex early and
+  500'd every enrolment and every import row; an unanchored one accepted `xx441234567yy`.
+- **Writes were not scoped.** `exists:branches,id` let a section be created in any campus;
+  `organizationId()` returned the first college rather than the acting user's.
+- Also: `filterOptions()` hydrated every visible section on each render, the roster loaded unbounded
+  with one withdraw dialog per student, `is_active === false` missed a form-encoded `"0"`,
+  re-enrolment audited `enrollment.updated`, `SetCurrentTerm` locked zero rows when no term was
+  current, and the instructor empty-state was shown to administrators.
+
+Four findings were **not** fixed and remain open, deliberately: the withdraw route path differs from
+`contracts/academic.md`, policies ignore their model argument (scoping rests on global scopes),
+`sections` has no `deleted_at` so soft delete is not "throughout", and `createOptions()` still loads
+five reference tables whole.
 
 ---
 
@@ -443,57 +478,134 @@ keyboard.
 
 ### Tests for User Story 5
 
-- [ ] T205 [P] [US5] Write `app/Console/Commands/MakeRosterFixture.php` (`track:make-roster-fixture --rows= --with-defects`) emitting an `.xlsx` containing valid rows plus in-file duplicates, malformed University IDs, missing required values, an unknown branch, an unknown course, an unregistered instructor, a name mismatch, and an unresolvable section
-- [ ] T206 [P] [US5] Write `app/Console/Commands/CoreCounts.php` (`track:core-counts`) printing row counts for sections, students, enrollments, courses, and branches — the probe quickstart scenario 5.4 uses
-- [ ] T207 [P] [US5] Write `tests/Feature/Imports/NoWritesBeforeConfirmTest.php` snapshotting core table counts across upload, mapping, validation, and preview and asserting they are **unchanged** — the contract's central guarantee (FR-060)
-- [ ] T208 [P] [US5] Write `tests/Feature/Imports/UploadValidationTest.php` asserting refusal over 20 MB, over 50,000 rows, on an unsupported type, and on a `.xlsx` extension whose magic bytes disagree — all before storage (FR-055)
-- [ ] T209 [P] [US5] Write `tests/Feature/Imports/MappingTest.php` asserting the suggested mapping is returned, an unmapped required target is refused, and a mapped column absent from the header row is refused (FR-056)
-- [ ] T210 [P] [US5] Write `tests/Feature/Imports/ValidationCategoriesTest.php` asserting each of the eight categories in [contracts/imports.md](./contracts/imports.md) produces the right row status and localized reason key (FR-057, FR-062, FR-068)
-- [ ] T211 [P] [US5] Write `tests/Feature/Imports/PreviewTest.php` asserting the create-versus-match counts, the warning and error counts, the first 100 rows each with a status, and 409 while validation is unfinished (FR-061)
-- [ ] T212 [P] [US5] Write `tests/Feature/Imports/ChunkedCommitTest.php` asserting commit runs in 500-row transactional chunks and that existing records are linked rather than duplicated (FR-064)
-- [ ] T213 [P] [US5] Write `tests/Feature/Imports/ResumeAfterChunkFailureTest.php` failing a chunk mid-commit, asserting `last_committed_row_id` sits at the last **successful** chunk, committed rows survive, and a resume completes the remainder (FR-065)
-- [ ] T214 [P] [US5] Write `tests/Feature/Imports/DuplicateFileHashTest.php` asserting a matching `file_hash` for the same term warns via `duplicate_of`, and that continuing creates **zero** new records (FR-067, SC-008)
-- [ ] T215 [P] [US5] Write `tests/Unit/DuplicateDetectionTest.php` asserting all four levels — University ID, section key, student + section, student + assignment — are each enforced by a unique index, and that a per-row violation becomes an error reason without failing its chunk (FR-066)
-- [ ] T216 [P] [US5] Write `tests/Feature/Imports/ErrorReportTest.php` asserting the `.xlsx` contains row number, column, submitted value, and reason for **every** rejected row with none missing, Arabic-safe (FR-071, SC-009)
-- [ ] T217 [P] [US5] Write `tests/Feature/Imports/QueueUnavailableTest.php` asserting that with no worker the job stays `validating` or `committing` and the response says the import is waiting rather than reporting a failure — the state the reference kit does not cover ([ui-conflicts.md](./ui-conflicts.md) C-13)
-- [ ] T218 [P] [US5] Write `tests/Authorization/ImportEndpointsTest.php` with allow and deny cases for all 9 endpoints in contracts/imports.md
-- [ ] T219 [P] [US5] Write `tests/Performance/ImportThroughputTest.php` asserting 10,000 rows validate and commit within 5 minutes (SC-007), in the `performance` group, excluded from the default run
-- [ ] T220 [P] [US5] Write `tests/Visual/us5.spec.ts` screenshotting all six wizard steps plus the imports list, the re-upload warning, the row-reason table, the report, and the **queue-waiting** state against the `ImportScreens` reference, both locales; the queue-waiting baseline has no React counterpart and is baselined from the Blade implementation for design review (C-13)
-- [ ] T221 [US5] Write `tests/Feature/Imports/CentralModeRejectsRegistrarFileTest.php` asserting that the actual registrar export at `design-system/uploads/filedownloadservlet(21).xlsx` fed to the **central** mode fails with clear per-target reasons naming each of FR-052's ten required targets it cannot supply, and points the operator at the registrar mode — rather than crashing or importing partial nonsense. *(C-09 was decided on 2026-09-27: the registrar mode now handles this file properly, so this task's original purpose — gathering evidence for that decision — is served. It remains as a regression guard on the central mode's failure behaviour. The successful end-to-end import of the same file is T325.)*
+- [X] T205 [P] [US5] Write `app/Console/Commands/MakeRosterFixture.php` (`track:make-roster-fixture --rows= --with-defects`) emitting an `.xlsx` containing valid rows plus in-file duplicates, malformed University IDs, missing required values, an unknown branch, an unknown course, an unregistered instructor, a name mismatch, and an unresolvable section
+- [X] T206 [P] [US5] Write `app/Console/Commands/CoreCounts.php` (`track:core-counts`) printing row counts for sections, students, enrollments, courses, and branches — the probe quickstart scenario 5.4 uses
+- [X] T207 [P] [US5] Write `tests/Feature/Imports/NoWritesBeforeConfirmTest.php` snapshotting core table counts across upload, mapping, validation, and preview and asserting they are **unchanged** — the contract's central guarantee (FR-060)
+- [X] T208 [P] [US5] Write `tests/Feature/Imports/UploadValidationTest.php` asserting refusal over 20 MB, over 50,000 rows, on an unsupported type, and on a `.xlsx` extension whose magic bytes disagree — all before storage (FR-055)
+- [X] T209 [P] [US5] Write `tests/Feature/Imports/MappingTest.php` asserting the suggested mapping is returned, an unmapped required target is refused, and a mapped column absent from the header row is refused (FR-056)
+- [X] T210 [P] [US5] Write `tests/Feature/Imports/ValidationCategoriesTest.php` asserting each of the eight categories in [contracts/imports.md](./contracts/imports.md) produces the right row status and localized reason key (FR-057, FR-062, FR-068)
+- [X] T211 [P] [US5] Write `tests/Feature/Imports/PreviewTest.php` asserting the create-versus-match counts, the warning and error counts, the first 100 rows each with a status, and 409 while validation is unfinished (FR-061)
+- [X] T212 [P] [US5] Write `tests/Feature/Imports/ChunkedCommitTest.php` asserting commit runs in 500-row transactional chunks and that existing records are linked rather than duplicated (FR-064)
+- [X] T213 [P] [US5] Write `tests/Feature/Imports/ResumeAfterChunkFailureTest.php` failing a chunk mid-commit, asserting `last_committed_row_id` sits at the last **successful** chunk, committed rows survive, and a resume completes the remainder (FR-065)
+- [X] T214 [P] [US5] Write `tests/Feature/Imports/DuplicateFileHashTest.php` asserting a matching `file_hash` for the same term warns via `duplicate_of`, and that continuing creates **zero** new records (FR-067, SC-008)
+- [X] T215 [P] [US5] Write `tests/Unit/DuplicateDetectionTest.php` asserting all four levels — University ID, section key, student + section, student + assignment — are each enforced by a unique index, and that a per-row violation becomes an error reason without failing its chunk (FR-066)
+- [X] T216 [P] [US5] Write `tests/Feature/Imports/ErrorReportTest.php` asserting the `.xlsx` contains row number, column, submitted value, and reason for **every** rejected row with none missing, Arabic-safe (FR-071, SC-009)
+- [X] T217 [P] [US5] Write `tests/Feature/Imports/QueueUnavailableTest.php` asserting that with no worker the job stays `validating` or `committing` and the response says the import is waiting rather than reporting a failure — the state the reference kit does not cover ([ui-conflicts.md](./ui-conflicts.md) C-13)
+- [X] T218 [P] [US5] Write `tests/Authorization/ImportEndpointsTest.php` with allow and deny cases for all 9 endpoints in contracts/imports.md
+- [X] T219 [P] [US5] Write `tests/Performance/ImportThroughputTest.php` asserting 10,000 rows validate and commit within 5 minutes (SC-007), in the `performance` group, excluded from the default run
+- [X] T220 [P] [US5] Write `tests/Visual/us5.spec.ts` screenshotting all six wizard steps plus the imports list, the re-upload warning, the row-reason table, the report, and the **queue-waiting** state against the `ImportScreens` reference, both locales; the queue-waiting baseline has no React counterpart and is baselined from the Blade implementation for design review (C-13)
+- [X] T221 [US5] Write `tests/Feature/Imports/CentralModeRejectsRegistrarFileTest.php` asserting that the actual registrar export at `design-system/uploads/filedownloadservlet(21).xlsx` fed to the **central** mode fails with clear per-target reasons naming each of FR-052's ten required targets it cannot supply, and points the operator at the registrar mode — rather than crashing or importing partial nonsense. *(C-09 was decided on 2026-09-27: the registrar mode now handles this file properly, so this task's original purpose — gathering evidence for that decision — is served. It remains as a regression guard on the central mode's failure behaviour. The successful end-to-end import of the same file is T325.)* *(Its end-to-end half is **superseded by T325**, which imports the same file through the registrar mode; this test stays as the guard on the central mode refusing it.)*
 
 ### Backend implementation for User Story 5
 
-- [ ] T222 [P] [US5] Implement `app/Models/ImportJob.php`, `ImportRow.php`, and `ImportError.php` with their relations and status enums
-- [ ] T223 [US5] Implement `app/Modules/Imports/Pipeline/FileValidator.php` checking extension, MIME, magic bytes, size against `import_max_file_mb`, and row count against `import_max_rows`, all read from settings — rejecting before storage
-- [ ] T224 [US5] Implement `app/Modules/Imports/Actions/UploadImport.php` storing the file on the private disk, computing the SHA-256 `file_hash`, detecting a prior matching import for the same term as `duplicate_of`, creating the job in `uploaded`, and auditing `import.uploaded`
-- [ ] T225 [US5] Implement `app/Modules/Imports/Pipeline/HeaderReader.php` and `ColumnMapper.php` streaming only the header row and proposing a mapping by normalized name match
-- [ ] T226 [US5] Implement `PUT /imports/{id}/mapping` in `ImportMappingController.php`, persisting the confirmed mapping and the `create_missing_courses` and `create_missing_instructors` options, refusing an unmapped required target
-- [ ] T227 [US5] Implement `app/Modules/Imports/Pipeline/RowValidator.php` detecting all eight categories from contracts/imports.md, using `UniversityId` from T183 and a running hash set for in-file duplicates
-- [ ] T228 [US5] Implement `app/Modules/Imports/Jobs/ValidateImportJob.php` streaming the file with OpenSpout and writing one `import_rows` row per source row with `raw`, `resolved`, `status`, and localized `reasons` — **writing to no core table**
-- [ ] T229 [US5] Implement `POST /imports/{id}/validate` returning 202 and dispatching the job, with 409 when the job is not in `mapped` state
-- [ ] T230 [US5] Implement `GET /imports/{id}/preview` reading counts and the first 100 rows from `import_rows`, with 409 while validation is unfinished
-- [ ] T231 [US5] Implement `app/Modules/Imports/Pipeline/Resolver.php` resolving Branch → Course → Section → Instructor → Student → Enrollment, honouring the create-or-skip options and keeping the stored student name on a mismatch
-- [ ] T232 [US5] Implement `app/Modules/Imports/Jobs/CommitImportChunkJob.php` as a self-chaining job walking `import_rows` by id in 500-row chunks, each chunk one `DB::transaction()` that advances `last_committed_row_id` **as its final statement**, catching per-row unique violations as error reasons without failing the chunk
-- [ ] T233 [US5] Implement `POST /imports/{id}/commit` requiring `confirm: true`, returning 202, refusing with 409 unless the job is `validated` and the preview was fetched, and auditing `import.committed` with filename, counts, and actor
-- [ ] T234 [US5] Implement `POST /imports/{id}/resume` restarting from `id > last_committed_row_id`, with 409 unless the job is `failed`, auditing `import.resumed`
-- [ ] T235 [US5] Implement `GET /imports/{id}` returning status, the five counters, `last_committed_row_id`, `failure_reason`, timings, and `progress_percent` for the 5-second poller
-- [ ] T236 [US5] Implement `app/Modules/Imports/Exports/ImportErrorReportExport.php` materializing `import_errors` from `import_rows` and streaming an Arabic-safe `.xlsx`, exposed as `GET /imports/{id}/errors/download` and auditing `import.error_report_downloaded`
-- [ ] T237 [P] [US5] Implement `app/Modules/Imports/Policies/ImportJobPolicy.php` mapping each endpoint to `import.central.run`, `import.section.run`, or `import.view`, and requiring job ownership
-- [ ] T238 [P] [US5] Store a notification row on queued-job completion in `app/Modules/Imports/Notifications/ImportFinished.php` so the later notification-centre feature surfaces it without rework — **no email is sent in this feature**
+- [X] T222 [P] [US5] Implement `app/Models/ImportJob.php`, `ImportRow.php`, and `ImportError.php` with their relations and status enums
+- [X] T223 [US5] Implement `app/Modules/Imports/Pipeline/FileValidator.php` checking extension, MIME, magic bytes, size against `import_max_file_mb`, and row count against `import_max_rows`, all read from settings — rejecting before storage
+- [X] T224 [US5] Implement `app/Modules/Imports/Actions/UploadImport.php` storing the file on the private disk, computing the SHA-256 `file_hash`, detecting a prior matching import for the same term as `duplicate_of`, creating the job in `uploaded`, and auditing `import.uploaded`
+- [X] T225 [US5] Implement `app/Modules/Imports/Pipeline/HeaderReader.php` and `ColumnMapper.php` streaming only the header row and proposing a mapping by normalized name match
+- [X] T226 [US5] Implement `PUT /imports/{id}/mapping` in `ImportMappingController.php`, persisting the confirmed mapping and the `create_missing_courses` and `create_missing_instructors` options, refusing an unmapped required target
+- [X] T227 [US5] Implement `app/Modules/Imports/Pipeline/RowValidator.php` detecting all eight categories from contracts/imports.md, using `UniversityId` from T183 and a running hash set for in-file duplicates
+- [X] T228 [US5] Implement `app/Modules/Imports/Jobs/ValidateImportJob.php` streaming the file with OpenSpout and writing one `import_rows` row per source row with `raw`, `resolved`, `status`, and localized `reasons` — **writing to no core table**
+- [X] T229 [US5] Implement `POST /imports/{id}/validate` returning 202 and dispatching the job, with 409 when the job is not in `mapped` state
+- [X] T230 [US5] Implement `GET /imports/{id}/preview` reading counts and the first 100 rows from `import_rows`, with 409 while validation is unfinished
+- [X] T231 [US5] Implement `app/Modules/Imports/Pipeline/Resolver.php` resolving Branch → Course → Section → Instructor → Student → Enrollment, honouring the create-or-skip options and keeping the stored student name on a mismatch
+- [X] T232 [US5] Implement `app/Modules/Imports/Jobs/CommitImportChunkJob.php` as a self-chaining job walking `import_rows` by id in 500-row chunks, each chunk one `DB::transaction()` that advances `last_committed_row_id` **as its final statement**, catching per-row unique violations as error reasons without failing the chunk
+- [X] T233 [US5] Implement `POST /imports/{id}/commit` requiring `confirm: true`, returning 202, refusing with 409 unless the job is `validated` and the preview was fetched, and auditing `import.committed` with filename, counts, and actor
+- [X] T234 [US5] Implement `POST /imports/{id}/resume` restarting from `id > last_committed_row_id`, with 409 unless the job is `failed`, auditing `import.resumed`
+- [X] T235 [US5] Implement `GET /imports/{id}` returning status, the five counters, `last_committed_row_id`, `failure_reason`, timings, and `progress_percent` for the 5-second poller
+- [X] T236 [US5] Implement `app/Modules/Imports/Exports/ImportErrorReportExport.php` materializing `import_errors` from `import_rows` and streaming an Arabic-safe `.xlsx`, exposed as `GET /imports/{id}/errors/download` and auditing `import.error_report_downloaded`
+- [X] T237 [P] [US5] Implement `app/Modules/Imports/Policies/ImportJobPolicy.php` mapping each endpoint to `import.central.run`, `import.section.run`, or `import.view`, and requiring job ownership
+- [X] T238 [P] [US5] Store a notification row on queued-job completion in `app/Modules/Imports/Notifications/ImportFinished.php` so the later notification-centre feature surfaces it without rework — **no email is sent in this feature**
 
 ### Screens for User Story 5 — the six-step wizard
 
-- [ ] T239 [US5] Build `resources/views/imports/index.blade.php` to the `ImportsScreen` reference — `x-track-data-table` of past jobs with mode, file, actor, timestamp, `x-track-status-badge` for the seven job states, the five counters as numerics, a **Resume** ghost button on `failed` rows, and an error-report download button where `errors > 0`
-- [ ] T240 [US5] Build `resources/views/imports/_wizard.blade.php` as the shared wizard frame — `x-track-stepper` with the six approved Arabic step labels (رفع الملف · مطابقة الأعمدة · الفحص · المعاينة · الاستيراد · التقرير) and the `x-track-card` body, driven by `resources/js/components/import-wizard.js`
-- [ ] T241 [US5] Build step 1 `resources/views/imports/step-upload.blade.php` — drag-and-drop zone with the accepted types and limits stated up front, `FileMeta` panel showing name and size after selection, term `x-track-select` for central mode, and the `duplicate_of` re-upload `x-track-alert` tone warning
-- [ ] T242 [US5] Build step 2 `resources/views/imports/step-mapping.blade.php` — a two-column mapping table pairing each required target with a source-column `x-track-select` pre-filled from the suggestion, required targets marked, the create-or-skip `x-track-switch` pair for unknown courses and unregistered instructors, and a disabled Continue until every required target is mapped
-- [ ] T243 [US5] Build step 3 `resources/views/imports/step-validating.blade.php` — `x-track-progress` with the 5-second poller, a row counter, and the **queue-waiting** `x-track-alert` tone info shown when the job has not been picked up, saying the import is waiting and will be reported when it finishes (C-13)
-- [ ] T244 [US5] Build step 4 `resources/views/imports/step-preview.blade.php` — a summary grid of `x-track-stat-card` tiles for will-create versus will-match versus warnings versus errors, then `x-track-data-table` of the first 100 rows with a per-row `x-track-status-badge` (valid / warning / error) and its localized reasons, and a confirmation `x-track-dialog` restating the counts before commit (FR-082)
-- [ ] T245 [US5] Build step 5 `resources/views/imports/step-committing.blade.php` — `x-track-progress` with the chunk counter ("الدفعة 2 من 4") and the same poller
-- [ ] T246 [US5] Build step 6 `resources/views/imports/step-report.blade.php` — the four approved counters (processed · imported · duplicates · errors), the error-report download button, and a success `x-track-toast`
-- [ ] T247 [P] [US5] Add the `imports` translation keys — including every `import.*` row-reason key from contracts/imports.md and the queue-waiting copy — to `lang/ar/imports.php` and `lang/en/imports.php`
+- [X] T239 [US5] Build `resources/views/imports/index.blade.php` to the `ImportsScreen` reference — `x-track-data-table` of past jobs with mode, file, actor, timestamp, `x-track-status-badge` for the seven job states, the five counters as numerics, a **Resume** ghost button on `failed` rows, and an error-report download button where `errors > 0`
+- [X] T240 [US5] Build `resources/views/imports/_wizard.blade.php` as the shared wizard frame — `x-track-stepper` with the six approved Arabic step labels (رفع الملف · مطابقة الأعمدة · الفحص · المعاينة · الاستيراد · التقرير) and the `x-track-card` body, driven by `resources/js/components/import-wizard.js`
+- [X] T241 [US5] Build step 1 `resources/views/imports/step-upload.blade.php` — drag-and-drop zone with the accepted types and limits stated up front, `FileMeta` panel showing name and size after selection, term `x-track-select` for central mode, and the `duplicate_of` re-upload `x-track-alert` tone warning
+- [X] T242 [US5] Build step 2 `resources/views/imports/step-mapping.blade.php` — a two-column mapping table pairing each required target with a source-column `x-track-select` pre-filled from the suggestion, required targets marked, the create-or-skip `x-track-switch` pair for unknown courses and unregistered instructors, and a disabled Continue until every required target is mapped
+- [X] T243 [US5] Build step 3 `resources/views/imports/step-validating.blade.php` — `x-track-progress` with the 5-second poller, a row counter, and the **queue-waiting** `x-track-alert` tone info shown when the job has not been picked up, saying the import is waiting and will be reported when it finishes (C-13)
+- [X] T244 [US5] Build step 4 `resources/views/imports/step-preview.blade.php` — a summary grid of `x-track-stat-card` tiles for will-create versus will-match versus warnings versus errors, then `x-track-data-table` of the first 100 rows with a per-row `x-track-status-badge` (valid / warning / error) and its localized reasons, and a confirmation `x-track-dialog` restating the counts before commit (FR-082)
+- [X] T245 [US5] Build step 5 `resources/views/imports/step-committing.blade.php` — `x-track-progress` with the chunk counter ("الدفعة 2 من 4") and the same poller
+- [X] T246 [US5] Build step 6 `resources/views/imports/step-report.blade.php` — the four approved counters (processed · imported · duplicates · errors), the error-report download button, and a success `x-track-toast`
+- [X] T247 [P] [US5] Add the `imports` translation keys — including every `import.*` row-reason key from contracts/imports.md and the queue-waiting copy — to `lang/ar/imports.php` and `lang/en/imports.php`
 
 **Checkpoint**: A real 5,000-row roster loads end to end with an error report — the PRD Phase 1 gate's second check.
+
+**Implementation notes (2026-10-08).** Recorded because each one is a decision the task text did not
+make, or a place where the task text and the code differ on purpose.
+
+- **A programme for new sections.** FR-052's ten columns predate FR-090, so a section created by an
+  import had no programme to belong to, and "create unknown courses" could never succeed. Two
+  additions, both written into contracts/imports.md: an optional eleventh target `program_code`, and a
+  mapping-step choice `new_course_program_id` for courses the import creates. A new section otherwise
+  takes its course's programme when the course has exactly one, and is reported as
+  `import.unresolvable_section` when it cannot be known — never attached by guess.
+- **What an import never does.** It never changes an existing section's instructor (that is
+  ChangeSectionInstructor's history row and audit entry), never renames a student (FR-069), and never
+  reopens a TRACK withdrawal — a re-sent roster counts the row as matched and the withdrawal stands.
+- **FR-067 is strict.** A file already imported for the term commits nothing at all, even rows the first
+  run skipped and the second run would now create; every row counts as a duplicate, as the reference
+  does. A job abandoned before commit is not "previously imported".
+- **`import.committed` is written at completion**, attributed to the operator, carrying the final
+  processed / imported / duplicate / error counts (FR-073). The queued chunks adopt the job owner as the
+  authenticated user, so every student, section and enrollment they create is audited to that person.
+- **Six job columns arrive in their own migration**, `2026_10_08_000001_add_wizard_state_to_import_jobs_table`
+  — `summary`, `link_only`, `preview_fetched_at`, `commit_requested_at`, `queued_at`, `heartbeat_at` —
+  plus Laravel's standard `notifications` table for T238. (They were first added by editing the
+  already-run 000018 migration; the review caught it, see below.) `php artisan migrate` is enough. The
+  queue-waiting state (C-13) is a heartbeat older than the queueing, not elapsed time.
+- **Ownership versus visibility.** Reading a job is `import.view` plus the global scope; every step that
+  moves a job forward is the mode's run permission **and** ownership, so a second Super Admin can follow
+  a colleague's import but not confirm it.
+- **T215** is split by what each half needs: the four index definitions are read from the migrations in
+  `tests/Unit/DuplicateDetectionTest.php` (no framework, as that suite requires), and the row-level
+  violation runs against a database in `tests/Feature/Imports/RowViolationDoesNotFailChunkTest.php`.
+  Level 4 (`initiative_targets`) is skipped by name until Phase 12's T287 creates the table.
+- **T218** covers eight of the contract's nine endpoints. The ninth, `POST /sections/{id}/imports`, is
+  US6's (T254) and its allow/deny pair arrives with it.
+- **T219** measured 49.8 s for 10,000 rows end to end against the 300 s budget (SQLite, sync queue).
+- **Two defects outside this phase's files were found and fixed on the way:** the stepper's connecting
+  lines carried the browser's list numbering (first visible now, its first real screen), and OpenSpout's
+  XLSX reader keeps its file handle after an early stop until the cycle collector runs — a lock on
+  Windows (`SpreadsheetReader::release()`).
+- **Not built here, deliberately:** Phase 15 (registrar mode) interleaves after T233 and was not part of
+  this run; T221 guards the central mode's refusal of that file in the meantime.
+
+**Post-review corrections (2026-10-09).** An engineering review of this phase found ten issues over a
+green suite, all fixed. As with Phase 7, they are recorded because each marks a place where a test
+passed while the behaviour it named was absent — here, because every test ran one request at a time,
+on one worker, on the choices validation had seen. Regression cover lives in
+`tests/Feature/Imports/ReviewRegressionsTest.php`; each test there was confirmed to fail with its fix
+undone, except the row-lock one noted below.
+
+- **The commit could act on choices nobody validated.** `POST /commit` accepted new create-or-skip
+  options, so it wrote courses and accounts the validator never checked and the preview never counted —
+  an orphan course with no programme, an account for an empty email. The commit now refuses `options`
+  (422); a choice changes only by mapping again.
+- **A skipped row could leave a course behind.** The resolver created the missing course before
+  deciding the row's instructor; a skip does not throw, so the savepoint committed the course. Every
+  decision is now made before the first write.
+- **Two commits, or two resumes, could start two chains.** Check-then-save let a double click pass both
+  checks. Commit, resume, validate and mapping now claim the job with a compare-and-set UPDATE, and each
+  chunk reads the checkpoint under a row lock on the job. The lock cannot be exercised on SQLite (it
+  ignores FOR UPDATE, and the suite uses one connection); it holds on MySQL and PostgreSQL.
+- **A dead worker left an import stuck forever.** No `failed()` handler, `tries = 1`, and timeouts
+  longer than the queue's `retry_after` of 90. Both jobs now have `failed()` and `failOnTimeout`; the
+  chunk job's timeout is 80 s, validation's 840 s, and `retry_after` defaults to 900 for the database and
+  redis queues. A worker that dies outright runs no handler, so a `committing` job whose heartbeat is
+  over 15 minutes old can be resumed, and a stalled validation can be re-mapped; the screens offer both.
+- **Link-only could switch on halfway through a commit.** `duplicateOf()` was asked again in every
+  chunk, and required the other job to have been uploaded earlier. It is now decided once at commit and
+  stored as `link_only`, and the warning counts any other completed import of the file.
+- **Downloading the error report rewrote it.** Each GET deleted and rebuilt `import_errors`, then paged
+  it by offset, so concurrent downloads could get mixed languages or missing lines. The download now
+  streams `import_rows` by id; `import_errors` is written once, at completion.
+- **A revoked or deactivated owner kept committing.** Each chunk now re-checks the owner, and stops the
+  import as failed with `imports.failure.owner_revoked`.
+- **"١", "1" and "01" were three sections.** Section numbers are now normalised in the in-file check,
+  the lookup and the stored value (`RowValidator::sectionNumber`).
+- **Per-row queries inside each chunk.** The resolver now preloads a chunk's students and existing
+  enrollments in two queries, and caches section groups and course programmes.
+- **The migration was edited in place.** Moved to a new migration, as above.
 
 ---
 
@@ -505,22 +617,75 @@ keyboard.
 
 ### Tests for User Story 6
 
-- [ ] T248 [P] [US6] Write `tests/Feature/Imports/SectionModeImportTest.php` asserting the same six steps apply, nothing is saved before confirmation, and only `university_id` and `student_name` are required
-- [ ] T249 [P] [US6] Write `tests/Feature/Imports/LinkExistingStudentTest.php` asserting an existing student is linked rather than duplicated, and that a differing name keeps the stored value and raises a warning (FR-069)
-- [ ] T250 [P] [US6] Write `tests/Feature/Imports/InFileDuplicateRejectedTest.php` asserting a repeated student in one file has its second occurrence rejected naming its row number
-- [ ] T251 [P] [US6] Write `tests/Scope/InstructorCannotImportForeignSectionTest.php` asserting **404** plus an `access.denied` audit entry when an instructor targets a section they neither teach nor hold a grant for (FR-054)
-- [ ] T252 [P] [US6] Write `tests/Feature/Sections/InstructorWithNoSectionsTest.php` asserting the empty state naming whom to contact, not a blank page
-- [ ] T253 [P] [US6] Write `tests/Visual/us6.spec.ts` screenshotting the section-page import entry, the two-column template download, and the instructor's empty state against the `SectionFilePicker` reference, both locales
+- [X] T248 [P] [US6] Write `tests/Feature/Imports/SectionModeImportTest.php` asserting the same six steps apply, nothing is saved before confirmation, and only `university_id` and `student_name` are required
+- [X] T249 [P] [US6] Write `tests/Feature/Imports/LinkExistingStudentTest.php` asserting an existing student is linked rather than duplicated, and that a differing name keeps the stored value and raises a warning (FR-069)
+- [X] T250 [P] [US6] Write `tests/Feature/Imports/InFileDuplicateRejectedTest.php` asserting a repeated student in one file has its second occurrence rejected naming its row number
+- [X] T251 [P] [US6] Write `tests/Scope/InstructorCannotImportForeignSectionTest.php` asserting **404** plus an `access.denied` audit entry when an instructor targets a section they neither teach nor hold a grant for (FR-054)
+- [X] T252 [P] [US6] Write `tests/Feature/Sections/InstructorWithNoSectionsTest.php` asserting the empty state naming whom to contact, not a blank page
+- [X] T253 [P] [US6] Write `tests/Visual/us6.spec.ts` screenshotting the section-page import entry, the two-column template download, and the instructor's empty state against the section page's «استيراد كشف» action and the ImportWizard section mode (SectionsScreens.jsx, ImportScreens.jsx), both locales. *(Corrected 2026-10-09: the `SectionFilePicker` this task first named is the initiatives screen's section picker, not a roster import.)*
 
 ### Implementation for User Story 6
 
-- [ ] T254 [US6] Implement `POST /sections/{id}/imports` in `app/Modules/Imports/Http/Controllers/SectionImportController.php`, resolving the section through the scoped query so a foreign section yields 404, and creating the job with `mode: section`
-- [ ] T255 [US6] Extend `app/Modules/Imports/Pipeline/RowValidator.php` with the section-mode rule set — `university_id` and `student_name` only, with the section fixed by the job rather than read from the file
-- [ ] T256 [US6] Extend `app/Modules/Imports/Pipeline/Resolver.php` for section mode: attach students to the one job section only, never creating or resolving a section from file values
-- [ ] T257 [P] [US6] Build `resources/views/sections/import.blade.php` to the `SectionFilePicker` reference, reusing the wizard frame with a two-column template download button and the section fixed in the header
-- [ ] T258 [P] [US6] Add the instructor-facing `imports` and `sections` empty-state translation keys to `lang/ar/` and `lang/en/`
+- [X] T254 [US6] Implement `POST /sections/{id}/imports` in `app/Modules/Imports/Http/Controllers/SectionImportController.php`, resolving the section through the scoped query so a foreign section yields 404, and creating the job with `mode: section`
+- [X] T255 [US6] Extend `app/Modules/Imports/Pipeline/RowValidator.php` with the section-mode rule set — `university_id` and `student_name` only, with the section fixed by the job rather than read from the file
+- [X] T256 [US6] Extend `app/Modules/Imports/Pipeline/Resolver.php` for section mode: attach students to the one job section only, never creating or resolving a section from file values
+- [X] T257 [P] [US6] Build `resources/views/sections/import.blade.php` to the section page's «استيراد كشف» action and the ImportWizard section mode *(corrected 2026-10-09 — not `SectionFilePicker`, which is the initiatives screen's picker)*, reusing the wizard frame with a two-column template download button and the section fixed in the header
+- [X] T258 [P] [US6] Add the instructor-facing `imports` and `sections` empty-state translation keys to `lang/ar/` and `lang/en/`
 
 **Checkpoint**: Instructors are unblocked from the central office for routine roster corrections.
+
+**Implementation notes (2026-10-09).**
+
+- **The reference T253 and T257 name is the wrong screen.** In the design kit `SectionFilePicker` is
+  the initiatives screen's "pick sections from a file" control (InitiativesScreen.jsx), not a roster
+  import. The approved entry for this story is the section page's «استيراد كشف» action opening
+  ImportWizard in section mode (SectionsScreens.jsx line 91, ImportScreens.jsx), and the page and its
+  baselines are built to that.
+- **Two columns, not the reference's four.** The kit's section template carries sequence and registrar
+  status too; FR-053 and T255 say university id and student name only, and the registrar's columns
+  belong to Phase 15's registrar mode. The template is xlsx with headers in the reader's language, so
+  the mapping step suggests both columns with no correction.
+- **Who may import into a section** is `SectionPolicy::importRoster`: `import.section.run` plus teaching
+  the section, holding a grant for it, or `scope.bypass_all` (the reference lets a Super Admin act on
+  any section). A foreign section is a 404 from the scoped binding before the policy runs, audited as
+  `access.denied` by AuditDeniedAccess; a coordinator who can see the section but teaches none gets
+  403. Every commit chunk asks `importRoster` again, so an instructor whose section is reassigned
+  mid-import stops writing to it.
+- **The section is the job's.** A section job's term is its section's, the file cannot name another
+  section (extra columns are ignored), and the resolver never resolves or creates a section, course or
+  account in this mode. "Previously imported" (FR-067) compares within the same section only.
+- **The ninth endpoint** is now covered in `ImportEndpointsTest` and the route matrix; T218's deferral
+  is closed.
+- **Fixture change.** `UiFixtureSeeder` gains user 11, an Arabic-preference instructor with no section,
+  so the empty state has an Arabic baseline (user 10 is the English one). The instructor empty state now
+  names whom to contact, which changes the existing `*-sections-instructor` baselines' wording.
+
+**Post-review corrections (2026-10-09).** A review of this phase found ten issues, all fixed, with
+regression cover in `tests/Feature/Imports/SectionReviewRegressionsTest.php` (each test confirmed to fail
+with its fix undone).
+
+- **The preview disclosed any student's name.** The section mode's student lookup is unscoped (it must
+  be, to link rather than duplicate), and the name-mismatch reason quoted the stored name — so made-up
+  ids with a placeholder name read real names off the preview without ever committing. In this mode the
+  stored name is now quoted only for a student already in the job's section.
+- **Later steps did not re-check the section.** `ImportJobPolicy::run` now applies
+  `SectionPolicy::importRoster` to a section job's section at the HTTP edge too, so mapping, validate,
+  preview, commit and resume refuse once the owner loses the section, rather than accepting with 202 and
+  failing in the worker.
+- **Names were compared raw.** FR-069's check now folds hamza and alef forms, tatweel, diacritics,
+  spacing and Latin case (`RowValidator::sameName`) and compares against both stored names.
+- **An instructor's list restored deleted students.** In the section mode a soft-deleted student is
+  refused with `import.student_unavailable`, at validation and again at commit; the central mode, run
+  from the registration unit's roster, still restores.
+- **An archived term took a section list.** The section upload now refuses one (409), as the central
+  upload's term validation does.
+- **An authority-lost stop left no audit entry.** It now writes `access.denied` (reason
+  `import_authority_lost`) in the same transaction as the status change.
+- **Section jobs stored central-only options.** The mapping endpoint refuses `options` on a section job.
+- **Section chunks loaded every course.** The resolver skips the catalogue in the section mode.
+- **A section number with a slash broke the template download** (500 from the Content-Disposition
+  header); the filename is now sanitised.
+- **Documentation** — the T253/T257 lines above, and contracts/imports.md, now carry the corrections.
 
 ---
 
@@ -534,45 +699,238 @@ keyboard.
 
 ### Tests for User Story 7
 
-- [ ] T259 [P] [US7] Write `tests/Feature/Localization/EveryScreenRendersBothDirectionsTest.php` asserting every registered `web` route renders in both `ar` and `en` with the correct `lang` and `dir` attributes and the matching stylesheet
-- [ ] T260 [P] [US7] Write `tests/Feature/Localization/NoUntranslatedOutputTest.php` asserting no rendered screen contains a raw translation key or a fallback-language string while the other locale is active
-- [ ] T261 [P] [US7] Write `tests/Feature/Ux/StatusBadgeRequiresLabelTest.php` asserting `x-track-status-badge` cannot render colour without a text label (FR-077)
-- [ ] T262 [P] [US7] Write `tests/Feature/Ux/ConfirmationRequiredTest.php` asserting student withdrawal, account deactivation, instructor change, and term status change each require a confirmation restating the impact (FR-082)
-- [ ] T263 [P] [US7] Write `tests/Feature/Ux/ValidationStatesTest.php` asserting server-side rules repeat every client-side rule and that errors render beside their field in the active language (FR-078)
-- [ ] T264 [P] [US7] Write `tests/Visual/screens-all.spec.ts` running the full screen regression across all 20 in-scope screens × both locales × 1280 / 1440 / 1920 / 390, at ≤ 1% pixel difference against the reference ([design-system.md](./design-system.md) §13)
-- [ ] T265 [P] [US7] Write `tests/Visual/axe-all.spec.ts` running axe-core over all 20 screens in both locales, requiring **zero** WCAG 2.1 AA violations (SC-014)
-- [ ] T266 [P] [US7] Write `tests/Visual/rtl-mirroring.spec.ts` asserting per screen that the sidebar sits right in RTL and left in LTR, breadcrumb chevrons point correctly, button icons sit on the correct side, and the toast anchors to the correct corner
-- [ ] T267 [P] [US7] Write `tests/Performance/PageLoadTest.php` asserting first contentful render under 2 seconds at p95 (SC-015), in the `performance` group, excluded from the default run
+- [X] T259 [P] [US7] Write `tests/Feature/Localization/EveryScreenRendersBothDirectionsTest.php` asserting every registered `web` route renders in both `ar` and `en` with the correct `lang` and `dir` attributes and the matching stylesheet
+- [X] T260 [P] [US7] Write `tests/Feature/Localization/NoUntranslatedOutputTest.php` asserting no rendered screen contains a raw translation key or a fallback-language string while the other locale is active
+- [X] T261 [P] [US7] Write `tests/Feature/Ux/StatusBadgeRequiresLabelTest.php` asserting `x-track-status-badge` cannot render colour without a text label (FR-077)
+- [X] T262 [P] [US7] Write `tests/Feature/Ux/ConfirmationRequiredTest.php` asserting student withdrawal, account deactivation, instructor change, and term status change each require a confirmation restating the impact (FR-082)
+- [X] T263 [P] [US7] Write `tests/Feature/Ux/ValidationStatesTest.php` asserting server-side rules repeat every client-side rule and that errors render beside their field in the active language (FR-078)
+- [X] T264 [P] [US7] Write `tests/Visual/screens-all.spec.ts` running the full screen regression across all 20 in-scope screens × both locales × 1280 / 1440 / 1920 / 390, at ≤ 1% pixel difference against the reference ([design-system.md](./design-system.md) §13)
+- [X] T265 [P] [US7] Write `tests/Visual/axe-all.spec.ts` running axe-core over all 20 screens in both locales, requiring **zero** WCAG 2.1 AA violations (SC-014)
+- [X] T266 [P] [US7] Write `tests/Visual/rtl-mirroring.spec.ts` asserting per screen that the sidebar sits right in RTL and left in LTR, breadcrumb chevrons point correctly, button icons sit on the correct side, and the toast anchors to the correct corner
+- [X] T267 [P] [US7] Write `tests/Performance/PageLoadTest.php` asserting first contentful render under 2 seconds at p95 (SC-015), in the `performance` group, excluded from the default run
 
 ### Implementation for User Story 7
 
-- [ ] T268 [US7] Sweep every Blade view for hard-coded user-facing text, moving each string into `lang/ar/` and `lang/en/` until `NoHardcodedStringsTest` and `LocalizationParityTest` both pass
-- [ ] T269 [US7] Fix every RTL mirroring defect `rtl-mirroring.spec.ts` reports, in `resources/css/app-rtl.scss` and the affected views, using CSS logical properties rather than direction-specific overrides wherever Bootstrap allows
-- [ ] T270 [P] [US7] Implement `app/Modules/Shared/Support/Format.php` emitting Western Arabic digits 0-9 and `DD/MM/YYYY` in both locales, plus the "2026/2027 - الأول" term format from the design system's content rules, and apply it to every rendered number and date (FR-084)
-- [ ] T271 [P] [US7] Verify and correct the responsive behaviour at 1280 and 1920, and the <768px stacked-card and drawer behaviour, against the design system's layout rules (FR-085)
-- [ ] T272 [US7] Complete WCAG 2.1 AA and full keyboard operation across every screen — focus order, the `--green-600` visible focus ring, ARIA labels on every icon-only control, dialog focus trapping and restoration, and the shell skip link — until `axe-all.spec.ts` is clean (SC-014)
-- [ ] T273 [P] [US7] Verify the loading, error, success, empty, and confirmation states are applied uniformly across all 20 screens against the §10 state matrix, and fix every gap
-- [ ] T274 [P] [US7] Build `resources/views/profile/preferences.blade.php` with the locale control persisting `users.locale`, matching the topbar switch's approved segmented-control styling
+- [X] T268 [US7] Sweep every Blade view for hard-coded user-facing text, moving each string into `lang/ar/` and `lang/en/` until `NoHardcodedStringsTest` and `LocalizationParityTest` both pass
+- [X] T269 [US7] Fix every RTL mirroring defect `rtl-mirroring.spec.ts` reports, in `resources/css/app-rtl.scss` and the affected views, using CSS logical properties rather than direction-specific overrides wherever Bootstrap allows
+- [X] T270 [P] [US7] Implement `app/Modules/Shared/Support/Format.php` emitting Western Arabic digits 0-9 and `DD/MM/YYYY` in both locales, plus the "2026/2027 - الأول" term format from the design system's content rules, and apply it to every rendered number and date (FR-084)
+- [X] T271 [P] [US7] Verify and correct the responsive behaviour at 1280 and 1920, and the <768px stacked-card and drawer behaviour, against the design system's layout rules (FR-085)
+- [X] T272 [US7] Complete WCAG 2.1 AA and full keyboard operation across every screen — focus order, the `--green-600` visible focus ring, ARIA labels on every icon-only control, dialog focus trapping and restoration, and the shell skip link — until `axe-all.spec.ts` is clean (SC-014)
+- [X] T273 [P] [US7] Verify the loading, error, success, empty, and confirmation states are applied uniformly across all 20 screens against the §10 state matrix, and fix every gap
+- [X] T274 [P] [US7] Build `resources/views/profile/preferences.blade.php` with the locale control persisting `users.locale`, matching the topbar switch's approved segmented-control styling
 
 **Checkpoint**: All seven stories are independently functional, visually faithful, and accessible in both languages.
+
+**Implementation notes (2026-10-09).**
+
+- **One screen registry, two suites.** `tests/Support/Screens.php` lists the in-scope screens (23 keys:
+  §9 rows 1–20 plus the wizard's steps and the instructor's own section list) for the PHP sweeps, and
+  `tests/Visual/support/screens.ts` mirrors it for the browser sweeps. A screen added to one and not the
+  other is a review finding; the PHP side also asserts every named `web` GET route is either listed or
+  excluded with a reason.
+- **T264 compares against the Blade baselines, not the React kit.** The kit renders in its own harness
+  with its own reset and CDN fonts, so a pixel diff between the two measures the harness
+  (components.spec.ts records the same decision). Each screen was reviewed against the kit when it was
+  built; the baselines hold that result. `screens-all.spec.ts` photographs only what no story spec covers
+  in both locales at every width — section detail, student detail, preferences — and asserts per project
+  that every §9 row has a baseline, so nothing is photographed twice.
+- **T265 scans at 1440 and 390 only.** Those two render every distinct markup (tables vs stacked cards,
+  docked sidebar vs drawer); the width-dependent markup is CSS only — no width-conditional Blade, no
+  `d-*-*` classes, no JS breakpoint — so 1280 and 1920 serve 1440's DOM. Per screen it scans the page,
+  each of its dialogs opened, and one dialog form sent back refused; per locale and width, a toast of
+  each tone and, at 390, the open drawer. No rule is disabled.
+- **T267 is measured in two halves.** `tests/Performance/PageLoadTest.php` takes the server's render
+  time, p95 per screen and locale over twenty warm renders, on the fixtures plus a 400-student roster
+  and 5,000 audit entries (slowest p95 ≈ 120 ms on SQLite — a floor, not a production forecast).
+  `tests/Visual/fcp.spec.ts` measures what SC-015 names, first contentful paint, in Chromium on one
+  fixed profile — cold cache, 4× CPU slowdown, 40 ms / 9 Mbps — per screen and locale (slowest ≈ 1.8 s,
+  the login page). Neither alone proves SC-015; together they bound it.
+- **T270** — `Format::date`/`dateTime` (`d/m/Y`, `d/m/Y H:i`), `Format::number` and `Format::term`
+  ("2026/2027 - الأول") replace `isoFormat('LL')`, which wrote Arabic month names, on every screen and in
+  the term selects. Timestamps are stored in UTC and shown in `app.display_timezone` (Asia/Riyadh);
+  calendar dates are not shifted. Date inputs keep `Y-m-d`.
+- **T274** — the topbar, login and profile share one `x-track-locale-switch` segmented control; the
+  preferences page (`/profile/preferences`) is the settings home for it.
+
+**What the sweeps found, and the fixes (2026-10-09).** Each is covered by the test that found it.
+
+- **Nine dialogs submitted nothing.** Their footer submit buttons sat outside the `<form>` (the dialog
+  component renders the footer slot after the body). Every dialog form now has an id and its footer
+  button names it with `form=""`; `ConfirmationRequiredTest` asserts every dialog submit button belongs
+  to a form.
+- **Arabic pages showed English validation messages** — there was no `lang/*/validation.php`. Both
+  locales now carry the full rule set and an attribute map, with parity enforced.
+- **The term status-change reason** accepted two characters and answered a missing reason with 409. It
+  is now a field rule (min 3, max 500, required when the transition needs one) answering 422 beside the
+  field; `TermLifecycleTest` was updated to match.
+- **Arabic lists paginated in English** ("« Previous"), through Laravel's stock Tailwind view, whose
+  disabled step was also a labelled span axe rejects. Lists now use `resources/views/pagination/track.blade.php`,
+  translated, with direction-aware chevrons (`PaginationTest`).
+- **Contrast below AA** on the language switch and the dropzone hint: `--text-secondary` measures 4.3:1
+  on the `--gray-100` track. Both now use `--gray-600`.
+- **The toast corner contradicted itself.** design-system.md §5 row 11 said "bottom-start (bottom-left in
+  RTL)", which is two different corners; the CSS took "start" and put toasts over the sidebar. The
+  concrete corner wins — bottom-end, bottom-left in Arabic — and §5 is corrected.
+- **Page-header actions overflowed at 390** (activity panel); the actions row now wraps.
+- **`x-track-status-badge` never shows a bare colour** (FR-077): an unknown status without a label reads
+  «حالة غير معروفة» / "Unknown status" in the neutral tone and is logged *(corrected after review — it
+  first threw, which made one unlabelled row a 500 for the whole page)*.
+- **T272 keyboard operation** — `tests/Visual/keyboard.spec.ts` checks the skip link, the dialog focus
+  trap and restoration (including a dialog opened from a table row), and the focus ring in both
+  locales; axe covers names and contrast.
+
+**Post-review corrections (2026-10-09).** A review of this phase found ten issues, all fixed, each with a
+regression test confirmed to fail with its fix undone.
+
+- **A refused dialog came back shut.** Every dialog form posts and redirects back, so a 422 beside a
+  field — or a 409 flashed as `conflict` — reloaded the page with the dialog closed, and the term status
+  dialog's reason had no error binding at all. Dialog forms now post `_dialog` (`x-track-dialog-marker`);
+  the dialog it names reopens with the refusal in it and focus on the first invalid field, and a refusal
+  whose dialog is no longer on the page is shown at the top of the page. The withdraw and account dialogs
+  also come back on the same record — rebuilt from its id on the server, never from a posted URL — with
+  what was typed (`DialogReturnsWithErrorsTest`, and the refused state in `axe-all.spec.ts`).
+- **A refused term transition was answered as a missing reason.** `ChangeTermStatus::needsReason` said yes
+  to transitions that are not permitted, so closed → draft got 422 "reason required"; it now asks
+  `permits()` first and the 409 stands. The 409 names the states by their labels, not their keys, and the
+  reason message no longer says "reopening" for an archive.
+- **Date columns sorted by day of month.** `data-sort-value` had become the DD/MM/YYYY text; rows now pass
+  `_sort` timestamps and the table prefers them (`DateColumnsSortTest`).
+- **Times read three hours early.** See T270 above; the audit date filters and the audit export use the
+  same zone, so a filtered day matches the dates the list shows.
+- **The badge threw on an unknown status.** See the corrected bullet above. `returned`, `rejected`,
+  `committed` and `skipped` — allowed by the schema, absent from the vocabulary — now have labels, and a
+  test reads every status enum in the migrations.
+- **"Term name" was hard-coded** on the create-term dialog, and both sweeps were blind to it.
+  `NoHardcodedStringsTest` now also reads spoken attributes (`label`, `placeholder`, `title`,
+  `aria-label`, `hint`, …); `NoUntranslatedOutputTest` matches any string with a real word (phrases
+  anywhere, with placeholders as wildcards; single words only as a whole label, so a student called
+  صالح is not a leak) and any `group.key`, written or not. The wider net found the audit disclosure
+  printing `audit.<field>` as each side's heading — a variable reused inside its own loop — and
+  English column names in the Arabic diff; both fixed, with labels for every audited field.
+- **PageLoadTest pooled every screen into one p95** and measured only the server. See T267 above.
+- **axe-all scanned only the page as it loads.** See T265 above.
+- **The withdraw dialog lost the row's focus** — it recorded its wrapper `<div>` as the trigger. The open
+  is now relayed from the row's button.
+- **A dead locale-switcher script** ran on every click on every page; removed.
+
+Found while reviewing the visual diffs afterwards, also fixed:
+
+- **Date-times read time-first in Arabic.** "09/10/2026 05:25" painted as "05:25 09/10/2026" in every
+  Arabic table: the space between two digit runs took the paragraph's direction. `Format::dateTime`
+  now wraps the value in LRI … PDI (`FormatTest`).
+- **"Name in Arabic" above English names.** The roster and the accounts list show the reader's-language
+  name under the Arabic-name label; both now say «الاسم» / "Name" (`ColumnLabelsTest` reads every
+  language-named column and checks its script).
+- **Two US1 baselines photographed no failure.** The login-failure and deactivated-refusal shots clicked
+  the page's first submit button — the language switch, since T274 — so they captured a language
+  change, not a refusal (the old Arabic baseline was in English). They now click the login form's own
+  button and assert the alert before the screenshot.
+- **Stale baselines passed under the 1% threshold.** Several pre-US7 baselines still showed the old
+  topbar and navigation and passed because the change was under 1%. Every baseline was regenerated
+  from the current render after the diffs above were reviewed, and a separate run confirmed them.
+- **The first-sign-in banner has one baseline** (ar, 1440): photographing it consumes the fixture's one
+  never-signed-in account. `screens-all.spec.ts` records the exception and its reason; the English
+  banner has no baseline.
 
 ---
 
 ## Phase 11: Polish & Cross-Cutting Concerns
 
-- [ ] T275 [P] Implement structured JSON application logging with request id, user id, and route in `app/Modules/Shared/Logging/` and `config/logging.php` (PRD 8.8)
-- [ ] T276 [P] Implement the `/health` endpoint in `app/Modules/Shared/Http/Controllers/HealthController.php` checking database, Redis, queue workers, and storage
-- [ ] T277 Implement `app/Modules/Shared/Http/Middleware/ContentSecurityPolicy.php` with a strict policy and register it on the `web` group — and confirm it needs **no** exemption for `unpkg.com`, `cdn.jsdelivr.net`, or `fonts.googleapis.com`, since fonts, icons, and scripts are all self-hosted (T058, T059, T066)
-- [ ] T278 [P] Verify every state-changing route carries CSRF protection, and add `tests/Feature/Security/CsrfCoverageTest.php`
-- [ ] T279 Run the OWASP Top 10 review against this feature's surface and record the findings in `docs/security-review-001.md`
-- [ ] T280 [P] Write the deployment runbook in `docs/runbook-deploy.md` covering the Supervisor worker configuration, the audit-table grant verification for staging and production, backup and restore, the 5-year audit retention policy, and the asset build step that copies `design-system/assets/`
-- [ ] T281 [P] Write `docs/architecture-001.md` recording the decisions from [research.md](./research.md) and the six design-system decisions from plan.md, so they survive the key-person risk in PRD R-05
+- [X] T275 [P] Implement structured JSON application logging with request id, user id, and route in `app/Modules/Shared/Logging/` and `config/logging.php` (PRD 8.8)
+- [X] T276 [P] Implement the `/health` endpoint in `app/Modules/Shared/Http/Controllers/HealthController.php` checking database, Redis, queue workers, and storage
+- [X] T277 Implement `app/Modules/Shared/Http/Middleware/ContentSecurityPolicy.php` with a strict policy and register it on the `web` group — and confirm it needs **no** exemption for `unpkg.com`, `cdn.jsdelivr.net`, or `fonts.googleapis.com`, since fonts, icons, and scripts are all self-hosted (T058, T059, T066)
+- [X] T278 [P] Verify every state-changing route carries CSRF protection, and add `tests/Feature/Security/CsrfCoverageTest.php`
+- [X] T279 Run the OWASP Top 10 review against this feature's surface and record the findings in `docs/security-review-001.md`
+- [X] T280 [P] Write the deployment runbook in `docs/runbook-deploy.md` covering the Supervisor worker configuration, the audit-table grant verification for staging and production, backup and restore, the 5-year audit retention policy, and the asset build step that copies `design-system/assets/`
+- [X] T281 [P] Write `docs/architecture-001.md` recording the decisions from [research.md](./research.md) and the six design-system decisions from plan.md, so they survive the key-person risk in PRD R-05
 - [ ] T282 Request vector originals (SVG or AI/EPS) for the logo set from the brand author, per [ui-conflicts.md](./ui-conflicts.md) C-06 — the shipped assets are ~3× raster upscales and Phase 3's PDF export headers will show it
-- [ ] T283 Walk the design author through `design-system/ACCESSIBILITY-DELTA.md` and obtain their acknowledgement of the 7 palette corrections (C-17)
-- [ ] T284 Execute the full gate from [quickstart.md](./quickstart.md): `pint --test`, `phpstan analyse`, `php artisan test`, `php artisan test --group=performance`, `--testsuite=Architecture`, and the Playwright visual + axe suites
-- [ ] T285 Walk quickstart.md validation scenarios **1-10** (Phases 1-17 scope; Scenarios 11-21 are verified by T462) manually and record the outcome against the four PRD Phase 1 gate checks and the seven constitution Definition-of-Done items
+- [ ] T283 Walk the design author through `design-system/ACCESSIBILITY-DELTA.md` and obtain their acknowledgement of the 7 palette corrections (C-17) *(corrected 2026-10-09: the file is `specs/001-foundation-access-roster/ACCESSIBILITY-DELTA.md`, since `design-system/` is vendored read-only, and there are **nine** corrections — A11Y-08 and A11Y-09 were added in Phase 3; the walkthrough sheet is `docs/requests/C-17-accessibility-acknowledgement.md`)*
+- [X] T284 Execute the full gate from [quickstart.md](./quickstart.md): `pint --test`, `phpstan analyse`, `php artisan test`, `php artisan test --group=performance`, `--testsuite=Architecture`, and the Playwright visual + axe suites
+- [X] T285 Walk quickstart.md validation scenarios **1-10** (Phases 1-17 scope; Scenarios 11-21 are verified by T462) manually and record the outcome against the four PRD Phase 1 gate checks and the seven constitution Definition-of-Done items
+
+**Implementation notes (2026-10-09).**
+
+- **T275** — `AssignRequestId` (global, first) puts the id in Laravel `Context`, so it is on every log
+  record and in every job the request queues; an upstream `X-Request-Id` is kept only if it looks like
+  an id (log-injection guard). `RequestContextProcessor` adds user id, route, method and path, asking
+  each guard whether it *has* a user rather than resolving one. The `json` channel (daily,
+  `storage/logs/track.json-*.log`) is the default stack; `.env.example` ships `LOG_STACK=json`.
+- **T276** — `/health` sits outside the `web` group (no session row per probe) with `throttle:60,1`;
+  each check reports `ok` / `fail` / `skipped` and a timing, never a reason (reasons go to the log).
+  Redis is `skipped` where no driver uses it. Queue workers are judged by a heartbeat written from the
+  worker loop (`QueueHeartbeat`, every 30 s, stale after 120 s) **and** by the oldest waiting job
+  (> 5 minutes fails). `/up` stays as the bare liveness probe.
+- **T277** — `ContentSecurityPolicy` is **prepended** to `web`, so refusal pages thrown by a scoped
+  binding carry it too. `'self'` only; no third-party host; `'unsafe-eval'` is the one concession
+  (Alpine's standard build); style *attributes* allowed via `style-src-attr`, style *elements* not —
+  the `[x-cloak]` rule moved into the bundle. The Vite dev origin is admitted only while `npm run dev`
+  runs; the local-only `dev.*` routes are exempt. Companion headers: nosniff, Referrer-Policy,
+  X-Frame-Options, Permissions-Policy, HSTS on HTTPS. The visual suite sets `bypassCSP` (its harness
+  injects a style tag to freeze animations); `tests/Visual/csp.spec.ts` turns it off and finds zero
+  violations on every screen in both locales.
+- **T278** — Laravel 13's CSRF middleware is `PreventRequestForgery` (token, or a same-origin
+  `Sec-Fetch-Site`). The coverage test reads every POST/PUT/PATCH/DELETE route, and found one outside
+  it: the framework's `PUT storage/{path}`, registered by the `local` disk's `serve => true` over the
+  same directory as the import files. `serve` is now off; a test asserts the private tree has no URL.
+- **T279** — `docs/security-review-001.md`: 10 of 10 categories, 3 fixed in the review (the storage
+  route; the language switch's Referer-following redirect, now same-host only; the missing CSP),
+  5 accepted residual risks with owners, 0 open defects; `composer audit` and `npm audit` clean.
+- **T280 / T281** — `docs/runbook-deploy.md` (Supervisor with the coupled timeouts, the audit-grant
+  check as the application user, backup and restore with the 4-hour RTO, the 5-year retention rule,
+  the asset build) and `docs/architecture-001.md`. Both note that production runs PHP 8.4, not the
+  8.3 plan.md and PRD §9.5 still state.
+- **T282 / T283 — not done; they need people.** The request to the brand author
+  (`docs/requests/C-06-logo-vector-originals.md`) and the acknowledgement sheet for the design author
+  (`docs/requests/C-17-accessibility-acknowledgement.md`) are written and ready to send. The sheet lists
+  **nine** corrections, not seven: A11Y-08 and A11Y-09 were added in Phase 3.
+- **T284** — gate run on 2026-10-09: Pint and PHPStan clean; `php artisan test` 852 passed, 2 skipped;
+  `--testsuite=Architecture` 29 passed; `--group=performance` 7 passed (page load, FCP budget's server
+  half, import throughput ~20 s for 10k rows, audit filter, the PRD roster gate); `npx playwright test`
+  1,360 passed, 768 skipped by design (width- and project-scoped), 0 failed. The quickstart gate's
+  Amendment 2 lines (`tests/Feature/Support/*`, `PublicSurfaceBoundedTest`) have no tests yet — they
+  arrive with Phases 18–25.
+- **T285** — `docs/validation-001.md`. Scenarios 1–8 walked by the test harness and browser
+  automation (not a person); every step names its test. The PRD's roster gate is now its own walk,
+  `tests/Performance/PrdGateRosterTest.php`: 5,008 rows, 7 rejected, 99.9 % imported, the error report
+  matching every rejected row, the re-upload creating nothing. Scenarios 9–10 are N/A until Phases
+  12–16 are built. All four PRD gate checks are met; the seven Definition-of-Done items are met for
+  US1–US7. A staging click-through by a person is recorded as still worth doing.
+
+**Follow-up fixes (2026-10-09)** — the open items from the Phase 11 report, closed where code or
+documents could close them; each with a test confirmed to fail with its fix undone.
+
+- **`'unsafe-eval'` removed from the CSP** (security review R-01, closed). Alpine runs as
+  `@alpinejs/csp`, whose parser takes one expression — no statements, arrow functions, template
+  literals, `?.`/`??` or browser globals. The inline logic moved into components
+  (`resources/js/components/forms.js`: login form, mapping form, account dialogs, withdraw dialog; plus
+  methods on the dialog, data-table and wizard components), and object data now reaches components in
+  `data-*` attributes — `@js([...])` compiles to `JSON.parse`, out of the parser's reach.
+  `csp.spec.ts` fails on any violation or Alpine error, at load and through every rewritten handler.
+- **Alerting** (R-02, closed in code). `track:monitor` every five minutes (error rate from per-minute
+  request counts, queue backlog, unreachable queue, disk) and a `JobFailed` listener raise PRD 8.8
+  alerts to `track.alerts-*.log` and `ALERT_EMAIL`, once per condition per 30 minutes; Sentry installed,
+  inert until `SENTRY_LARAVEL_DSN` is set. Needs the scheduler cron on the server.
+- **Audit grants** (R-03). `track:audit-grants --strict` probes UPDATE and DELETE as the application
+  user with `WHERE 1 = 0` and is a deploy step; the revoke migration logs CRITICAL on staging and
+  production when it cannot apply itself.
+- **Sign-out button contrast** about 1.3:1 on the sidebar gradient — invisible to axe, which files text on
+  a gradient as "needs review". Fixed; `axe-all.spec.ts` now measures sidebar text against both gradient
+  stops.
+- **The idle timeout is tested by the clock** (59 minutes keeps the session, 61 more ends it), not only
+  by reading the configuration.
+- **The English first-sign-in banner has a baseline**: fixture user 12, owned by en-1440.
+- **The roster's Actions column no longer offers sorting**; a sweep asserts every sortable column has
+  values to sort on.
+- **Document discrepancies**: PHP 8.4 (not 8.3) in plan.md and PRD.md; `.env.example` sessions on Redis
+  as the plan specifies; T283 and C-17 corrected to nine corrections in the spec folder's delta file.
+
+**Still open — outside what code can do:** T282 and T283 (the brand and design authors; requests are
+ready in `docs/requests/`), a person's staging click-through, the hosting items (R-04 encryption at
+rest and TLS, R-05 private Redis), the server settings (DSN, `ALERT_EMAIL`, cron, the one-time DBA
+revoke), and quickstart scenarios 9–10, which need Phases 12–16 built.
 
 ---
+
 ## Phase 12: Typed EAV Capacity Spike
 
 **Ungated 2026-09-27.** The Product Owner confirmed that the PRD's 15 dynamic field types stand and
@@ -585,14 +943,77 @@ accepted**, because Phase 2 planning depends on the answer.
 **⚠️ These tables carry no controller, route, policy, or view in this feature.** Containment is
 asserted by T291.
 
-- [ ] T286 [P] Create migrations for `initiatives`, `initiative_schema_versions` (**unique `(initiative_id, version_number)`**), `initiative_fields` (**unique `(schema_version_id, field_key)`**), and `initiative_sections` (**unique `(initiative_id, section_id)`**) per [data-model.md](./data-model.md) Group 6
-- [ ] T287 [P] Create migrations for `initiative_targets` (**unique `(assignment_id, student_id)`**), `student_initiative_records` (**unique `(assignment_id, student_id)`**), and `student_initiative_values` (**unique `(record_id, field_id)`**) with the typed columns `value_text`, `value_number`, `value_date`, `value_bool`, `value_json`, and `attachment_id`
-- [ ] T288 Add the two indexes under measurement — `student_initiative_values(field_id, value_bool)` and `student_initiative_records(assignment_id, is_complete)` — as a separate toggleable migration, since whether they ship is decided by the spike result
-- [ ] T289 Implement `database/seeders/EavSpikeSeeder.php` generating, with chunked raw multi-row inserts rather than Eloquent, 1 term, 6 branches, 3,000 sections, 30,000 students, 30,000 enrollments, 10 initiatives × 5 schema versions, 50 field definitions, 30,000 records, and **1,500,000** values distributed ≈45% `value_text`, ≈25% `value_number`, ≈15% `value_bool`, ≈10% `value_date`, ≈5% `value_json`
-- [ ] T290 Implement `tests/Performance/EavSpikeTest.php` measuring each of the five queries in [research.md](./research.md) R-06 as p95 over 10 cold runs against its threshold: assignment grid of 200 records × 15 fields pivoted **< 2 s**; per-section completion counts across ≈3,000 sections **< 3 s**; initiative-wide student-weighted completion at 30,000 targets **< 3 s**; full recalculation sweep over 30,000 records **< 2 min**; single value upsert **< 500 ms**
-- [ ] T291 [P] Write `tests/Architecture/EavSpikeContainmentTest.php` asserting no route, controller, policy, or Blade view in this feature references the Group 6 tables
-- [ ] T292 Write `specs/001-foundation-access-roster/spike-eav-results.md` recording the schema measured, the index set, row counts, `EXPLAIN` output per query, measured p95s, and a PASS/FAIL per threshold
-- [ ] T293 On any FAIL, record the finding and the proposed remedy in `spike-eav-results.md` before Phase 2 planning begins, selecting from the ranked candidates in research.md R-06 — and state the reason if a new remedy is proposed instead (FR-088)
+- [X] T286 [P] Create migrations for `initiatives`, `initiative_schema_versions` (**unique `(initiative_id, version_number)`**), `initiative_fields` (**unique `(schema_version_id, field_key)`**), and `initiative_sections` (**unique `(initiative_id, section_id)`**) per [data-model.md](./data-model.md) Group 6
+- [X] T287 [P] Create migrations for `initiative_targets` (**unique `(assignment_id, student_id)`**), `student_initiative_records` (**unique `(assignment_id, student_id)`**), and `student_initiative_values` (**unique `(record_id, field_id)`**) with the typed columns `value_text`, `value_number`, `value_date`, `value_bool`, `value_json`, and `attachment_id`
+- [X] T288 Add the two indexes under measurement — `student_initiative_values(field_id, value_bool)` and `student_initiative_records(assignment_id, is_complete)` — as a separate toggleable migration, since whether they ship is decided by the spike result
+- [X] T289 Implement `database/seeders/EavSpikeSeeder.php` generating, with chunked raw multi-row inserts rather than Eloquent, 1 term, 6 branches, 3,000 sections, 30,000 students, 30,000 enrollments, 10 initiatives × 5 schema versions, 50 field definitions, 30,000 records, and **1,500,000** values distributed ≈45% `value_text`, ≈25% `value_number`, ≈15% `value_bool`, ≈10% `value_date`, ≈5% `value_json`
+- [X] T290 Implement `tests/Performance/EavSpikeTest.php` measuring each of the five queries in [research.md](./research.md) R-06 as p95 over 10 cold runs against its threshold: assignment grid of 200 records × 15 fields pivoted **< 2 s**; per-section completion counts across ≈3,000 sections **< 3 s**; initiative-wide student-weighted completion at 30,000 targets **< 3 s**; full recalculation sweep over 30,000 records **< 2 min**; single value upsert **< 500 ms**
+- [X] T291 [P] Write `tests/Architecture/EavSpikeContainmentTest.php` asserting no route, controller, policy, or Blade view in this feature references the Group 6 tables
+- [X] T292 Write `specs/001-foundation-access-roster/spike-eav-results.md` recording the schema measured, the index set, row counts, `EXPLAIN` output per query, measured p95s, and a PASS/FAIL per threshold
+- [X] T293 On any FAIL, record the finding and the proposed remedy in `spike-eav-results.md` before Phase 2 planning begins, selecting from the ranked candidates in research.md R-06 — and state the reason if a new remedy is proposed instead (FR-088)
+
+> **Status: PROVISIONAL.** T286–T293 are done on SQLite, but FR-087 is met only when the design is
+> demonstrated on the engine it ships on. **Open acceptance item:** run `EavSpikeTest` on MySQL /
+> MariaDB (`EAV_SPIKE_MYSQL_DATABASE=<own schema>`, with and without the indexes), record it in
+> [spike-eav-results.md](./spike-eav-results.md), decide the two indexes, and change its status. The
+> feature is not accepted until then.
+
+**Implementation notes (2026-10-09, corrected after the Phase 12 review).**
+
+- **SQLite result: PASS on all five thresholds**, with and without the measurement indexes — grid
+  0.011 s, per-section 0.051 s, weighted 0.026 s, sweep 0.55 s, upsert 0.005 s (with); tightest margin
+  59×. Warm-cache numbers: each run opens a fresh connection, but nothing empties the OS cache unless
+  `EAV_SPIKE_COLD_COMMAND` is set (a MySQL restart, for the deciding run). Ten samples, so p95 is the
+  slowest run. Full table, plans, machine and findings: [spike-eav-results.md](./spike-eav-results.md).
+- **F-1 — a real FAIL, then its cause.** Measured with no planner statistics, SQLite chose the
+  `(field_id, value_bool)` index for a one-record completion check (~150,000 rows walked): upsert p95
+  0.737 s (FAIL), sweep 35 s. After `ANALYZE`, 2 ms. InnoDB recalculates statistics in the background
+  after ~10 % of a table changes, so the window exists in production after a bulk import; the results
+  assign `ANALYZE TABLE` to Phase 2's bulk value writer.
+- **T293 — no remedy needed.** Recommendation, pending MySQL: ship **neither** measurement index (no
+  corrected query uses either; F-2, F-3); refresh statistics after bulk value loads; settle **Q-1** —
+  the schema does not stop a value carrying two typed columns or a field from another initiative or
+  version (data-model gives records no version link), so Phase 2's write path must.
+- **Review corrections** (each with a test confirmed to fail with its fix undone):
+  - the sweep's "agrees" check compared the sweep with flags it had just written — it now compares the
+    re-derived set with the stored set taken before the sweep, id for id, on every run;
+  - the grid now joins students and active targets in roster order, and the per-section count runs over
+    active targets with each section's number and branch — what the screens will run;
+  - the upsert now writes `completed_at`, `updated_by` and an audit entry in the same transaction, and
+    writes a Yes/No field's own column (it had once put a Yes/No answer on the text field — caught by
+    the new integrity check, which runs on every spike run);
+  - text values lengthened to realistic Arabic notes (avg 76 characters, up to 483; database 214 MB);
+  - the seeder refuses any connection but `eav_spike` and refuses production; quickstart scenario 10 no
+    longer tells operators to seed the application database;
+  - the MySQL schema refusal is case-insensitive, strips backticks, and covers every configured
+    connection's database and the system schemas; the schema is created if missing;
+  - the measurement-index migration is a no-op for the application (`eav_spike.measurement_indexes`
+    false); the spike switches it on for its own database only;
+  - plans are captured for the completion-rule queries too, with the engine version and machine;
+  - containment also scans config/, bootstrap/ and resources/js, and catches raw SQL on `initiatives`;
+  - level-4 duplicates (T215) are now proven at the database (`SpikeToolingSafetyTest`), and the stale
+    skip on the source-text check is gone.
+- **Shape** (`EavSpikeSeeder`): initiative 1 runs in all 3,000 sections and carries the 30,000 records,
+  each with all 50 fields' values (23 text, 12 number, 7 Yes/No, 5 date, 3 JSON ≈ R-06's mix) — a
+  deliberate worst case for one initiative; section 1 holds 200 students for the grid query; values from
+  a seeded generator; `is_complete` seeded consistent with the values. Seeding 1.5M values: ~20 s.
+- **Where it runs:** its own connection (a SQLite file in `storage/app`, git-ignored and outside deploys
+  and backups, or a MySQL schema of its own) — never the suite's in-memory database or the application's.
+- **T291** — `EavSpikeContainmentTest` scans what the running application loads for the six Group 6 table
+  names, `initiatives` used as a table (builder or raw SQL) and `Initiative*` models, asserts no
+  initiative route, and proves its own patterns match references and ignore the navigation stub.
+- **Visual suite, alongside this phase.** The Phase 11 follow-ups' baselines were regenerated and
+  reviewed (382 changed, every one explained: the sign-out label's new colour, user 12's row and count,
+  the roster's Actions column without sort arrows, the new English banner shot, and sub-threshold
+  anti-aliasing), then confirmed by a separate run. That run showed the first-paint budget failing at
+  2.1–3.3 s *only under the suite's own load* — the second worker was loading the same single-process
+  dev server while a page was timed. First paint now runs in its own `first-paint` project, after every
+  other project and alone (in isolation the slowest page is 1.6 s); a timing taken under someone else's
+  load measured the queue, not the page. A dependent project is skipped when a dependency fails, so the
+  gate also runs `npx playwright test --project=first-paint --no-deps` on its own (quickstart.md). One
+  regeneration run lost its dev server part-way (connection refused from test ~1,180); a 1,500-request
+  load test and three full runs since did not reproduce it. Plausibly the Windows built-in server's
+  single process (`PHP_CLI_SERVER_WORKERS` has no effect on Windows); CI runs on Linux, where it does.
 
 ---
 
@@ -625,10 +1046,48 @@ insertion point. The table in "Dependencies & Execution Order" below gives the f
 - [X] T299 [P] Extend the `import_jobs` migration: `mode` enum gains `registrar`, `course`, `user`; add nullable `instructor_id` FK → `users.id` and `file_metadata` json (FR-096, FR-101, FR-103, FR-104)
 - [X] T300 Create `app/Models/Program.php` with `SoftDeletes`, the `Auditable` trait, the `courses` belongs-to-many and `sections` has-many relations, and a `scopeActive()`
 - [X] T301 [P] Add the `program` belongs-to relation to `app/Models/Section.php` and the `programs` belongs-to-many to `app/Models/Course.php`
-- [X] T302 Extend `database/seeders/PermissionSeeder.php` with `program.view`, `program.create`, `program.edit`, `import.registrar.run`, `import.course.run`, and `import.user.run` — **42 permissions total** — and grant all six to `SUPER_ADMIN`, plus `program.view` to `BRANCH_COORDINATOR`. **Folded into T045**, which seeds the whole 47-permission set in one list rather than having a second seeder append to it
+- [X] T302 Extend `database/seeders/PermissionSeeder.php` with `program.view`, `program.create`, `program.edit`, `import.registrar.run`, `import.course.run`, and `import.user.run` — **47 permissions total** (the 42 first written here predated Amendments 2 and 4; see the count in `PermissionSeeder`) — and grant all six to `SUPER_ADMIN`, plus `program.view` to `BRANCH_COORDINATOR`. **Folded into T045**, which seeds the whole 47-permission set in one list rather than having a second seeder append to it
 - [X] T303 [P] Extend `database/seeders/SettingSeeder.php` with `section_degrees` = `[{"value":"bachelor","ar":"البكالوريوس","en":"Bachelor"},{"value":"intermediate_diploma","ar":"الدبلوم المتوسط","en":"Intermediate Diploma"}]` and `section_activities` = `[{"value":"lecture","ar":"محاضرة","en":"Lecture"}]`
 - [X] T304 [P] Implement `app/Modules/Shared/Rules/InSetting.php`, a validation rule checking a value against a named settings list — used by the section form, the section import, and the registrar import for both `degree` and `activity` (FR-108, FR-109)
 - [X] T305 [P] Extend `database/seeders/UiFixtureSeeder.php` and the factories with the 9 programs from `design-system/ui_kits/web-app/store.js` (HR, ACC, LOG, MKT, CS, APP, GD, RE, EC with their admin/tech units), their course associations, each section's program, and the degree, activity, academic-status, and sequence values the reference screens display
+
+**Verification and corrections (2026-10-09).** These tasks were implemented with Phase 2 (commit
+`80280e0`) and already checked. Re-verified each against its text: migrations, models and relations,
+the six permissions and their grants, the two settings lists and the nine fixture programmes match.
+Three gaps were found and fixed, each with a test confirmed to fail with its fix undone
+(`tests/Feature/AcademicStructure/ProgramsAndSettingsTest.php`):
+
+- **T294 — the programme code was not stored uppercase.** Nothing normalised it, so on a case-sensitive
+  collation `hr` and `HR` passed the `(organization_id, code)` key as two programmes. `Program::code` now
+  stores it trimmed and uppercase whoever writes it.
+- **T304 — `InSetting` was not used.** The section form validated `degree` and `activity` with its own
+  `Rule::in(Settings::values(...))`; it now uses `InSetting`, the shared rule the registrar import
+  (Phase 15) will use too. The rule's message, `validation.in_setting`, did not exist in either language
+  — added.
+- **T304 — `InSetting` printed the raw field name.** It passed `attribute => 'degree'` to its message,
+  overriding the translated name, so an Arabic page read «في degree». It now leaves `:attribute` to the
+  lang file's attribute map.
+
+**Review corrections (2026-10-10).** A code review of the phase found ten more; each is covered in
+the same test file.
+
+- **Organization isolation.** The section form's `program_id` was a bare `exists:programs,id`, and both
+  programme pickers (section form, import mapping) listed every organization's programmes. Validation and
+  pickers now take the caller's organization's active, undeleted programmes only. An edited section may
+  keep its own programme after that programme is deactivated. The import mapping's `new_course_program_id`
+  is scoped the same way.
+- **T294, every write path.** The code mutator covered only Eloquent writes. The programs migration now
+  adds an engine-level guard (a CHECK on MySQL/PostgreSQL, triggers on SQLite) that refuses an empty,
+  untrimmed or lowercase code, so query-builder `update()`/`insert()`/`upsert()` (Phase 15 bulk writes)
+  cannot bypass it. A null code now fails NOT NULL instead of being stored as `''`.
+- **Soft delete × restrict FK.** The unique key deliberately keeps `deleted_at` out (FR-089: unique
+  within the institution); reusing a code means restoring. `Section::program()` loads a soft-deleted
+  programme instead of null. `Program::forceDelete()` refuses with a translated 409 (FR-092) when the
+  programme holds sections, instead of raising a raw FK error.
+- **Seeders.** `SettingSeeder` uses `firstOrCreate`, so re-seeding no longer overwrites a Super Admin's
+  edits. `UiFixtureSeeder` refuses to run outside `local`/`testing`.
+- **Factories.** `SectionFactory` takes the course and programme from the branch's organization.
+- **T302 count.** It is 47, not 42, and a test now pins the count, the grants, and seeder idempotency.
 
 ---
 
@@ -636,25 +1095,79 @@ insertion point. The table in "Dependencies & Execution Order" below gives the f
 
 ### Tests
 
-- [ ] T306 [P] [US4] Write `tests/Feature/Programs/ProgramCrudTest.php` covering creation, the duplicate-code refusal naming the code, editing, and deactivation (FR-089, FR-092)
-- [ ] T307 [P] [US4] Write `tests/Feature/Programs/CannotDeleteProgramWithSectionsTest.php` asserting permanent removal is refused at both the route level (no `DELETE` exists) and the database level (restrict FK), and that deactivation is offered instead (FR-092, SC-021)
-- [ ] T308 [P] [US4] Write `tests/Feature/Programs/CourseProgramAssociationTest.php` asserting a course associates with several programs and a program holds several courses (FR-091)
-- [ ] T309 [P] [US4] Write `tests/Feature/Sections/SectionRequiresProgramTest.php` asserting section creation without `program_id` is refused, that `program_id` cannot be set to null on edit, and that **zero** sections exist without a program after the roster import (FR-090, SC-019)
-- [ ] T310 [P] [US4] Write `tests/Feature/Sections/DegreeAndActivityValidationTest.php` asserting a value outside the settings-defined set is refused, and that adding a new value to the setting makes it immediately valid with no migration (FR-108, FR-109)
-- [ ] T311 [P] [US4] Write `tests/Feature/Sections/DeactivatedProgramTest.php` asserting a deactivated program is refused on section create but retained and displayed on an existing section (spec Edge Cases)
-- [ ] T312 [P] [US4] Write `tests/Authorization/ProgramEndpointsTest.php` with allow and deny cases for all 5 program endpoints in [contracts/academic.md](./contracts/academic.md)
+- [X] T306 [P] [US4] Write `tests/Feature/Programs/ProgramCrudTest.php` covering creation, the duplicate-code refusal naming the code, editing, and deactivation (FR-089, FR-092)
+- [X] T307 [P] [US4] Write `tests/Feature/Programs/CannotDeleteProgramWithSectionsTest.php` asserting permanent removal is refused at both the route level (no `DELETE` exists) and the database level (restrict FK), and that deactivation is offered instead (FR-092, SC-021)
+- [X] T308 [P] [US4] Write `tests/Feature/Programs/CourseProgramAssociationTest.php` asserting a course associates with several programs and a program holds several courses (FR-091)
+- [X] T309 [P] [US4] Write `tests/Feature/Sections/SectionRequiresProgramTest.php` asserting section creation without `program_id` is refused, that `program_id` cannot be set to null on edit, and that **zero** sections exist without a program after the roster import (FR-090, SC-019)
+- [X] T310 [P] [US4] Write `tests/Feature/Sections/DegreeAndActivityValidationTest.php` asserting a value outside the settings-defined set is refused, and that adding a new value to the setting makes it immediately valid with no migration (FR-108, FR-109)
+- [X] T311 [P] [US4] Write `tests/Feature/Sections/DeactivatedProgramTest.php` asserting a deactivated program is refused on section create but retained and displayed on an existing section (spec Edge Cases)
+- [X] T312 [P] [US4] Write `tests/Authorization/ProgramEndpointsTest.php` with allow and deny cases for all 5 program endpoints in [contracts/academic.md](./contracts/academic.md)
 - [ ] T313 [P] [US4] Write `tests/Visual/programs.spec.ts` screenshotting the programs list and its create/edit dialog against the `ProgramsScreen` reference, both locales, all four widths
 
 ### Implementation
 
-- [ ] T314 [US4] Implement `app/Modules/AcademicStructure/Http/Controllers/ProgramController.php` with `GET /programs`, `GET /programs/{id}`, `POST /programs`, `PUT /programs/{id}`, and `PUT /programs/{id}/courses`, uppercasing the code and refusing duplicates with 422
-- [ ] T315 [P] [US4] Implement `app/Modules/AcademicStructure/Policies/ProgramPolicy.php` mapping each action to its `program.*` permission, and register it. **Note**: `Program` takes **no** scope trait — it is institution-wide reference data with no branch dimension, so a coordinator may read programs while still seeing only their own branches' sections within them (plan.md Amendment 1 re-check)
-- [ ] T316 [P] [US4] Add the `program.created`, `program.updated`, `program.deactivated`, and `program.courses_changed` action keys to the audit label translations in `lang/ar/audit.php` and `lang/en/audit.php`
-- [ ] T317 [US4] Build `resources/views/programs/index.blade.php` to the `ProgramsScreen` reference — `x-track-page-header` with the subtitle "كل شعبة في الكلية مرتبطة ببرنامج أكاديمي واحد", a create action and an import-courses action, and `x-track-data-table` showing code in LTR bold, both names, specialty unit, course count, section count, and an active `x-track-status-badge`
-- [ ] T318 [US4] Build `resources/views/programs/_dialog.blade.php` to the `ProgramsScreen` dialog reference — `x-track-dialog` at 560px with a two-column grid: code in LTR, specialty-unit `x-track-select`, both names, an active `x-track-switch` spanning both columns, and the cannot-delete `x-track-alert` tone info shown when editing
-- [ ] T319 [US4] Add the **required** program `x-track-select` to `resources/views/sections/_dialog.blade.php`, plus the degree and activity selects populated from settings, and add the program column and filter to `resources/views/sections/index.blade.php` (FR-094)
-- [ ] T320 [P] [US4] Add both statuses to the section roster table in `resources/views/sections/show.blade.php` — TRACK's `status` and the registrar's `academic_status` as **separate** columns, each with its own `x-track-status-badge`, plus `roster_sequence` as the leading numeric column where present (FR-111)
-- [ ] T321 [P] [US4] Add the `programs` translation keys to `lang/ar/` and `lang/en/`, and restore the `programs` entry to `config/navigation.php` for `SUPER_ADMIN` with the `graduation-cap` icon, matching the approved sidebar
+- [X] T314 [US4] Implement `app/Modules/AcademicStructure/Http/Controllers/ProgramController.php` with `GET /programs`, `GET /programs/{id}`, `POST /programs`, `PUT /programs/{id}`, and `PUT /programs/{id}/courses`, uppercasing the code and refusing duplicates with 422
+- [X] T315 [P] [US4] Implement `app/Modules/AcademicStructure/Policies/ProgramPolicy.php` mapping each action to its `program.*` permission, and register it. **Note**: `Program` takes **no** scope trait — it is institution-wide reference data with no branch dimension, so a coordinator may read programs while still seeing only their own branches' sections within them (plan.md Amendment 1 re-check)
+- [X] T316 [P] [US4] Add the `program.created`, `program.updated`, `program.deactivated`, and `program.courses_changed` action keys to the audit label translations in `lang/ar/audit.php` and `lang/en/audit.php`
+- [X] T317 [US4] Build `resources/views/programs/index.blade.php` to the `ProgramsScreen` reference — `x-track-page-header` with the subtitle "كل شعبة في الكلية مرتبطة ببرنامج أكاديمي واحد", a create action and an import-courses action, and `x-track-data-table` showing code in LTR bold, both names, specialty unit, course count, section count, and an active `x-track-status-badge`
+- [X] T318 [US4] Build `resources/views/programs/_dialog.blade.php` to the `ProgramsScreen` dialog reference — `x-track-dialog` at 560px with a two-column grid: code in LTR, specialty-unit `x-track-select`, both names, an active `x-track-switch` spanning both columns, and the cannot-delete `x-track-alert` tone info shown when editing
+- [X] T319 [US4] Add the **required** program `x-track-select` to `resources/views/sections/_dialog.blade.php`, plus the degree and activity selects populated from settings, and add the program column and filter to `resources/views/sections/index.blade.php` (FR-094)
+- [X] T320 [P] [US4] Add both statuses to the section roster table in `resources/views/sections/show.blade.php` — TRACK's `status` and the registrar's `academic_status` as **separate** columns, each with its own `x-track-status-badge`, plus `roster_sequence` as the leading numeric column where present (FR-111)
+- [X] T321 [P] [US4] Add the `programs` translation keys to `lang/ar/` and `lang/en/`, and restore the `programs` entry to `config/navigation.php` for `SUPER_ADMIN` with the `graduation-cap` icon, matching the approved sidebar
+
+**Implementation notes (2026-10-10).**
+
+- **T313 is open.** `tests/Visual/programs.spec.ts` is written and `programs` is in the visual screen
+  registry, but the suite has not been run, so no baselines exist. Restoring the sidebar entry (T321)
+  also changes every Super Admin baseline. Capture both with `npx playwright test --update-snapshots`,
+  then review the diffs.
+- **T316** needed no change: the four audit labels were already in both languages. `program.deactivated`
+  and `program.courses_changed` are no longer in `actionsAwaitingTheirPhase()`. ActionCoverageTest
+  now exercises both through the endpoints.
+- **Beyond the task text:**
+  - **Sections:** the section detail header names the programme (FR-094), and the section-form
+    programme select has a "Select program…" placeholder instead of preselecting the first programme.
+  - **Roster:** sorted by `roster_sequence` where present.
+  - **Status badges:** labels and tones for `regular` and `excused`.
+  - **Programme dialog:** collapses to one column below 768px (`.track-form-grid`).
+
+**Review corrections (2026-10-10).** A code review of the phase found ten more:
+
+- **Duplicate-code race.** The `(organization_id, code)` unique key is now the final word. A
+  violation it raises is answered with the same 422 naming the code, not a 500.
+- **Code locked once used.** A programme holding sections keeps its code (422 `code_locked`), and the
+  edit dialog makes the field read-only for it. Reports and registrar files name a programme by code.
+- **Section create dialog: organization boundary.** Courses, branches and instructors come from the
+  caller's organization only, and instructors must be active. Option lists are read as plain columns,
+  not hydrated models.
+- **`PUT /sections/{id}`: every field optional, as the contract says.** An omitted field keeps its
+  stored value, and the combination it produces is still checked for uniqueness. An explicit null
+  programme is still refused.
+- **Coordinators and `/programs`.** A coordinator may read the screen, with no create, edit or
+  import control. Only Super Admin manages programmes (FR-095). Recorded in `config/navigation.php`
+  and pinned by ProgramEndpointsTest.
+- **Coordinator section counts.** A test now pins that a coordinator sees only their own branches'
+  sections in the counts (Amendment 1).
+- **Programme search.** The list searches on the server, so a programme on page 2 is found. Unit and
+  status filters were added, and the empty state reflects an active search.
+- **Roster order.** Whether a roster is sequenced is decided per section, not per page. A sequenced
+  roster follows the registrar's order: a withdrawn student keeps their place, unsequenced rows
+  follow, and id breaks ties. New index `(section_id, roster_sequence)`.
+- **Performance.** Filter and create options select id and label only. Short-TTL caching was left
+  out: nothing invalidates it when an import writes sections through the query builder, and a stale
+  filter list is a correctness bug, not a speed-up.
+- **Icons.** Students uses `user`, so `graduation-cap` means Programs only.
+
+**Visual baselines to review when T313 runs.**
+
+- **Every Super Admin screen:** the sidebar gains Programs between Branches and Courses, and the
+  Students icon changes to `user`. Check that this is the only sidebar difference, then check the
+  rest of each page separately.
+- **Sections list:** gains the programme column and filter.
+- **Section detail:** the header names the programme, and the roster gains the academic-status
+  column (plus the sequence column where the fixture has one).
+- **New baselines:** the programmes list, filter row, and create and edit dialogs, at all four widths
+  in both languages. At 390px the dialog must be one column.
 
 ---
 
@@ -662,23 +1175,83 @@ insertion point. The table in "Dependencies & Execution Order" below gives the f
 
 ### Tests
 
-- [ ] T322 [P] [US5] Write `tests/Feature/Imports/RegistrarMetadataBlockTest.php` asserting the metadata block above the header row is parsed into campus, degree, course, activity, and section number, and that a file without one is refused at upload with a message naming the other modes (FR-097, spec Edge Cases)
-- [ ] T323 [P] [US5] Write `tests/Feature/Imports/ResolveBranchFromCampusTest.php` asserting "المجمعة (طلاب)" resolves to exactly one branch, and that a campus resolving to none or to several rejects the file before any row is processed (FR-099)
-- [ ] T324 [P] [US5] Write `tests/Feature/Imports/RegistrarCourseMatchTest.php` asserting an Arabic course-name match succeeds unambiguously, that no match rejects the file, and that several matches flag the rows for the operator rather than guessing (FR-100)
-- [ ] T325 [P] [US5] Write `tests/Feature/Imports/RegistrarRealFileTest.php` importing `design-system/uploads/filedownloadservlet(21).xlsx` **unmodified** end to end and asserting the 19 students land in the resolved section with their academic status and sequence — this supersedes T221, which only recorded why the file could not be mapped to the central mode (SC-020)
-- [ ] T326 [P] [US5] Write `tests/Feature/Imports/AcademicStatusNeverOverwritesWithdrawalTest.php` asserting that importing a registrar status of `regular` over a TRACK-withdrawn enrollment leaves `status`, `withdrawn_at`, and `withdraw_reason` untouched, and that a TRACK withdrawal leaves `academic_status` untouched (FR-111, SC-022)
-- [ ] T327 [P] [US5] Write `tests/Authorization/RegistrarImportEndpointTest.php` with allow and deny cases for `POST /imports/registrar`
+- [X] T322 [P] [US5] Write `tests/Feature/Imports/RegistrarMetadataBlockTest.php` asserting the metadata block above the header row is parsed into campus, degree, course, activity, and section number, and that a file without one is refused at upload with a message naming the other modes (FR-097, spec Edge Cases)
+- [X] T323 [P] [US5] Write `tests/Feature/Imports/ResolveBranchFromCampusTest.php` asserting "المجمعة (طلاب)" resolves to exactly one branch, and that a campus resolving to none or to several rejects the file before any row is processed (FR-099)
+- [X] T324 [P] [US5] Write `tests/Feature/Imports/RegistrarCourseMatchTest.php` asserting an Arabic course-name match succeeds unambiguously, that no match rejects the file, and that several matches flag the rows for the operator rather than guessing (FR-100)
+- [X] T325 [P] [US5] Write `tests/Feature/Imports/RegistrarRealFileTest.php` importing `design-system/uploads/filedownloadservlet(21).xlsx` **unmodified** end to end and asserting the 22 students land in the resolved section (the file holds 22; "19" was the UI fixture's count, which seeds the first 19) with their academic status and sequence — this supersedes T221, which only recorded why the file could not be mapped to the central mode (SC-020)
+- [X] T326 [P] [US5] Write `tests/Feature/Imports/AcademicStatusNeverOverwritesWithdrawalTest.php` asserting that importing a registrar status of `regular` over a TRACK-withdrawn enrollment leaves `status`, `withdrawn_at`, and `withdraw_reason` untouched, and that a TRACK withdrawal leaves `academic_status` untouched (FR-111, SC-022)
+- [X] T327 [P] [US5] Write `tests/Authorization/RegistrarImportEndpointTest.php` with allow and deny cases for `POST /imports/registrar`
 - [ ] T328 [P] [US5] Write `tests/Visual/us5-registrar.spec.ts` screenshotting the registrar upload step and its parsed-metadata confirmation panel. **No React reference exists** — the mode was accepted after the design system was produced — so the baseline is taken from the Blade implementation and reviewed by the design author, as the queue-waiting state is ([design-system.md](./design-system.md) §9 row 26)
 
 ### Implementation
 
-- [ ] T329 [US5] Implement `app/Modules/Imports/Pipeline/MetadataBlockReader.php` streaming the rows above the header row and extracting campus, degree, course, activity, and section number by Arabic label match (FR-097)
-- [ ] T330 [US5] Implement `app/Modules/Imports/Pipeline/ResolveBranchFromCampus.php` splitting a campus string such as "المجمعة (طلاب)" into campus and gender and resolving it to exactly one branch, returning a distinct no-match and ambiguous-match result so the caller can reject with the right reason (FR-099)
-- [ ] T331 [US5] Implement `POST /imports/registrar` in `app/Modules/Imports/Http/Controllers/RegistrarImportController.php` requiring `term_id` and `instructor_id`, parsing and resolving at upload so the operator sees what the file was understood to mean before mapping, and returning the `file_metadata` and `resolved` payloads (FR-096, FR-101)
-- [ ] T332 [US5] Implement the registrar mode in `app/Modules/Imports/Modes/RegistrarMode.php` — four data columns (sequence, university id, student name, academic status), no mapping step needed beyond confirmation, and the three additional row-level reason categories from [contracts/imports.md](./contracts/imports.md) (FR-098)
-- [ ] T333 [US5] Extend `app/Modules/Imports/Pipeline/Resolver.php` for registrar mode: write `academic_status` and `roster_sequence` on the enrollment and **never** touch `status`, `withdrawn_at`, or `withdraw_reason` (FR-111)
-- [ ] T334 [P] [US5] Build `resources/views/imports/step-upload-registrar.blade.php` — the upload zone plus an `x-track-card` confirmation panel showing the parsed campus, degree, course, activity, and section alongside the resolved branch, course, and section, with term and instructor `x-track-select` controls, and `x-track-alert` danger for an unresolvable campus or course
-- [ ] T335 [P] [US5] Add the registrar-mode translation keys — including `import.ambiguous_course`, `import.unknown_academic_status`, `import.invalid_sequence`, and the not-a-registrar-export message — to `lang/ar/imports.php` and `lang/en/imports.php`
+- [X] T329 [US5] Implement `app/Modules/Imports/Pipeline/MetadataBlockReader.php` streaming the rows above the header row and extracting campus, degree, course, activity, and section number by Arabic label match (FR-097)
+- [X] T330 [US5] Implement `app/Modules/Imports/Pipeline/ResolveBranchFromCampus.php` splitting a campus string such as "المجمعة (طلاب)" into campus and gender and resolving it to exactly one branch, returning a distinct no-match and ambiguous-match result so the caller can reject with the right reason (FR-099)
+- [X] T331 [US5] Implement `POST /imports/registrar` in `app/Modules/Imports/Http/Controllers/RegistrarImportController.php` requiring `term_id` and `instructor_id`, parsing and resolving at upload so the operator sees what the file was understood to mean before mapping, and returning the `file_metadata` and `resolved` payloads (FR-096, FR-101)
+- [X] T332 [US5] Implement the registrar mode in `app/Modules/Imports/Modes/RegistrarMode.php` — four data columns (sequence, university id, student name, academic status), no mapping step needed beyond confirmation, and the three additional row-level reason categories from [contracts/imports.md](./contracts/imports.md) (FR-098)
+- [X] T333 [US5] Extend `app/Modules/Imports/Pipeline/Resolver.php` for registrar mode: write `academic_status` and `roster_sequence` on the enrollment and **never** touch `status`, `withdrawn_at`, or `withdraw_reason` (FR-111)
+- [X] T334 [P] [US5] Build `resources/views/imports/step-upload-registrar.blade.php` — the upload zone plus an `x-track-card` confirmation panel showing the parsed campus, degree, course, activity, and section alongside the resolved branch, course, and section, with term and instructor `x-track-select` controls, and `x-track-alert` danger for an unresolvable campus or course
+- [X] T335 [P] [US5] Add the registrar-mode translation keys — including `import.ambiguous_course`, `import.unknown_academic_status`, `import.invalid_sequence`, and the not-a-registrar-export message — to `lang/ar/imports.php` and `lang/en/imports.php`
+
+**Implementation notes (2026-10-10).**
+
+- **T328 is open.** `tests/Visual/us5-registrar.spec.ts` is written, and both screens are in the
+  visual registry. The fixture gained registrar jobs 17 (ar) and 18 (en) at the confirmation step.
+  The suite has not been run, so no baselines exist. No React reference exists for this mode, so the
+  first capture must be reviewed by the design author before it is accepted (design-system.md §9
+  row 26). The two new jobs also add rows to the imports-list baselines.
+- **T325 counts 22, not 19.** The real file holds 22 students; 19 is what the UI fixture seeds from
+  it.
+- **Choices are made at the confirmation step, not at preview.** The contract says the operator
+  picks an ambiguous course "at preview", but every import choice is made at mapping, and commit
+  refuses `options`. So the course choice (and the programme for a new section whose course has no
+  single programme) is made on the confirmation panel. The rows are still flagged
+  `ambiguous_course` at preview, and the operator can go back to remap. Without a choice, the rows
+  are skipped and listed in the report.
+- **Upload refusals.** As T323 and T324 and the contract's 422s require, a missing block, an
+  unresolvable campus and an unknown course are refused at upload, and nothing is kept.
+- **Re-import (FR-111).** A re-imported student has only `academic_status` and `roster_sequence`
+  written, through the query builder, so no `enrollment.updated` audit entry is written. An
+  unreadable value does not erase an earlier one.
+- **Upload audit entry.** `import.uploaded` for this mode carries the parsed block and the
+  instructor.
+- **Pre-existing bug fixed (`x-track-select`).** Any integer-keyed map submitted its label instead
+  of its key. That broke every id-keyed select posted from a browser: the section dialog, the upload
+  term selects, and the section and audit filters. It now uses `array_is_list()`, covered by
+  `tests/Feature/Shared/SelectOptionValuesTest.php`.
+
+**Review corrections (2026-10-10).** A code review of the phase found these; each is covered in
+`tests/Feature/Imports/RegistrarReviewCorrectionsTest.php` unless noted.
+
+- **H1 — no new section under a deactivated programme.** "The course's single programme" now counts
+  active programmes only, through `Course::activeProgramIds()`, in the registrar validator, the
+  resolver, and the central validator (the central mode had the same gap).
+- **M1 — the programme choice is limited to the course's own active programmes**, at the
+  confirmation step and again when the check runs. The panel offers only those programmes.
+- **M2 — docs.** `contracts/imports.md` now describes the confirmation-step choices, the re-import
+  write, and the `duplicate_sequence` warning. `plan.md` records the decision.
+- **M3 — degree/activity notices.** A degree or activity the settings list lacks, or an existing
+  section's differing one, becomes a notice on the preview and in `import.committed`, instead of
+  being swallowed.
+- **M4 — the values a re-import replaces** are kept on the import row as `previous_*`. A value equal
+  to the stored one is not written; it is already primed in the chunk's one query, so no extra query
+  is needed.
+- **L1 — fragile select inference.** The programmes status filter passes value/label rows, and the
+  component documents the one shape it cannot tell apart. The select tests cover a leading `''` key,
+  0..n-1 maps, and re-selection.
+- **L3 — docs.** `design-system.md` row 26 has the real route and a status note. T221 is annotated
+  as superseded by T325.
+- **L4 — focus.** A refused upload's message takes focus.
+- **L5 — repeated sequence.** A sequence repeated in one file is a `duplicate_sequence` warning; the
+  value is kept.
+- **L6 — zip expansion.** An xlsx declaring more than 15 × the upload limit once unpacked is refused
+  before it is parsed.
+- **Not changed — L2.** Re-import updates stay one per changed row. A registrar file is one section,
+  and unchanged rows are no longer written at all.
+- **Out of scope for T328.** The ambiguous-course and refused-upload states are covered by feature
+  tests, not screenshots. The refused state needs a session error, which a fixture cannot hold.
+- **Not changed — `AGENTS.md` / `CLAUDE.md`.** Both contain only the Laravel Boost bootstrap, which
+  `boost:install` regenerates, so phase status is kept here.
 
 ---
 
@@ -690,34 +1263,120 @@ insertion point. The table in "Dependencies & Execution Order" below gives the f
 
 ### Tests for User Story 8
 
-- [ ] T336 [P] [US8] Write `tests/Feature/Imports/CourseImportTest.php` asserting new courses are created, existing codes are matched rather than duplicated, and program associations are applied (FR-103)
-- [ ] T337 [P] [US8] Write `tests/Feature/Imports/CourseImportProgramCasesTest.php` asserting an unknown program flags the row for create-or-skip and a deactivated program associates only on confirmation (spec Edge Cases)
-- [ ] T338 [P] [US8] Write `tests/Feature/Imports/UserImportTest.php` asserting accounts are created with their role and, for coordinators, their branches (FR-104)
-- [ ] T339 [P] [US8] Write `tests/Feature/Imports/UserImportUnusableUntilResetTest.php` asserting **every** created account is refused sign-in until a Super Admin reset sets a real hash (FR-105, SC-024)
-- [ ] T340 [P] [US8] Write `tests/Feature/Imports/UserImportRejectionsTest.php` asserting a duplicate email — including against a soft-deleted account — a coordinator with no branch, an unknown role, and an unknown branch are each rejected with their own reason (FR-104, FR-005, FR-004)
-- [ ] T341 [P] [US8] Write `tests/Authorization/BulkImportEndpointsTest.php` with allow and deny cases for `POST /imports/courses` and `POST /imports/users`, including that an **instructor** is refused both (FR-107)
-- [ ] T342 [P] [US8] Write `tests/Performance/BulkImportTest.php` asserting 40 courses and 30 staff accounts load in under 10 minutes total (SC-023), in the `performance` group, excluded from the default run
+- [X] T336 [P] [US8] Write `tests/Feature/Imports/CourseImportTest.php` asserting new courses are created, existing codes are matched rather than duplicated, and program associations are applied (FR-103)
+- [X] T337 [P] [US8] Write `tests/Feature/Imports/CourseImportProgramCasesTest.php` asserting an unknown program flags the row for create-or-skip and a deactivated program associates only on confirmation (spec Edge Cases)
+- [X] T338 [P] [US8] Write `tests/Feature/Imports/UserImportTest.php` asserting accounts are created with their role and, for coordinators, their branches (FR-104)
+- [X] T339 [P] [US8] Write `tests/Feature/Imports/UserImportUnusableUntilResetTest.php` asserting **every** created account is refused sign-in until a Super Admin reset sets a real hash (FR-105, SC-024)
+- [X] T340 [P] [US8] Write `tests/Feature/Imports/UserImportRejectionsTest.php` asserting a duplicate email — including against a soft-deleted account — a coordinator with no branch, an unknown role, and an unknown branch are each rejected with their own reason (FR-104, FR-005, FR-004)
+- [X] T341 [P] [US8] Write `tests/Authorization/BulkImportEndpointsTest.php` with allow and deny cases for `POST /imports/courses` and `POST /imports/users`, including that an **instructor** is refused both (FR-107)
+- [X] T342 [P] [US8] Write `tests/Performance/BulkImportTest.php` asserting 40 courses and 30 staff accounts load in under 10 minutes total (SC-023), in the `performance` group, excluded from the default run
 - [ ] T343 [P] [US8] Write `tests/Visual/us8.spec.ts` screenshotting both wizard entry points against the `CourseImportDialog` and `UserImportDialog` references, both locales
 
 ### Implementation for User Story 8
 
-- [ ] T344 [US8] Implement the course mode in `app/Modules/Imports/Modes/CourseMode.php` — column contract (code, name AR, name EN, programs), the four row-level reason categories from contracts/imports.md, and resolution that links existing codes and applies program associations
-- [ ] T345 [US8] Implement `POST /imports/courses` in `app/Modules/Imports/Http/Controllers/CourseImportController.php` behind `import.course.run`
-- [ ] T346 [US8] Implement the user mode in `app/Modules/Imports/Modes/UserMode.php` — column contract (name AR, name EN, email, role, branches), its four row-level reason categories, and account creation with an **unusable** password hash and `first_login_at` null (FR-105)
-- [ ] T347 [US8] Implement `POST /imports/users` in `app/Modules/Imports/Http/Controllers/UserImportController.php` behind `import.user.run`
-- [ ] T348 [P] [US8] Build `resources/views/imports/step-upload-courses.blade.php` and `step-upload-users.blade.php` to the `CourseImportDialog` and `UserImportDialog` references, reusing the wizard frame with a template-download button for each shape
-- [ ] T349 [P] [US8] Add the course-import entry point to `resources/views/programs/index.blade.php` as the "استيراد المقررات من Excel" secondary action the reference shows, and the staff-import entry point to `resources/views/users/index.blade.php`
-- [ ] T350 [P] [US8] Add the course- and user-import translation keys, including every new reason key, to `lang/ar/imports.php` and `lang/en/imports.php`
+- [X] T344 [US8] Implement the course mode in `app/Modules/Imports/Modes/CourseMode.php` — column contract (code, name AR, name EN, programs), the four row-level reason categories from contracts/imports.md, and resolution that links existing codes and applies program associations
+- [X] T345 [US8] Implement `POST /imports/courses` in `app/Modules/Imports/Http/Controllers/CourseImportController.php` behind `import.course.run`
+- [X] T346 [US8] Implement the user mode in `app/Modules/Imports/Modes/UserMode.php` — column contract (name AR, name EN, email, role, branches), its four row-level reason categories, and account creation with an **unusable** password hash and `first_login_at` null (FR-105)
+- [X] T347 [US8] Implement `POST /imports/users` in `app/Modules/Imports/Http/Controllers/UserImportController.php` behind `import.user.run`
+- [X] T348 [P] [US8] Build `resources/views/imports/step-upload-courses.blade.php` and `step-upload-users.blade.php` to the `CourseImportDialog` and `UserImportDialog` references, reusing the wizard frame with a template-download button for each shape
+- [X] T349 [P] [US8] Add the course-import entry point to `resources/views/programs/index.blade.php` as the "استيراد المقررات من Excel" secondary action the reference shows, and the staff-import entry point to `resources/views/users/index.blade.php`
+- [X] T350 [P] [US8] Add the course- and user-import translation keys, including every new reason key, to `lang/ar/imports.php` and `lang/en/imports.php`
 
 **Checkpoint**: Term setup no longer requires typing each course and account by hand.
+
+**Implementation notes (2026-10-11).**
+
+- **T343 is open.** `tests/Visual/us8.spec.ts` is written and both upload steps are in the visual
+  registry. It has not been run, so no baselines exist. The references are single dialogs, while
+  the build opens the six-step wizard (FR-106), so the dialog body is compared as the wizard's
+  first step.
+- **Wizard, not dialog.** The CourseImportDialog / UserImportDialog references check and import in
+  one go. Here the same upload runs through check, preview and confirmation, which FR-106 requires.
+- **No term.** A catalogue and a staff list are the college's. The job's `term_id` is null, and
+  FR-067's duplicate check is judged within the organization (`ImportJob::duplicateOf`).
+- **Existing courses** are matched. Their stored names stand, and the row's programmes are added,
+  never removed.
+- **Unknown programmes** are created, or the row is skipped (`create_missing_programs`). A created
+  programme's code is the name when it is a valid code, otherwise a generated `IMP-` code.
+  Deactivated programmes are associated only when `associate_inactive_programs` is on.
+- **Unusable accounts (FR-105).** These follow FR-059: a hash of 64 random characters nobody is
+  told. Tested by trying likely passwords, then a reset.
+- **Beyond the contract.**
+  - Reason keys: `import.ambiguous_program` (a name two programmes share), `import.too_long`, and
+    the informational `import.existing_course`.
+  - A branch name without a gender that matches two branches is `unknown_branch`.
+  - `CreateUser` now accepts an `organization_id`, so imported accounts land in the operator's
+    organization rather than "the first college".
+- **Entry points.** The imports list also offers both imports, beside the programmes page and the
+  users page (T349).
+
+**Review corrections (2026-10-11).** A code review found ten issues, all fixed and covered in
+`tests/Feature/Imports/BulkImportReviewCorrectionsTest.php`:
+
+1. **Organization of created accounts.** Every account now lands in its creator's organization.
+   `CreateUser` defaults to the acting user's organization; the form passes it, and so does the
+   roster import's instructor creation, which runs with nobody signed in.
+2. **Re-uploads.** Course and staff jobs are never committed link-only. A re-uploaded file still
+   gets `duplicate_of`, but it creates whatever the last run did not.
+3. **No bare courses.** A new course never leaves with no programme. Only-deactivated programmes,
+   unconfirmed, are a skip at the preview and at commit.
+4. **Conflict column.** A commit conflict names the row's own column (email, course code), not a
+   university id these rows do not have.
+5. **Concurrent programme creation.** A programme created concurrently is matched (savepoint, then
+   re-read by code) instead of failing as a conflict. Generated codes are `IMP-` plus 10 hex digits.
+6. **Programme lookup at commit.** Programmes load once per chunk under the validator's own key,
+   respecting ambiguity and `associate_inactive_programs`.
+7. **Password hashing.** One unusable hash per chunk, shared by its accounts, instead of one per
+   account. It is equally unusable.
+8. **Email lookup.** The taken-email lookup uses the `users.email` index.
+9. **Branches.** Branches are resolved for coordinators only, as the contract says.
+10. **Roles.** Only staff roles may be imported. `SUPER_ADMIN` is refused as `unknown_role`.
+
+Also covered by tests now: no programme, association, account or branch link is written before
+confirmation, and a committed job cannot be committed again.
 
 ---
 
 ## Phase 17: `last_login_at` *(interleaves with Phase 4 / US1, with T116)*
 
-- [ ] T351 [P] [US1] Write `tests/Feature/Authentication/LastLoginTest.php` asserting `last_login_at` is updated on every successful sign-in, is not set by a failed attempt, and renders on the accounts list (FR-113)
-- [ ] T352 [US1] Set `last_login_at` in `app/Modules/Authentication/Http/Controllers/LoginController.php` on every successful sign-in, alongside the existing `first_login_at` handling
-- [ ] T353 [P] [US1] Add the `last_login_at` column to `resources/views/users/index.blade.php` as "آخر دخول" formatted through `Format::dateTime()`, and to the profile screen as the reference's "آخر دخول" line
+- [X] T351 [P] [US1] Write `tests/Feature/Authentication/LastLoginTest.php` asserting `last_login_at` is updated on every successful sign-in, is not set by a failed attempt, and renders on the accounts list (FR-113)
+- [X] T352 [US1] Set `last_login_at` in `app/Modules/Authentication/Http/Controllers/LoginController.php` on every successful sign-in, alongside the existing `first_login_at` handling
+- [X] T353 [P] [US1] Add the `last_login_at` column to `resources/views/users/index.blade.php` as "آخر دخول" formatted through `Format::dateTime()`, and to the profile screen as the reference's "آخر دخول" line
+
+**Implementation notes (2026-10-11).** T352 and T353 had already been built with T116 in Phase 4,
+and were verified against their text rather than rebuilt. `LoginController` writes `last_login_at`
+in the same `saveQuietly()` as `first_login_at`, after `Auth::login()` succeeds. The users list's
+«آخر دخول» column and the profile's line both go through `Format::dateTime()` and say "never" when
+the value is null. T351 is the new `tests/Feature/Authentication/LastLoginTest.php`. It covers:
+
+- every successful sign-in moving the value, with `first_login_at` left alone;
+- three failed paths not touching it: wrong password, unknown email, deactivated account;
+- the browser form as well as the API;
+- both screens, in both languages.
+
+**Review corrections (2026-10-11).** A code review found ten issues, all fixed and covered in
+`tests/Feature/Authentication/LastLoginTest.php`:
+
+1. **Organization boundary.** The accounts list, the API and the per-account actions are limited to
+   the viewer's organization. Another organization's account is a 404. The list previously showed
+   every college's staff and their sign-in times.
+2. **A sign-in that cannot be recorded does not stand.** If the timestamp or `auth.login` write
+   fails, the session is signed out again before the error.
+3. **Midnight sign-ins.** `Format::dateTime()` always converts to the display timezone; a sign-in at
+   00:00 UTC no longer shows as 00:00. `date()` keeps its calendar-date rule.
+4. **Sorting.** Sorting by last sign-in is done by the server, across all pages ("not signed in
+   longest" first), with a new `(organization_id, last_login_at)` index. The column no longer sorts
+   only the page on screen.
+5. **Page size.** `per_page` is capped at 100.
+6. **Tests.** Exact status codes and frozen time. New cases cover throttled attempts, imported
+   accounts, the profile in both languages and with no value, and organization isolation.
+7. **First sign-in.** "First sign-in" is decided by a conditional update, so two simultaneous first
+   sign-ins record one.
+8. **No edit stamp.** A sign-in no longer changes `updated_at`; both writes go through the base
+   query builder.
+9. **Duplicate key removed.** The unused `common.labels.never` is gone; "never" has one key.
+10. **One null rule.** Both screens use `Format::dateTime()`'s own empty value. The mixing of other
+    tasks' work into these files predates this phase and cannot be separated after the fact.
 
 ---
 ---
@@ -742,12 +1401,84 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 
 **Purpose**: Module skeleton and the public route boundary
 
-- [ ] T354 Create the module skeleton at `app/Modules/Support/` with subdirectories `Http/Controllers`, `Http/Controllers/Public`, `Http/Requests`, `Http/Middleware`, `Actions`, `Services`, `Services/Challenge`, `Policies`, and `Tests`, and register it in `app/Providers/ModuleServiceProvider.php`
-- [ ] T355 Create `routes/public.php` and register it in `bootstrap/app.php` on the `web` middleware group **without** `auth:sanctum`, deliberately separate from `routes/web.php` so the entire public surface of the platform is readable in one short file
-- [ ] T356 [P] Register the `support` translation namespace and create empty `lang/ar/support.php` and `lang/en/support.php`
-- [ ] T357 [P] Add `tests/Feature/Support/`, `tests/Feature/Support/Enumeration/`, `tests/Feature/Support/Throttle/`, and `tests/Feature/Support/Retention/` directories, and register the `Enumeration` group in `phpunit.xml` so it can be run alone
-- [ ] T358 [P] Vendor the self-hosted proof-of-work challenge widget into `resources/js/vendor/` and `public/js/`, and **confirm it makes no request to any external origin** — if it does, use the hand-rolled fallback described in [research.md](./research.md) R-08 instead. Record which was chosen in `README.md`
-- [ ] T359 [P] Confirm the strict Content-Security-Policy from 001's `ContentSecurityPolicy` middleware needs **no new exemption** for this feature, and add `tests/Feature/Security/NoNewCspExemptionTest.php` asserting the policy is unchanged
+- [X] T354 Create the module skeleton at `app/Modules/Support/` with subdirectories `Http/Controllers`, `Http/Controllers/Public`, `Http/Requests`, `Http/Middleware`, `Actions`, `Services`, `Services/Challenge`, `Policies`, and `Tests`, and register it in `app/Providers/ModuleServiceProvider.php`
+- [X] T355 Create `routes/public.php` and register it in `bootstrap/app.php` on the `web` middleware group **without** `auth:sanctum`, deliberately separate from `routes/web.php` so the entire public surface of the platform is readable in one short file
+- [X] T356 [P] Register the `support` translation namespace and create empty `lang/ar/support.php` and `lang/en/support.php`
+- [X] T357 [P] Add `tests/Feature/Support/`, `tests/Feature/Support/Enumeration/`, `tests/Feature/Support/Throttle/`, and `tests/Feature/Support/Retention/` directories, and register the `Enumeration` group in `phpunit.xml` so it can be run alone
+- [X] T358 [P] Vendor the self-hosted proof-of-work challenge widget into `resources/js/vendor/` and `public/js/`, and **confirm it makes no request to any external origin** — if it does, use the hand-rolled fallback described in [research.md](./research.md) R-08 instead. Record which was chosen in `README.md`
+- [X] T359 [P] Confirm the strict Content-Security-Policy from 001's `ContentSecurityPolicy` middleware needs **no new exemption** for this feature, and add `tests/Feature/Security/NoNewCspExemptionTest.php` asserting the policy is unchanged
+
+**Implementation notes (2026-10-11).**
+
+- **T358: the hand-rolled fallback, not ALTCHA.**
+  - ALTCHA 3.3.0 was inspected, not installed. It requests no external origin; `altcha.org` is a
+    footer link. But it starts its workers from `blob:` URLs, falling back to `data:` URLs. This
+    platform's CSP refuses both (`worker-src` falls back to `script-src 'self'`), so allowing it
+    would be the exemption T359 forbids.
+  - Used instead: a hand-rolled solver, first written as two files. The review replaced them with
+    `resources/js/pow/`; see the corrections below.
+  - Recorded in `README.md`, and guarded by `tests/Architecture/ChallengeSolverIsSelfHostedTest.php`.
+- **T357: a testsuite, not a group.** `Enumeration` is a PHPUnit testsuite, so it runs alone
+  (`php artisan test --testsuite=Enumeration`). It is excluded from `Feature` so a full run does
+  not execute it twice. A placeholder test keeps the suite resolvable until Phase 21.
+- **T356.** `support.php` is a flat, per-feature lang file like every other module's, read as
+  `__('support.…')`. No module-namespace registration is needed.
+- **T359.** The test pins the policy directive for directive, not by containment, and checks that
+  a public page carries it.
+
+**Review corrections (2026-10-11).** Ten findings, all fixed.
+
+- **The public route group (T355).**
+  - `routes/public.php` is registered on a named `public` group, `['web', 'throttle:public']`,
+    defined in `bootstrap/app.php`.
+  - `throttle:public` is a floor of 60 requests per minute per IP (`AppServiceProvider`). It is not
+    the support limits: the two independent limiters of R-09 still arrive with T371.
+- **"No session" means no authenticated session.** The `web` group starts Laravel's guest session,
+  and that is deliberate: CSRF on a public form needs it (contracts/support-public.md). FR-124
+  forbids an account, a credential or a signed-in session, and T377 asserts that.
+- **One map of the public surface.** `tests/Architecture/PublicSurfaceTest.php`:
+  - Every route without `auth` is either one of the pre-Amendment-2 routes it lists (sign-in,
+    locale, health, CSRF cookie, dev pages) or on the `public` group.
+  - Every `public` route is unauthenticated, carries `throttle:public`, and its controller sits under
+    a module's `Http/Controllers/Public`.
+  - A `Public` controller is reachable only through that group.
+  - So a new public route cannot appear anywhere except `routes/public.php` without failing CI.
+- **CSP (T359).** `NoNewCspExemptionTest` registers a probe route on the `public` group and asserts
+  it carries the policy unchanged and `X-Frame-Options: DENY`.
+- **The solver (T358).** **Deviation:** it lives in `resources/js/pow/`, not `resources/js/vendor/`
+  plus `public/js/`.
+  - The first version held the hashing loop twice, once in each file, and the copies could drift.
+    Now `puzzle.js` is the one definition and the one `search`; `worker.js` and the in-page fallback
+    in `solve.js` both import it.
+  - `crypto.subtle` exists only in secure contexts. A pure-JS SHA-256 is the fallback, and a test
+    checks it against Node's on lengths 0 to 200.
+  - The search yields every 16 ms, reports progress, has an iteration cap, and honours an
+    `AbortSignal`. It rejects with `invalid`, `exhausted` or `aborted`, never with a wrong nonce.
+  - The worker URL is no longer a parameter. `solve.js` uses
+    `new Worker(new URL('./worker.js', import.meta.url), { type: 'module' })`, and Vite
+    (`worker.format: 'es'`) emits it as its own hashed file. A scratch build confirmed the bundle
+    loads `/assets/worker-<hash>.js`, with no `blob:` or `data:`.
+- **The puzzle is now exact, and T370 must verify exactly this.**
+  - `challenge` matches `[A-Za-z0-9_-]{16,256}`.
+  - `difficulty` is from 1 to 32, and the server stores it and never reads it from the request.
+  - `nonce` is from 0 to 2^53 − 1.
+  - The answer is valid when `SHA-256(UTF-8(challenge ":" canonical-decimal nonce))` has at least
+    `difficulty` leading zero bits, counted MSB-first across bytes.
+  - Any valid nonce is accepted, so "smallest" is dropped: requiring it would make the server repeat
+    the whole search. Recorded in research.md R-08 and the README.
+- **JS tests.** `tests/js/pow.test.mjs` uses `node:test` with no framework (`npm run test:js`). CI
+  runs it after "Build assets".
+- **`ChallengeSolverIsSelfHostedTest`** scans every `.js` file in `resources/js/pow/`, so a new file
+  is covered automatically. With comments stripped, it forbids:
+  - absolute and protocol-relative URLs;
+  - `blob:` and `data:`, and `createObjectURL`;
+  - `fetch`, `import()`, `importScripts`, `XMLHttpRequest`, `sendBeacon`, `WebSocket` and
+    `EventSource`.
+
+  It also pins the fixed `new Worker(new URL(...))` call. It was checked by dropping a violating
+  file into the directory, which failed.
+- **The Enumeration placeholder** is a `->todo()`, not an always-true assertion, so the suite reports
+  "1 todo" until Phase 21. The `phpunit.xml` header now counts seven suites and names Enumeration.
 
 ---
 
@@ -759,37 +1490,101 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 
 ### Migrations
 
-- [ ] T360 Create the `support_requests` migration in `database/migrations/` with: `reference` **char(12) UNIQUE** · `student_id` FK → `students.id` **nullable, restrict** (nullable **only** so retention can anonymise; never null on creation) · `term_id` FK → `academic_terms.id` restrict · `category` **varchar(40)** · `description` **text** · `contact` **varchar(255) nullable** · `status` **enum(`new`,`in_progress`,`resolved`,`closed`,`rejected`)** · `rejection_reason` **varchar(500) nullable** · `assigned_to` FK → `users.id` nullable · `submitted_ip` **varchar(45)** · `anonymised_at` **timestamp nullable**
-- [ ] T361 Add the indexes to the `support_requests` migration: `reference` unique · `(status, created_at)` for the queue's oldest-first default · `(student_id)` for the branch-scope join · `(category, created_at)` · `(assigned_to)` · `(created_at)` for the retention sweep
-- [ ] T362 [P] Create the `support_responses` migration with `support_request_id` FK cascade · `user_id` FK → `users.id` · `body` **text** · `created_at` and **no `updated_at` column**, plus index `(support_request_id, created_at)`. The absent `updated_at` is what makes the table append-only at the schema level
+- [X] T360 Create the `support_requests` migration in `database/migrations/` with: `reference` **char(12) UNIQUE** · `student_id` FK → `students.id` **nullable, restrict** (nullable **only** so retention can anonymise; never null on creation) · `term_id` FK → `academic_terms.id` restrict · `category` **varchar(40)** · `description` **text** · `contact` **varchar(255) nullable** · `status` **enum(`new`,`in_progress`,`resolved`,`closed`,`rejected`)** · `rejection_reason` **varchar(500) nullable** · `assigned_to` FK → `users.id` nullable · `submitted_ip` **varchar(45)** · `anonymised_at` **timestamp nullable**
+- [X] T361 Add the indexes to the `support_requests` migration: `reference` unique · `(status, created_at)` for the queue's oldest-first default · `(student_id)` for the branch-scope join · `(category, created_at)` · `(assigned_to)` · `(created_at)` for the retention sweep
+- [X] T362 [P] Create the `support_responses` migration with `support_request_id` FK cascade · `user_id` FK → `users.id` · `body` **text** · `created_at` and **no `updated_at` column**, plus index `(support_request_id, created_at)`. The absent `updated_at` is what makes the table append-only at the schema level
 
 ### Models
 
-- [ ] T363 Create `app/Models/SupportRequest.php` applying **001's existing `BelongsToBranchScope` unchanged**, resolved through the student's active enrollments; the `status` cast; the `responses` and `student` and `assignee` relations; a computed `waiting_time`; and **no update path for `reference`**
-- [ ] T364 [P] Create `app/Models/SupportResponse.php` with `$timestamps = false` except `created_at`, guarded against mass assignment, and **no update or delete path** reachable from application code
-- [ ] T365 [P] Apply 001's `Auditable` trait to `SupportRequest` with an `auditedAttributes()` allowlist that **excludes `description`** — the body lives in the request row, and copying free-text personal data into a 5-year audit payload would defeat the 2-year retention
+- [X] T363 Create `app/Models/SupportRequest.php` applying **001's existing `BelongsToBranchScope` unchanged**, resolved through the student's active enrollments; the `status` cast; the `responses` and `student` and `assignee` relations; a computed `waiting_time`; and **no update path for `reference`**
+- [X] T364 [P] Create `app/Models/SupportResponse.php` with `$timestamps = false` except `created_at`, guarded against mass assignment, and **no update or delete path** reachable from application code
+- [X] T365 [P] Apply 001's `Auditable` trait to `SupportRequest` with an `auditedAttributes()` allowlist that **excludes `description`** — the body lives in the request row, and copying free-text personal data into a 5-year audit payload would defeat the 2-year retention
 
 ### Permissions and settings
 
-- [ ] T366 Create `database/seeders/SupportPermissionSeeder.php` seeding `support.view`, `support.respond`, `support.assign`, `support.close` — taking the platform total from 42 to **46** — granting all four to `SUPER_ADMIN`, and **only** `support.view` and `support.respond` to `BRANCH_COORDINATOR`. `INSTRUCTOR` receives none
-- [ ] T367 Create `database/seeders/SupportSettingSeeder.php` seeding the seven keys from [data-model.md](./data-model.md): `support_categories` (5 entries with AR/EN labels) · `support_description_max` = **2000** · `support_throttle_ip` = **5 per hour** · `support_throttle_identifier` = **3 per hour** · `support_status_throttle_ip` = **10 per hour** · `support_min_response_ms` = **400** · `support_retention_months` = **24**
+- [X] T366 Create `database/seeders/SupportPermissionSeeder.php` seeding `support.view`, `support.respond`, `support.assign`, `support.close` — taking the platform total from 42 to **46** — granting all four to `SUPER_ADMIN`, and **only** `support.view` and `support.respond` to `BRANCH_COORDINATOR`. `INSTRUCTOR` receives none
+- [X] T367 Create `database/seeders/SupportSettingSeeder.php` seeding the seven keys from [data-model.md](./data-model.md): `support_categories` (5 entries with AR/EN labels) · `support_description_max` = **2000** · `support_throttle_ip` = **5 per hour** · `support_throttle_identifier` = **3 per hour** · `support_status_throttle_ip` = **10 per hour** · `support_min_response_ms` = **400** · `support_retention_months` = **24**
 
 ### The four security services
 
-- [ ] T368 Implement `app/Modules/Support/Services/VerifyStudentIdentity.php` resolving roster existence **and** active enrollment in the current term in **one query** returning a **single boolean**. It MUST NOT expose which condition failed, and no caller may branch on the reason ([research.md](./research.md) R-10)
-- [ ] T369 Implement `app/Modules/Support/Services/ReferenceGenerator.php` producing **10 characters of Crockford base32 from a CSPRNG plus a check character**, rendered uppercase and hyphenated (`K7Q2-M9XV-T3`), excluding `I`, `L`, `O`, `U`, retrying on collision. **Must not** use ULID, UUIDv7, Snowflake, or any time-ordered scheme — they leak creation order and time (R-11)
-- [ ] T370 Implement `app/Modules/Support/Services/Challenge/` — issue a signed single-use proof-of-work challenge stored in Redis with a 10-minute expiry and difficulty from settings, and verify-and-consume it. It MUST **fail closed**: when the store is unavailable, verification returns false rather than true (FR-129)
-- [ ] T371 Implement `app/Modules/Support/Http/Middleware/SupportSubmissionThrottle.php` evaluating **two independent limiters**, both of which must pass: per originating IP against `support_throttle_ip`, and per submitted University ID **hashed before use** against `support_throttle_identifier`. A refusal MUST state a limit was reached and when to retry and MUST NOT reveal **which** limit (FR-130, R-09)
-- [ ] T372 Implement `app/Modules/Support/Http/Middleware/ConstantResponseTime.php` padding every public response to `support_min_response_ms` (default **400 ms**), because the not-found path returns after one index lookup while the not-enrolled path returns after a join, and that difference is measurable over enough samples (R-10)
-- [ ] T373 [P] Implement `app/Modules/Support/Policies/SupportRequestPolicy.php` mapping each action to its `support.*` permission, with `close` requiring `support.close` and `assign` requiring `support.assign`, and register it in `app/Providers/AuthServiceProvider.php`
+- [X] T368 Implement `app/Modules/Support/Services/VerifyStudentIdentity.php` resolving roster existence **and** active enrollment in the current term in **one query** returning a **single boolean**. It MUST NOT expose which condition failed, and no caller may branch on the reason ([research.md](./research.md) R-10)
+- [X] T369 Implement `app/Modules/Support/Services/ReferenceGenerator.php` producing **10 characters of Crockford base32 from a CSPRNG plus a check character**, rendered uppercase and hyphenated (`K7Q2-M9XV-T3`), excluding `I`, `L`, `O`, `U`, retrying on collision. **Must not** use ULID, UUIDv7, Snowflake, or any time-ordered scheme — they leak creation order and time (R-11)
+- [X] T370 Implement `app/Modules/Support/Services/Challenge/` — issue a signed single-use proof-of-work challenge stored in Redis with a 10-minute expiry and difficulty from settings, and verify-and-consume it, checking **exactly** the puzzle in [research.md](./research.md) R-08 (any valid nonce, difficulty from the stored challenge, one hash). It MUST **fail closed**: when the store is unavailable, verification returns false rather than true (FR-129)
+- [X] T371 Implement `app/Modules/Support/Http/Middleware/SupportSubmissionThrottle.php` evaluating **two independent limiters**, both of which must pass: per originating IP against `support_throttle_ip`, and per submitted University ID **hashed before use** against `support_throttle_identifier`. A refusal MUST state a limit was reached and when to retry and MUST NOT reveal **which** limit (FR-130, R-09)
+- [X] T372 Implement `app/Modules/Support/Http/Middleware/ConstantResponseTime.php` padding every public response to `support_min_response_ms` (default **400 ms**), because the not-found path returns after one index lookup while the not-enrolled path returns after a join, and that difference is measurable over enough samples (R-10)
+- [X] T373 [P] Implement `app/Modules/Support/Policies/SupportRequestPolicy.php` mapping each action to its `support.*` permission, with `close` requiring `support.close` and `assign` requiring `support.assign`, and register it in `app/Providers/AuthServiceProvider.php`
 
 ### Public layout
 
-- [ ] T374 Create `resources/views/layouts/public.blade.php` — a standalone layout carrying **no navigation to any authenticated area**, no sidebar and no topbar (FR-163), with the brand logo, the language switch available **without a sign-in**, and `<html lang dir>` from the requested locale
-- [ ] T375 [P] Create `resources/css/_public.scss` for the public layout using **only** design tokens, and add it to both the RTL and LTR Vite entry points
-- [ ] T376 [P] Add the shared `support` translation keys to `lang/ar/support.php` and `lang/en/support.php`: the five category labels, the five state labels, the two generic failure messages, and the throttle message
+- [X] T374 Create `resources/views/layouts/public.blade.php` — a standalone layout carrying **no navigation to any authenticated area**, no sidebar and no topbar (FR-163), with the brand logo, the language switch available **without a sign-in**, and `<html lang dir>` from the requested locale
+- [X] T375 [P] Create `resources/css/_public.scss` for the public layout using **only** design tokens, and add it to both the RTL and LTR Vite entry points
+- [X] T376 [P] Add the shared `support` translation keys to `lang/ar/support.php` and `lang/en/support.php`: the five category labels, the five state labels, the two generic failure messages, and the throttle message
 
 **Checkpoint**: Schema migrates, 46 permissions and 7 settings seed, all four security services exist and fail closed, and the public layout renders in both directions.
+
+**Implementation notes (2026-10-11).**
+
+- **Deviations, each recorded where the behaviour lives.**
+  - **T360: `reference` is `char(11)`, stored canonical.** R-11 says ten random characters plus a check
+    character, which is 11 symbols and the 50 bits it states. Its example `K7Q2-M9XV-T3` has ten symbols
+    in all, and `char(12)` was sized to that example. Stored without hyphens, uppercase; displayed as
+    `K7Q2-M9XV-T3X`. So a student's typing (case, hyphens, spaces, `I`/`L`/`O`) reaches the same row.
+    data-model.md and R-11 are updated.
+  - **T366: no `SupportPermissionSeeder`.** The four permissions and the coordinator's two grants were
+    already seeded with the base set (`PermissionSeeder`, `RoleSeeder`; T045, T473). A second seeder
+    would be a second source of truth for the same rows. The total is **47**, not 46: Amendment 4's
+    `section.approve` landed first. `SecurityServicesTest` asserts the grant matrix.
+  - **T367: eight keys, not seven.** `support_challenge_difficulty` (default 16 bits) is added. T370
+    reads the difficulty "from settings" and no key existed; a literal would break constitution IV. The
+    seeder runs from `SettingSeeder`, so every path that seeds settings gets these too. Rate limits are
+    one row each, `{max_attempts, decay_minutes}`, read with the new `Settings::limit()`, which throws on
+    a malformed row rather than read as zero or unlimited.
+  - **T369: the check character is Luhn mod 32**, not Crockford's mod-37 symbol, which needs `U`.
+    It catches every single substitution and every adjacent swap except `0`↔`Z`. A unit test pins that
+    blind spot exactly, and R-11 records it.
+  - **T376: no category labels in the lang files.** They live with the categories in the
+    `support_categories` setting. A key per category would be a second list, and a sixth category
+    added through settings would never reach it.
+- **T363: `SupportRequest` also carries the section scope, constrained to nothing.**
+  - `BranchScope` stands aside for a caller with sections and no branches, so with the branch scope
+    alone an instructor's query would have been unconstrained.
+  - A mutation run confirmed the instructor test fails without it.
+  - A coordinator who also teaches therefore sees no request. That is the fails-safe direction
+    `SectionScope` already documents for dual claims, and it is flagged with that question.
+- **T365: the audit allowlist excludes `contact` as well as `description`.** Both are student free text
+  under the 2-year retention. `submitted_ip` stays in, as contracts/support-public.md requires.
+  - Creation is keyed `support.request_created`, with a null actor when no one is signed in.
+  - The five Amendment 2 keys are now in contracts/audit.md (43 keys), the transcribed
+    `contractActionKeys()`, the deferred list (Phases 20, 21, 25) and both label files.
+- **T368** returns the match (`VerifiedStudent`: student and term) or `null`, never a reason.
+  - It is one query from the active enrollment outward, asserted with the query log.
+  - T390 needs the student and the term, and a second query to find them would be a second timing path.
+- **T370: the challenge is signed, then stored.**
+  - It is a random id plus an HMAC under the app key. The HMAC is checked before the store is touched,
+    so forged challenges never reach Redis.
+  - It is consumed on the first attempt, right or wrong. `forget` returning true decides any race.
+  - The difficulty is read back from the store, never from the request or the current setting.
+  - Every failure is `false`. Issue throws `ChallengeUnavailable`, and T392 turns that into a 503.
+  - An out-of-range difficulty refuses to issue rather than clamp.
+  - `ProofOfWork` is the pure rule. A vector the JS solver produced is checked by both
+    `tests/Unit/Support/ProofOfWorkTest.php` and `tests/js/pow.test.mjs`.
+- **T371: two limiters, both checked before either is counted.**
+  - The identifier key is an HMAC of the normalised ID under the app key. A plain SHA-256 of nine
+    digits can be reversed by enumeration.
+  - A refusal throws `SupportLimitReached`, which renders the one message for every limit: JSON for
+    JSON clients, `support/public/limit-reached` otherwise. Status 429 with `Retry-After`.
+- **T372** pads with `Sleep` (fakeable) from middleware entry. It falls back to 400 ms if settings
+  cannot be read, and never slows a response that is already past the floor.
+- **T374–T375.** The layout has no link into the authenticated side; even the logo is not a link.
+  A test asserts the only `<a>` is the skip link. It is `noindex` and uses the existing guest-capable
+  language switch. `_public.scss` is tokens and logical properties only.
+- **Tests:**
+  - `tests/Feature/Support/FoundationModelsTest.php` (13) and `SecurityServicesTest.php` (35);
+  - `tests/Unit/Support/ProofOfWorkTest.php` and `ReferenceGeneratorFormatTest.php` (34).
+  - Phase 20's end-to-end tests (T378–T385) still own the behaviour through the real routes.
+- **Badge vocabulary.** `StatusBadgeRequiresLabelTest` exempts `support_requests` the same way it
+  exempts `import_jobs`: the five states have their own labels (`support.statuses.*`), and a new test
+  asserts every one exists in both languages, so the exemption cannot hide a missing label.
 
 ---
 

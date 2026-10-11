@@ -34,11 +34,13 @@ Permission `term.edit`. Same fields as create, all optional. **200** / **404**.
 
 Permission `term.change_status`.
 
-**Request**: `status` (`draft`|`active`|`closed`|`archived`), `reason` (required when moving
-out of `closed`)
+**Request**: `status` (`draft`|`active`|`closed`|`archived`), `reason` (required for a permitted
+transition out of `closed`; trimmed; 3–500 characters)
 
-**200**: the term. **409**: transition not permitted by the state machine in
-[data-model.md](../data-model.md) — for example `draft → archived`.
+**200**: the term. **422**: `reason` missing, too short or too long, beside the field. **409**:
+transition not permitted by the state machine in [data-model.md](../data-model.md) — for example
+`draft → archived` or `closed → draft`; a refused transition is never answered as a missing reason.
+The 409 message names both states by their translated labels.
 
 The `closed` and `archived` values are accepted and stored here. The write-blocking they imply
 (423 on the term's data) is the later term-closure feature; see plan.md Complexity Tracking. No

@@ -51,3 +51,8 @@ Thumbs.db
 
 # The visual suite rebuilds this on every run (tests/Visual/global-setup.ts).
 /database/visual.sqlite
+
+# The local SQLite development database (DB_DATABASE=track). Holds accounts and password hashes;
+# never committed.
+/track
+/database/*.sqlite

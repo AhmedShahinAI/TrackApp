@@ -150,7 +150,7 @@ function firstError(string $field): ?string
 }
 
 /**
- * The 38 action keys contracts/audit.md defines, in the order it lists them.
+ * The 43 action keys contracts/audit.md defines, in the order it lists them (38, plus Amendment 2's five).
  *
  * Transcribed rather than parsed out of the markdown table: a parser that drifts turns a contract
  * test into a test of the parser, and a transcription that drifts is caught the moment someone
@@ -187,6 +187,10 @@ function contractActionKeys(): array
         'import.uploaded', 'import.committed', 'import.resumed', 'import.error_report_downloaded',
 
         'audit.exported',
+
+        // Amendment 2 (data-model.md Group 7 "Audit actions"), added with the model that emits them.
+        'support.request_created', 'support.responded', 'support.status_changed',
+        'support.reassigned', 'support.anonymised',
     ];
 }
 
@@ -209,13 +213,41 @@ function actionsAwaitingTheirPhase(): array
         'term.status_changed' => 'Phase 7 — US4',
         'term.set_current' => 'Phase 7 — US4',
         'branch.deactivated' => 'Phase 7 — US4',
-        'program.deactivated' => 'Phase 14 — programs, endpoints and screens',
-        'program.courses_changed' => 'Phase 14 — programs',
         'section.instructor_changed' => 'Phase 7 — US4',
         'enrollment.withdrawn' => 'Phase 9 — US6, instructor rosters',
-        'import.uploaded' => 'Phase 8 — US5, roster import',
-        'import.committed' => 'Phase 8 — US5',
-        'import.resumed' => 'Phase 8 — US5',
-        'import.error_report_downloaded' => 'Phase 8 — US5',
+
+        // Amendment 2. SupportRequest exists from Phase 19; nothing creates or changes one until these.
+        'support.request_created' => 'Phase 20 — US9, the public submission',
+        'support.responded' => 'Phase 21 — US10, staff answer requests',
+        'support.status_changed' => 'Phase 21 — US10',
+        'support.reassigned' => 'Phase 21 — US10',
+        'support.anonymised' => 'Phase 25 — the retention sweep',
     ];
 }
+
+/*
+|--------------------------------------------------------------------------
+| Import fixtures
+|--------------------------------------------------------------------------
+|
+| US5's world and six-step walk, kept in their own file because they are a page long and only the
+| import suites need them. Loaded here so they are as available as everything above.
+|
+*/
+
+require_once __DIR__.'/Support/Imports.php';
+
+// Phase 15 — the registrar import's world, files and walk.
+require_once __DIR__.'/Support/Registrar.php';
+
+// Phase 16 — course and staff files, and their walk.
+require_once __DIR__.'/Support/BulkImports.php';
+
+// US7's screen registry, shared by the localisation and UX sweeps.
+require_once __DIR__.'/Support/Screens.php';
+
+// Phase 12's typed EAV capacity spike: its database and the five measured queries.
+require_once __DIR__.'/Support/EavSpike.php';
+
+// Phase 14's programme fixtures, shared by the Programs, Sections and Authorization suites.
+require_once __DIR__.'/Support/Programs.php';

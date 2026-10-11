@@ -56,7 +56,8 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            // T275 — structured JSON by default (PRD 8.8); LOG_STACK=single for a human-readable log.
+            'channels' => explode(',', (string) env('LOG_STACK', 'json')),
             'ignore_exceptions' => false,
         ],
 
@@ -65,6 +66,29 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+        ],
+
+        /*
+         * T275 — one JSON object per line, each with the request id, the user id and the route
+         * (App\Modules\Shared\Logging). Daily files, kept LOG_DAILY_DAYS, for a shipper to tail.
+         */
+        'json' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/track.json.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_DAILY_DAYS', 14),
+            'tap' => [App\Modules\Shared\Logging\JsonLogFormatter::class],
+            'replace_placeholders' => true,
+        ],
+
+        // PRD 8.8 — operational alerts (App\Modules\Shared\Monitoring\Alerts), apart from the
+        // application log so an on-call reader sees only incidents. Same JSON lines.
+        'alerts' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/track.alerts.log'),
+            'level' => 'warning',
+            'days' => 90,
+            'tap' => [App\Modules\Shared\Logging\JsonLogFormatter::class],
         ],
 
         'daily' => [

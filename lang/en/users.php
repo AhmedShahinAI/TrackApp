@@ -14,6 +14,7 @@ return [
     'saved' => 'Changes saved',
 
     'fields' => [
+        'name' => 'Name',
         'name_ar' => 'Arabic name',
         'name_en' => 'English name',
         'email' => 'Institutional email',
@@ -39,6 +40,12 @@ return [
         'status' => 'Status',
         'all' => 'All',
         'search' => 'Search by name or email',
+        'sort' => 'Sort by',
+    ],
+    'sorts' => [
+        'name' => 'Name',
+        'last_login' => 'Last sign-in — not signed in longest first',
+        'last_login_desc' => 'Last sign-in — most recent first',
     ],
 
     // FR-082.

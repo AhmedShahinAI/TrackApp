@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 /**
  * T051 + T305 - the design system's demo dataset, ported from design-system/ui_kits/web-app/store.js.
@@ -99,6 +100,19 @@ class UiFixtureSeeder extends Seeder
 
     public function run(): void
     {
+        /*
+         * Local and testing only, and an exception rather than a silent return (as DevAdminSeeder).
+         * Every write here is keyed on a fixed id, runs with audit events off, and sync()s pivot
+         * rows: pointed at a database with real data, it would overwrite programmes, courses and
+         * users 1..n in place and leave no audit entry saying so.
+         */
+        if (! app()->environment(['local', 'testing'])) {
+            throw new RuntimeException(
+                'UiFixtureSeeder overwrites rows by fixed id with audit events disabled and runs only '
+                .'in the local and testing environments.',
+            );
+        }
+
         Model::withoutEvents(function (): void {
             $organizationId = $this->organizationId();
 
@@ -112,6 +126,7 @@ class UiFixtureSeeder extends Seeder
             $this->seedGrantsAndHistory();
             $this->seedStudentsAndEnrollments();
             $this->seedAuditEntries();
+            $this->seedImports();
         });
     }
 
@@ -279,6 +294,21 @@ class UiFixtureSeeder extends Seeder
             [8, 'منى الحربي', 'Mona Al-Harbi', 'm.alharbi@mu.edu.sa', 'SUPER_ADMIN', [], true, '2026-08-21 08:10:00', '2026-09-26 08:05:00', 'en'],
             [9, 'د. سارة القحطاني', 'Dr. Sara Al-Qahtani', 's.alqahtani@mu.edu.sa', 'BRANCH_COORDINATOR', [1, 2], true, '2026-09-02 11:00:00', '2026-09-24 10:10:00', 'en'],
             [10, 'أ. عمر الزهراني', 'Omar Al-Zahrani', 'o.alzahrani@mu.edu.sa', 'INSTRUCTOR', [], true, '2026-09-03 12:00:00', '2026-09-22 14:00:00', 'en'],
+
+            /*
+             * US6 (T253) — an Arabic-preference instructor with no section and no grant. Instructor 10
+             * already is the English one, so between them the "nothing assigned to you yet, contact
+             * your coordinator" state has a baseline in both languages without any test writing.
+             */
+            [11, 'أ. لطيفة الدوسري', 'Latifa Al-Dosari', 'l.aldosari@mu.edu.sa', 'INSTRUCTOR', [], true, '2026-09-04 09:00:00', '2026-09-23 09:30:00'],
+
+            /*
+             * The English first-sign-in banner (FR-012). Signing in stamps first_login_at, so the
+             * banner can be photographed once per never-signed-in account; user 3 is the Arabic one,
+             * owned by the ar-1440 project, and this one is owned by en-1440 — one account per
+             * locale, so the two projects never race for the same row.
+             */
+            [12, 'أ. يزيد العمري', 'Yazeed Al-Omari', 'y.alomari@mu.edu.sa', 'INSTRUCTOR', [], true, null, null, 'en'],
         ];
 
         foreach ($users as $row) {
@@ -328,7 +358,20 @@ class UiFixtureSeeder extends Seeder
         ];
 
         foreach ($sections as [$id, $term, $branch, $course, $number, $instructor, $program, $degree]) {
-            Section::query()->updateOrCreate(['id' => $id], [
+            /*
+             * forceFill, because `status`, `created_by` and `requires_approval` are deliberately
+             * absent from Section's fillable list — the create action derives them from the
+             * creator's role (FR-171, FR-172) and they must not be settable from a request field.
+             *
+             * updateOrCreate() passed them and Laravel dropped them silently, so `created_by` never
+             * reached the INSERT and the NOT NULL constraint refused the row. On a database that
+             * already held the sections the update path hid it; on a fresh one — which is what
+             * `globalSetup` builds for every visual run — seeding failed outright.
+             */
+            $section = Section::query()->find($id) ?? new Section;
+
+            $section->forceFill([
+                'id' => $id,
                 'term_id' => $term,
                 'branch_id' => $branch,
                 'course_id' => $course,
@@ -343,7 +386,7 @@ class UiFixtureSeeder extends Seeder
                 'status' => 'active',
                 'created_by' => 1,
                 'requires_approval' => false,
-            ]);
+            ])->saveQuietly();
         }
     }
 
@@ -523,6 +566,197 @@ class UiFixtureSeeder extends Seeder
                 'user_agent' => $agents[$i % 3],
                 'created_at' => $at,
             ]);
+        }
+    }
+
+    /**
+     * T220 — import jobs at every step of the wizard, so each step has a baseline without the visual
+     * suite writing anything.
+     *
+     * Jobs 1–3 are the reference's own three (store.js S.imports). The rest stand at the states the
+     * reference walks through in component state and a real import reaches only by running: mapped,
+     * validating with no worker (C-13's queue-waiting), validated with staged rows to preview, and
+     * committing. The states with controls — mapping, preview, a failed commit's Resume — come in
+     * pairs, one owned by each locale's Super Admin, because the controls are the owner's alone and
+     * an English baseline of somebody else's job would show a different screen.
+     *
+     * The mapped jobs share job 1's file hash and term, so they also carry the re-upload warning
+     * (FR-067). Written through the query builder: the counters and timestamps are not fillable, and
+     * none of this is an event anybody performed.
+     */
+    private function seedImports(): void
+    {
+        $headers = ['الفصل', 'الفرع', 'النوع', 'رمز المقرر', 'اسم المقرر', 'رقم الشعبة', 'اسم المدرس', 'البريد', 'الرقم الجامعي', 'اسم الطالب'];
+        $targets = ['term', 'branch', 'gender', 'course_code', 'course_name', 'section_number', 'instructor_name', 'instructor_email', 'university_id', 'student_name'];
+        $mapping = array_combine($targets, $headers) + ['program_code' => null];
+        $metadata = ['header_row' => 1, 'headers' => $headers, 'suggested_mapping' => $mapping];
+        $skip = ['create_missing_courses' => false, 'create_missing_instructors' => false, 'new_course_program_id' => null];
+        $firstHash = hash('sha256', 'roster_1448_first.xlsx');
+
+        $summary = [
+            'total_rows' => 12, 'valid' => 6, 'warnings' => 3, 'errors' => 3, 'will_skip' => 1,
+            'will_create' => ['sections' => 1, 'students' => 6, 'enrollments' => 8, 'courses' => 0, 'instructors' => 0],
+            'will_match' => ['sections' => 1, 'students' => 2, 'enrollments' => 0],
+        ];
+
+        $registrarHeaders = ['تسلسل', 'رقم الطالب', 'اسم الطالب', 'الحالة'];
+        $registrar = [
+            'instructor_id' => 3,
+            'options' => null,
+            'file_metadata' => [
+                'header_row' => 7,
+                'headers' => $registrarHeaders,
+                'suggested_mapping' => array_combine(['sequence', 'university_id', 'student_name', 'academic_status'], $registrarHeaders),
+                'registrar' => [
+                    'campus' => 'المجمعة (طلاب)', 'degree' => 'الدبلوم المتوسط', 'course' => 'برمجة 2',
+                    'activity' => 'محاضرة', 'section' => '2298',
+                ],
+                'resolved' => [
+                    'branch_id' => 1, 'course_id' => 6, 'course_candidates' => [], 'section_id' => 19,
+                    'section_number' => '2298', 'degree' => 'intermediate_diploma', 'activity' => 'lecture',
+                ],
+            ],
+        ];
+
+        // [id, mode, section, owner, file, status, total, processed, imported, duplicates, errors, created, extra]
+        $jobs = [
+            [1, 'central', null, 1, 'roster_1448_first.xlsx', 'completed', 4210, 4210, 4102, 64, 44, '2026-09-25 11:12:00', [
+                'file_hash' => $firstHash, 'commit_requested_at' => '2026-09-25 11:15:00', 'finished_at' => '2026-09-25 11:20:03',
+            ]],
+            [2, 'section', 11, 3, 'late_registrations_214.csv', 'completed', 3, 3, 2, 1, 0, '2026-09-20 15:02:00', [
+                'commit_requested_at' => '2026-09-20 15:03:00', 'finished_at' => '2026-09-20 15:03:20',
+            ]],
+            [3, 'central', null, 1, 'roster_update_week3.xlsx', 'failed', 2600, 1500, 1480, 12, 8, '2026-09-19 10:00:00', [
+                'commit_requested_at' => '2026-09-19 10:04:00', 'failure_reason' => 'توقف الاستيراد عند الدفعة التي تبدأ بالصف 1502.',
+            ]],
+            [4, 'central', null, 8, 'roster_update_week3.xlsx', 'failed', 2600, 1500, 1480, 12, 8, '2026-09-19 10:00:00', [
+                'commit_requested_at' => '2026-09-19 10:04:00', 'failure_reason' => 'The import stopped at the chunk starting at row 1502.',
+            ]],
+            [11, 'central', null, 1, 'roster_1448_first.xlsx', 'mapped', 12, 0, 0, 0, 0, '2026-09-26 08:00:00', [
+                'file_hash' => $firstHash, 'mapping' => $mapping,
+            ]],
+            [12, 'central', null, 8, 'roster_1448_first.xlsx', 'mapped', 12, 0, 0, 0, 0, '2026-09-26 08:00:00', [
+                'file_hash' => $firstHash, 'mapping' => $mapping,
+            ]],
+            [13, 'central', null, 1, 'roster_1448_late.xlsx', 'validating', 2000, 0, 0, 0, 0, '2026-09-26 08:10:00', [
+                'mapping' => $mapping, 'queued_at' => '2026-09-26 08:11:00',
+            ]],
+            [14, 'central', null, 1, 'roster_1448_second.xlsx', 'validated', 12, 12, 0, 0, 3, '2026-09-26 08:20:00', [
+                'mapping' => $mapping, 'summary' => $summary, 'queued_at' => '2026-09-26 08:21:00', 'heartbeat_at' => '2026-09-26 08:21:30',
+            ]],
+            [15, 'central', null, 8, 'roster_1448_second.xlsx', 'validated', 12, 12, 0, 0, 3, '2026-09-26 08:20:00', [
+                'mapping' => $mapping, 'summary' => $summary, 'queued_at' => '2026-09-26 08:21:00', 'heartbeat_at' => '2026-09-26 08:21:30',
+            ]],
+            [16, 'central', null, 1, 'roster_1448_third.xlsx', 'committing', 2000, 1000, 980, 12, 8, '2026-09-26 08:30:00', [
+                'mapping' => $mapping, 'summary' => $summary, 'commit_requested_at' => '2026-09-26 08:32:00',
+                // Relative to now, unlike every other date here: a heartbeat frozen in September
+                // reads as a worker that died (ImportJob::workerWentQuiet) and the step would show
+                // the stall alert. A day ahead rather than "now", because a visual run lasts longer
+                // than the 15-minute stall threshold and the shot would flip halfway through it.
+                // Neither value is rendered, so the baseline stays deterministic.
+                'queued_at' => now()->subMinute()->toDateTimeString(), 'heartbeat_at' => now()->addDay()->toDateTimeString(),
+            ]],
+
+            /*
+             * T328 — a registration-unit export at its confirmation step, one per locale's admin. The
+             * block is the reference file's own (design-system/uploads/filedownloadservlet(21).xlsx),
+             * resolved as the upload resolves it: the male Majmaah branch, CS212 «برمجة 2», and
+             * section 19, which store.js seeds as that file's section. No file is read to render the
+             * step, so the path need not exist.
+             */
+            [17, 'registrar', null, 1, 'filedownloadservlet(21).xlsx', 'uploaded', 22, 0, 0, 0, 0, '2026-09-26 09:00:00', $registrar],
+            [18, 'registrar', null, 8, 'filedownloadservlet(21).xlsx', 'uploaded', 22, 0, 0, 0, 0, '2026-09-26 09:00:00', $registrar],
+        ];
+
+        DB::table('import_rows')->whereIn('import_job_id', array_column($jobs, 0))->delete();
+        DB::table('import_jobs')->whereIn('id', array_column($jobs, 0))->delete();
+
+        foreach ($jobs as [$id, $mode, $section, $owner, $file, $status, $total, $processed, $imported, $duplicates, $errors, $created, $extra]) {
+            $row = array_merge([
+                'id' => $id,
+                'user_id' => $owner,
+                'mode' => $mode,
+                'section_id' => $section,
+                'term_id' => 1,
+                'original_filename' => $file,
+                'file_path' => 'imports/fixtures/'.$file,
+                'file_hash' => hash('sha256', $file.'#'.$id),
+                'file_metadata' => $metadata,
+                'options' => $skip,
+                'status' => $status,
+                'total_rows' => $total,
+                'processed' => $processed,
+                'imported' => $imported,
+                'duplicates' => $duplicates,
+                'errors' => $errors,
+                'created_at' => $created,
+                'updated_at' => $created,
+            ], $extra);
+
+            foreach (['file_metadata', 'options', 'mapping', 'summary'] as $json) {
+                if (isset($row[$json])) {
+                    $row[$json] = json_encode($row[$json], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                }
+            }
+
+            DB::table('import_jobs')->insert($row);
+        }
+
+        $this->seedPreviewRows([14, 15], $targets);
+    }
+
+    /**
+     * The twelve staged rows the preview baselines show: six valid, then one of each category the
+     * contract names. Reasons are keys with parameters, exactly as ValidateImportJob stores them, so
+     * the screen renders them in each reader's language.
+     *
+     * @param  list<int>  $jobIds
+     * @param  list<string>  $targets
+     */
+    private function seedPreviewRows(array $jobIds, array $targets): void
+    {
+        $base = ['الفصل الأول 1448', 'الزلفي', 'طالبات', 'ENG102', 'اللغة الإنجليزية 2', '214', 'د. فيصل العتيبي', 'f.alotaibi@mu.edu.sa'];
+        $names = ['لين الحربي', 'هديل الغامدي', 'ترف السبيعي', 'جنى الحربي', 'رزان المطيري', 'نوف العنزي'];
+
+        $reason = static fn (string $key, ?string $column, ?string $value, array $params = []): array => [
+            'column' => $column, 'value' => $value, 'reason_key' => $key, 'params' => $params,
+        ];
+
+        $rows = [];
+
+        foreach ($names as $i => $name) {
+            $rows[] = [[...$base, '44200'.(1100 + $i), $name], 'valid', []];
+        }
+
+        $other = ['الفصل الأول 1448', 'الزلفي', 'طالبات', 'PHYS110', 'فيزياء عامة', '401', 'أ. بدر السهلي', 'b.alsahli@mu.edu.sa'];
+        $unknownBranch = ['الفصل الأول 1448', 'الدرعية', 'طلاب', 'ENG102', 'اللغة الإنجليزية 2', '214', 'د. فيصل العتيبي', 'f.alotaibi@mu.edu.sa'];
+
+        $rows[] = [[...$base, '442001100', 'لين الحربي'], 'error', [$reason('import.duplicate_in_file', 'university_id', '442001100', ['row' => 2])]];
+        $rows[] = [[...$base, '44A10023', 'جنى الحربي'], 'error', [$reason('import.invalid_university_id', 'university_id', '44A10023', ['digits' => 9])]];
+        $rows[] = [[...$unknownBranch, '442001200', 'ماجد الشهري'], 'error', [
+            $reason('import.unknown_branch', 'branch', 'الدرعية — طلاب', ['value' => 'الدرعية — طلاب']),
+        ]];
+        $rows[] = [[...$other, '442001201', 'عبدالله السهلي'], 'warning', [
+            $reason('import.unknown_course', 'course_code', 'PHYS110', ['value' => 'PHYS110']),
+        ]];
+        $rows[] = [[...$base, '442001202', 'صالح الدوسري'], 'warning', [
+            $reason('import.unknown_instructor', 'instructor_email', 'b.alsahli@mu.edu.sa', ['value' => 'b.alsahli@mu.edu.sa']),
+        ]];
+        $rows[] = [[...$base, '441002315', 'اسم مختلف تمامًا'], 'warning', [
+            $reason('import.name_mismatch', 'student_name', 'اسم مختلف تمامًا', ['stored' => 'عبدالرحمن العتيبي']),
+        ]];
+
+        foreach ($jobIds as $jobId) {
+            foreach ($rows as $i => [$cells, $status, $reasons]) {
+                DB::table('import_rows')->insert([
+                    'import_job_id' => $jobId,
+                    'row_number' => $i + 2,
+                    'raw' => json_encode(array_combine($targets, $cells) + ['program_code' => ''], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                    'resolved' => json_encode([], JSON_THROW_ON_ERROR),
+                    'status' => $status,
+                    'reasons' => json_encode($reasons, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                ]);
+            }
         }
     }
 }

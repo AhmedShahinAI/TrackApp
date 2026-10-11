@@ -170,7 +170,7 @@ beside it is the behavioural contract and is quoted into the implementing task.
 | 8 | `forms/Switch` | `x-track-switch` | toggle | Green when on |
 | 9 | `feedback/StatusBadge` | `x-track-status-badge` | — | 19 statuses (§8); **label always rendered** — satisfies FR-077 structurally |
 | 10 | `feedback/Alert` | `x-track-alert` | dismiss | info / success / warning / danger; **always icon + text**; optional action and close |
-| 11 | `feedback/Toast` | `x-track-toast` | 4s auto-dismiss | success / error / info; fixed bottom-**start** (bottom-left in RTL) |
+| 11 | `feedback/Toast` | `x-track-toast` | 4s auto-dismiss | success / error / info; fixed bottom-**end** (bottom-left in RTL, clear of the sidebar) |
 | 12 | `feedback/Dialog` | `x-track-dialog` | open/close, focus trap | Teal blurred scrim; footer band; `inline` variant without overlay |
 | 13 | `feedback/ProgressBar` | `x-track-progress` | — | Thin bar + %; colour auto-shifts green / blue / red by value; `tone` override |
 | 14 | `feedback/Skeleton` | `x-track-skeleton` | — | Pulsing placeholder; used by the table's `loading` state (FR-079) |
@@ -311,7 +311,7 @@ with it.
 | 23 | `ProgramsScreen` | `GET /programs`, create / edit / deactivate | **1 · US4** | FR-089 … FR-095 |
 | 24 | `CourseImportDialog` | `GET /imports/courses/create` | **1 · US8** | FR-103, FR-106, FR-107 |
 | 25 | `UserImportDialog` | `GET /imports/users/create` | **1 · US8** | FR-104 … FR-107 |
-| 26 | registrar-mode wizard entry *(no kit reference)* | `GET /imports/registrar/create` | **1 · US5** | FR-096 … FR-102 |
+| 26 | registrar-mode wizard entry *(no kit reference)* | `GET /imports/new/registrar` | **1 · US5** | FR-096 … FR-102 |
 | 27 | `ui_kits/mobile` (2 screens) | — | **v2** | P3-F001 won't-have |
 
 Rows 1–20 and **23–26** are in scope for this feature — rows 23–25 were unblocked by the Product
@@ -324,6 +324,10 @@ produced, so its wizard entry step — file upload plus the parsed-metadata conf
 campus, degree, course, activity, and section — has no React counterpart to compare against. It is
 built from the existing wizard components, and its visual-regression baseline is taken from the Blade
 implementation and reviewed by the design author, exactly as the queue-waiting state is (C-13).
+
+*Status (2026-10-10):* built in Phase 15 (T334). The spec `tests/Visual/us5-registrar.spec.ts` is
+written against fixture jobs 17 (ar) and 18 (en); its baselines are **not yet captured** and await
+the design author's review (T328).
 
 **Phase 2 gap**: keeping the PRD's 15 dynamic field types (decision C-08) means Phase 2 needs a
 field-editor UI that this design system does not cover — see [ui-conflicts.md](./ui-conflicts.md)

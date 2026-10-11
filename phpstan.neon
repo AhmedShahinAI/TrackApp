@@ -89,3 +89,6 @@ parameters:
                 - tests/Authorization
                 - tests/Scope
                 - tests/Performance
+                # US5's shared import walk drives the endpoints through test(), as the action
+                # performers do.
+                - tests/Support

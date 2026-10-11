@@ -15,9 +15,11 @@ use Illuminate\Database\Seeder;
  * columns rather than database enums: adding a degree is a row here, not an ALTER TABLE on a live
  * sections table (FR-108, FR-109).
  *
- * updateOrCreate on the key, not firstOrCreate: re-running the seeder after changing a default here
- * should move the row, and a value an administrator has since changed through the settings screen
- * will be re-asserted - which is correct for a seeder that owns the defaults.
+ * firstOrCreate on the key, not updateOrCreate: the seeder owns the defaults, not the live values.
+ * DatabaseSeeder is the production-safe seed and may run on every deploy, and re-asserting a default
+ * would silently undo a Super Admin's edit - drop `master` from `section_degrees`, say, and every
+ * section already stored with that degree then fails InSetting on its next edit. A changed default
+ * here reaches a fresh database; an existing one moves through the settings screen or a migration.
  */
 class SettingSeeder extends Seeder
 {
@@ -45,8 +47,11 @@ class SettingSeeder extends Seeder
         ];
 
         foreach ($settings as $key => $value) {
-            Setting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
+            Setting::query()->firstOrCreate(['key' => $key], ['value' => $value]);
         }
+
+        // Amendment 2's keys, kept in their own file (T367) and seeded wherever these are.
+        (new SupportSettingSeeder)->run();
 
         Settings::forget();
     }

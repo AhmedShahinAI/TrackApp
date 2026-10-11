@@ -19,7 +19,7 @@
 | **Last Updated** | 2026-09-27 |
 | **Owner** | Dr. Ahmed Ismail Shahin (Product Owner) |
 | **Team Members** | Backend Developer (Laravel), Frontend Developer, UI/UX Designer, QA Engineer |
-| **Tech Stack** | PHP 8.3+ · Laravel · MySQL 8 / MariaDB 10.11+ · Redis · Blade + Bootstrap 5 (RTL/LTR) + Alpine.js |
+| **Tech Stack** | PHP 8.4+ · Laravel · MySQL 8 / MariaDB 10.11+ · Redis · Blade + Bootstrap 5 (RTL/LTR) + Alpine.js |
 | **Repository** | [TBD] |
 | **Git Branch Prefix** | NNN-feature-name |
 | **PRD File Path** | docs/PRD.md |
@@ -152,7 +152,7 @@ In addition, the metrics in Section 12 must reach their targets within 30 days o
 
 ### 4.5 Dependencies
 - Availability of accurate roster exports from the registration unit.
-- A provisioned production server (PHP 8.3+, MySQL/MariaDB, Redis, Supervisor) and a domain or subdomain with a TLS certificate.
+- A provisioned production server (PHP 8.4+, MySQL/MariaDB, Redis, Supervisor) and a domain or subdomain with a TLS certificate.
 - An SMTP relay for system emails, used by notifications and reminders.
 - Branch coordinator nominations for all six branches before beta.
 - Owner availability for acceptance reviews at the end of each phase.
@@ -1166,7 +1166,7 @@ The Super Admin and Coordinators can send manual reminders to a specific instruc
 - Web fonts: IBM Plex Sans Arabic for Arabic and Inter for Latin.
 
 ### 9.2 Backend Stack
-- PHP 8.3+ with Laravel (latest supported major version).
+- PHP 8.4+ with Laravel (latest supported major version). *(Was 8.3+; the confirmed toolchain — Pest 5, Laravel 13 — requires 8.4. Corrected 2026-10-09, research R-07.)*
 - Modular architecture using domain modules under `app/Modules`:
   - Authentication, User Management, Academic Structure, Academic Terms, Students, Faculty, Sections.
   - Initiatives, Dynamic Fields, Imports, Workflow, Dashboards, Reports, Notifications, Audit, Settings.
@@ -1196,7 +1196,7 @@ The Super Admin and Coordinators can send manual reminders to a specific instruc
 - The special permissions `section.access_override` and `term.edit_closed` are assignable by the Super Admin.
 
 ### 9.5 Infrastructure and Deployment
-- Hosting: university-provided server or a KSA-region VPS [TBD], running Ubuntu 24.04 LTS, Nginx, PHP-FPM 8.3, MySQL/MariaDB, Redis, and Supervisor.
+- Hosting: university-provided server or a KSA-region VPS [TBD], running Ubuntu 24.04 LTS, Nginx, PHP-FPM 8.4, MySQL/MariaDB, Redis, and Supervisor.
 - Environments: Local, Staging, and Production.
 - CI/CD with GitHub Actions: lint (Pint), static analysis (Larastan), tests (Pest), build assets (Vite), and a zero-downtime deploy (Deployer or Envoy).
 - Private storage disk for uploads and import files.

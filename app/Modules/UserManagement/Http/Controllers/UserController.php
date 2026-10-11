@@ -15,6 +15,7 @@ use App\Modules\UserManagement\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -28,11 +29,36 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class UserController
 {
+    private const MAX_PER_PAGE = 100;
+
+    /** The server-side orders the list offers (see index). */
+    private const SORTS = ['name', 'last_login', 'last_login_desc'];
+
+    /**
+     * Another organization's account does not exist as far as this caller knows: 404, not 403,
+     * which would confirm the id (constitution I). The list is filtered the same way.
+     */
+    private function ensureSameOrganization(Request $request, User $user): void
+    {
+        abort_unless((int) $user->organization_id === (int) $request->user()?->organization_id, Response::HTTP_NOT_FOUND);
+    }
+
     public function index(Request $request): View|JsonResponse
     {
         $this->authorizeFor($request, 'user.view');
 
+        $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_PER_PAGE],
+            'sort' => ['nullable', Rule::in(self::SORTS)],
+        ]);
+
         $users = User::query()
+            /*
+             * The viewer's organization only. User carries no organization scope, so without this
+             * a Super Admin of one college listed every other college's staff and when each last
+             * signed in (FR-113) — a cross-tenant read of people and their activity.
+             */
+            ->where('organization_id', $request->user()?->organization_id)
             ->with(['coordinatorBranches', 'roles'])
             ->withCount('taughtSections')
             ->when($request->filled('role'), fn ($q) => $q->whereHas(
@@ -57,8 +83,26 @@ final class UserController
                     ->orWhere('name_en', 'like', $term)
                     ->orWhere('email', 'like', $term));
             })
+            /*
+             * Sorted by the server, across every page. The table used to sort «آخر دخول» in the
+             * browser, which reorders only the 25 rows on screen — so "who has not signed in for
+             * longest" never surfaced the dormant accounts on the other pages, which is the one
+             * question that column is read for. `last_login` puts never-signed-in first, then the
+             * oldest sign-in; name breaks ties so the order is stable between pages.
+             */
+            ->when(
+                $request->input('sort') === 'last_login',
+                fn ($q) => $q->orderByRaw('case when last_login_at is null then 0 else 1 end')->orderBy('last_login_at'),
+                fn ($q) => $q->when(
+                    $request->input('sort') === 'last_login_desc',
+                    fn ($d) => $d->orderByRaw('case when last_login_at is null then 1 else 0 end')->orderByDesc('last_login_at'),
+                ),
+            )
             ->orderBy('name_ar')
-            ->paginate($request->integer('per_page', 25))
+            ->orderBy('id')
+            // Clamped: an unbounded per_page loaded every account with its relations and rendered
+            // two templates per row in one request.
+            ->paginate(max(1, min($request->integer('per_page', 25), self::MAX_PER_PAGE)))
             ->withQueryString();
 
         if ($request->expectsJson()) {
@@ -74,7 +118,7 @@ final class UserController
 
         return view('users.index', [
             'users' => $users,
-            'branches' => Branch::query()->orderBy('campus_name_ar')->get(),
+            'branches' => Branch::query()->where('organization_id', $request->user()?->organization_id)->orderBy('campus_name_ar')->get(),
         ]);
     }
 
@@ -82,6 +126,10 @@ final class UserController
     {
         /** @var array<string, mixed> $attributes */
         $attributes = $request->validated();
+
+        // The creator's organization — never "the first college", and never from the payload,
+        // which validated() has already stripped of anything not in the rules.
+        $attributes['organization_id'] = (int) $request->user()?->organization_id;
 
         $user = $createUser->execute($attributes);
 
@@ -94,6 +142,8 @@ final class UserController
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse|RedirectResponse
     {
+        $this->ensureSameOrganization($request, $user);
+
         // Only the four editable attributes, taken from validated() rather than from the request, so
         // an extra field in the payload cannot reach the model even if it were fillable.
         $user->fill($request->safe()->only(['name_ar', 'name_en', 'email', 'locale']))->save();
@@ -108,6 +158,7 @@ final class UserController
     public function deactivate(Request $request, User $user, DeactivateUser $deactivate): JsonResponse|RedirectResponse
     {
         $this->authorizeFor($request, 'user.deactivate');
+        $this->ensureSameOrganization($request, $user);
 
         // 409, not 403: the caller holds the permission, and the request is refused because of what
         // it would do rather than who is asking. A Super Admin locking themselves out of the only
@@ -128,6 +179,7 @@ final class UserController
     public function resetPassword(Request $request, User $user, ResetPassword $reset): JsonResponse|RedirectResponse
     {
         $this->authorizeFor($request, 'user.reset_password');
+        $this->ensureSameOrganization($request, $user);
 
         $validated = $request->validate([
             'password' => ['required', 'string', new PasswordPolicy],

@@ -8,6 +8,7 @@
         "build:assets": "node scripts/copy-brand-assets.mjs",
         "prebuild": "npm run build:fonts && npm run build:icons && npm run build:assets",
         "build": "vite build",
+        "test:js": "node --test tests/js/pow.test.mjs",
         "dev": "npm run prebuild && vite"
     },
     "devDependencies": {
@@ -24,6 +25,7 @@
         "vite": "^8.0.0"
     },
     "dependencies": {
+        "@alpinejs/csp": "^3.17.4",
         "alpinejs": "^3.14.0",
         "bootstrap": "^5.3.3"
     }

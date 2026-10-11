@@ -24,7 +24,7 @@ final class CreateUser extends TransactionalAction
      * The first argument is the validated attribute array:
      *
      *   array{name_ar: string, name_en: string, email: string, password: string, role: string,
-     *         branch_ids?: list<int>, section_ids?: list<int>, locale?: string}
+     *         branch_ids?: list<int>, section_ids?: list<int>, locale?: string, organization_id?: int}
      *
      * Described in prose rather than as @param, because the signature is variadic — TransactionalAction
      * passes through whatever execute() was given, and a @param naming $attributes referenced a
@@ -43,7 +43,9 @@ final class CreateUser extends TransactionalAction
          * `hashed` cast, which is Argon2id per config/hashing.php.
          */
         $user->forceFill([
-            'organization_id' => $this->organizationId(),
+            // The caller's organization when the caller names one — a bulk staff import does
+            // (Resolver::commitUser). "The first college" is right only while there is one.
+            'organization_id' => $attributes['organization_id'] ?? $this->organizationId(),
             'name_ar' => $attributes['name_ar'],
             'name_en' => $attributes['name_en'],
             'email' => self::normaliseEmail((string) $attributes['email']),
@@ -83,8 +85,20 @@ final class CreateUser extends TransactionalAction
         return mb_strtolower(trim($email));
     }
 
+    /**
+     * When the caller names no organization: the acting user's. "The first college" remains only
+     * as the last resort for a context with nobody signed in (a seeder, a console command) — it
+     * was the default for every caller, which put an account created by one college's Super Admin,
+     * by hand or by the roster import, in whichever college the table returned first.
+     */
     private function organizationId(): int
     {
+        $acting = \Illuminate\Support\Facades\Auth::user()?->organization_id;
+
+        if ($acting !== null) {
+            return (int) $acting;
+        }
+
         /** @var int $id */
         $id = \App\Models\Organization::query()->where('type', 'college')->value('id');
 

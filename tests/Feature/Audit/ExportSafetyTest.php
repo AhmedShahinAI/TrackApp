@@ -189,3 +189,22 @@ test('the export orders by a unique tiebreaker so chunks cannot repeat or skip',
     expect(substr_count($xml, '10.0.0.1'))->toBe($seeded);
     expect($entries)->toBe($seeded + 1);
 });
+
+test('the date filters name Riyadh days, the days the list shows', function (): void {
+    $admin = aUser('SUPER_ADMIN');
+
+    DB::table('audit_logs')->delete();
+    DB::table('audit_logs')->insert([
+        'user_id' => $admin->id,
+        'action' => 'auth.login',
+        'ip_address' => '10.0.0.1',
+        // 22:30 UTC on the 5th is 01:30 on the 6th in Riyadh, and the list shows it on the 6th.
+        'created_at' => '2026-10-05 22:30:00',
+    ]);
+
+    $this->actingAs($admin)->getJson('/api/v1/audit-logs?date_from=2026-10-06&date_to=2026-10-06')
+        ->assertOk()->assertJsonCount(1, 'data');
+
+    $this->actingAs($admin)->getJson('/api/v1/audit-logs?date_from=2026-10-05&date_to=2026-10-05')
+        ->assertOk()->assertJsonCount(0, 'data');
+});

@@ -33,6 +33,10 @@ return new class extends Migration
 
             $table->unique(['student_id', 'section_id']);
             $table->index(['section_id', 'status']);
+
+            // FR-111 — the roster's "is this section sequenced?" probe and its registrar order,
+            // both answered from the index rather than by sorting the section's rows.
+            $table->index(['section_id', 'roster_sequence']);
         });
     }
 

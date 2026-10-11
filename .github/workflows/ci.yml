@@ -182,6 +182,11 @@ jobs:
         # Produces app-rtl.css and app-ltr.css and copies design-system/assets/ to public/img/brand/.
         run: npm run build
 
+      - name: JavaScript unit tests — the support form's proof-of-work puzzle
+        # T358 (review). The puzzle T370's verifier must match; checked against Node's own SHA-256
+        # with node:test, so it needs no test framework.
+        run: npm run test:js
+
       - name: Prepare environment and seed the fixture dataset
         # UiFixtureSeeder (T051) is the dataset every visual baseline renders against, so the Blade
         # screens and the React reference show identical content. Without it, every diff is noise.

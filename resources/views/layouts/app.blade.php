@@ -43,12 +43,10 @@
     <link rel="preload" as="font" type="font/woff2" crossorigin
           href="{{ asset('fonts/cairo-'.$subset.'-700-normal.woff2') }}">
 
+    {{-- [x-cloak] is in the bundle (_shell.scss), not an inline <style>: the stylesheet blocks
+         rendering and the Alpine module is deferred, so the rule always lands first — and the CSP
+         (T277) admits no inline style element. --}}
     @vite([$stylesheet, 'resources/js/app.js'])
-
-    {{-- x-cloak needs a style rule before Alpine boots, or every x-show'd element flashes visible
-         for one frame. It is here rather than in the stylesheet because it has to apply before the
-         stylesheet has necessarily parsed. --}}
-    <style>[x-cloak] { display: none !important; }</style>
 
     @stack('head')
 </head>
@@ -75,15 +73,9 @@
                 :notification-count="$notificationCount ?? 0"
             >
                 <x-slot:end>
-                    {{-- Posts rather than links: the locale lives on the user record, so switching
-                         it is a write (locale-switcher.js). --}}
-                    <form method="POST" action="{{ route('locale.update') }}" style="margin: 0">
-                        @csrf
-                        <input type="hidden" name="locale" value="{{ $rtl ? 'en' : 'ar' }}">
-                        <x-track-button variant="ghost" size="sm" type="submit">
-                            {{ $rtl ? 'EN' : 'ع' }}
-                        </x-track-button>
-                    </form>
+                    {{-- The reference's segmented «عربي | EN» (T274). It posts: the locale lives on
+                         the user record, so switching it is a write. --}}
+                    <x-track-locale-switch />
                 </x-slot:end>
             </x-track-topbar>
 
@@ -97,6 +89,13 @@
 
                     @if (session('error'))
                         <x-track-alert tone="danger" class="mb-4">{{ session('error') }}</x-track-alert>
+                    @endif
+
+                    {{-- A dialog's refusal whose dialog is no longer on the page — a transition someone
+                         else already made, a row that has gone. The slot renders before the layout, so
+                         by now every dialog that reopened has said so (x-track-dialog). --}}
+                    @if (old('_dialog') !== null && ! request()->attributes->get('track.dialog_reopened') && $errors->any())
+                        <x-track-alert tone="danger" class="mb-4">{{ $errors->first('conflict') ?: $errors->first() }}</x-track-alert>
                     @endif
                 </div>
 

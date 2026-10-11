@@ -29,4 +29,17 @@ return [
     'valid' => 'Valid',
     'shared' => 'Shared access',
     'current' => 'Current',
+
+    // Section approval and import-row states the schema allows (US7 review: every enum value has a label).
+    'returned' => 'Returned',
+    'rejected' => 'Rejected',
+    'committed' => 'Saved',
+    'skipped' => 'Skipped',
+
+    // The registrar's academic status on an enrollment (FR-110), shown beside TRACK's own status.
+    'regular' => 'Regular',
+    'excused' => 'Excused',
+
+    // x-track-status-badge's fallback for a value the vocabulary does not know yet.
+    'unknown' => 'Unknown status',
 ];

@@ -10,6 +10,8 @@
     The first-sign-in banner sits above everything (FR-012) and is dismissable.
 --}}
 
+@use('App\Modules\Shared\Support\Format')
+
 @php
     $user = auth()->user();
     $locale = app()->getLocale();
@@ -46,7 +48,7 @@
     <div class="track-stats">
         @foreach ($stats as $key => $value)
             <x-track-stat-card
-                :value="number_format((int) $value)"
+                :value="Format::number((int) $value)"
                 :label="__('home.stats.'.$key)"
                 :tone="$tones[$key] ?? 'blue'"
                 :icon="$icons[$key] ?? null"
@@ -71,7 +73,8 @@
                         ['key' => 'who', 'label' => __('home.recent.who'), 'sortable' => false],
                     ]"
                     :rows="$recent->map(fn ($entry) => [
-                        'when' => \Illuminate\Support\Carbon::parse($entry->created_at)->format('d/m/Y H:i'),
+                        'when' => Format::dateTime($entry->created_at),
+                        '_sort' => ['when' => $entry->created_at?->getTimestamp()],
                         'what' => \App\Modules\Audit\Services\AuditLabels::for($entry->action),
                         'who' => $locale === 'en'
                             ? ($entry->user?->name_en ?? '—')

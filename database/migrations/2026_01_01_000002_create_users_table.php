@@ -45,6 +45,10 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index('is_active');
+
+            // FR-113 — the accounts list, filtered to the viewer's organization and ordered by last
+            // sign-in ("not signed in longest first"), answered from the index rather than a sort.
+            $table->index(['organization_id', 'last_login_at']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table): void {

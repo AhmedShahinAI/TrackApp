@@ -176,3 +176,34 @@ test('an instructor lands on their profile rather than the dashboard', function 
     $this->post('/login', ['email' => $user->email, 'password' => 'Track2026'])
         ->assertRedirect($expected);
 });
+
+test('an hour of inactivity ends the session; activity within the hour keeps it', function (): void {
+    // FR-016, by the clock rather than by the configuration. Sessions stored in the database (as a
+    // `SESSION_DRIVER=database` deploy does), and each request after sign-in arrives as a browser's
+    // would: a fresh session store and guard, and nothing but the session cookie to go on — the test
+    // harness otherwise keeps the signed-in session in memory and never asks the store at all.
+    config(['session.driver' => 'database']);
+
+    $user = aUser('SUPER_ADMIN', ['password' => Hash::make('Track2026')]);
+
+    $this->post('/login', ['email' => $user->email, 'password' => 'Track2026'])->assertRedirect();
+    $sessionId = session()->getId();
+
+    $asBrowser = function () use ($sessionId) {
+        // Everything that holds the old store: the manager's driver, the container's `session.store`
+        // singleton the guard reads from, and the guard itself.
+        app('session')->forgetDrivers();
+        app()->forgetInstance('session.store');
+        app('auth')->forgetGuards();
+
+        return $this->withCookie(config('session.cookie'), $sessionId)->get('/home');
+    };
+
+    // 59 minutes idle: still signed in, and the request refreshes the hour.
+    $this->travel(59)->minutes();
+    $asBrowser()->assertOk();
+
+    // 61 minutes idle after that: the store no longer recognises the session.
+    $this->travel(61)->minutes();
+    $asBrowser()->assertRedirect(route('login'));
+});

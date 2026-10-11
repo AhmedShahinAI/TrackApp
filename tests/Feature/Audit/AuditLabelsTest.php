@@ -42,7 +42,7 @@ test('all 38 contract actions have a label in both locales', function (): void {
     }
 });
 
-test('the label file carries the 38 contract keys and nothing else', function (): void {
+test('the label file carries the 43 contract keys and nothing else', function (): void {
     foreach (['ar', 'en'] as $locale) {
         app()->setLocale($locale);
 

@@ -39,6 +39,24 @@ final class Settings
 
     public const SECTION_ACTIVITIES = 'section_activities';
 
+    // T367 — the student support channel (Amendment 2, data-model.md Group 7 "Settings").
+
+    public const SUPPORT_CATEGORIES = 'support_categories';
+
+    public const SUPPORT_DESCRIPTION_MAX = 'support_description_max';
+
+    public const SUPPORT_THROTTLE_IP = 'support_throttle_ip';
+
+    public const SUPPORT_THROTTLE_IDENTIFIER = 'support_throttle_identifier';
+
+    public const SUPPORT_STATUS_THROTTLE_IP = 'support_status_throttle_ip';
+
+    public const SUPPORT_MIN_RESPONSE_MS = 'support_min_response_ms';
+
+    public const SUPPORT_RETENTION_MONTHS = 'support_retention_months';
+
+    public const SUPPORT_CHALLENGE_DIFFICULTY = 'support_challenge_difficulty';
+
     public static function get(string $key): mixed
     {
         $all = self::all();
@@ -86,6 +104,28 @@ final class Settings
             static fn (array $option): string => $option['value'],
             self::options($key),
         ));
+    }
+
+    /**
+     * A rate limit as stored: how many attempts, over how many minutes. Both halves are settings
+     * (research.md R-09), so a limit is one row rather than two that could be edited out of step.
+     *
+     * A malformed row throws, like an unknown key: a limit that silently read as zero would refuse
+     * everyone, and one that read as unlimited would remove the control.
+     *
+     * @return array{max_attempts: int, decay_minutes: int}
+     */
+    public static function limit(string $key): array
+    {
+        $limit = self::get($key);
+
+        if (! is_array($limit)
+            || ! is_int($limit['max_attempts'] ?? null) || $limit['max_attempts'] < 1
+            || ! is_int($limit['decay_minutes'] ?? null) || $limit['decay_minutes'] < 1) {
+            throw new RuntimeException("Setting [{$key}] is not a rate limit of max_attempts and decay_minutes.");
+        }
+
+        return ['max_attempts' => $limit['max_attempts'], 'decay_minutes' => $limit['decay_minutes']];
     }
 
     /**

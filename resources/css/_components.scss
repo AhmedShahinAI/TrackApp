@@ -368,7 +368,7 @@
 .track-toast-region {
     position: fixed;
     bottom: var(--space-6);
-    inset-inline-start: var(--space-6);
+    inset-inline-end: var(--space-6);
     z-index: 1090;
     display: flex;
     flex-direction: column;
@@ -739,7 +739,10 @@
 // rotated here, because a rotated icon's optical weight shifts.
 .track-breadcrumbs__sep { color: var(--text-muted); display: flex; }
 
-.track-stepper { display: flex; align-items: flex-start; gap: var(--space-2); }
+// list-style off: the connecting lines are <li> elements too, and with the browser's default
+// numbering each one carried a stray "1.", "2." beside it — invisible until US5 put the stepper on a
+// real screen, because the component gallery's specimen was never compared against the reference.
+.track-stepper { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 
 .track-step { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); flex: 1; }
 
@@ -1032,3 +1035,393 @@
     padding: var(--space-3);
     text-align: center;
 }
+
+/*
+ * T196–T204 — the pieces the academic-structure screens needed and the kit did not already have.
+ *
+ * Tokens only, no literal colours or sizes, so the two directions and both themes come from the
+ * same place as everything else and RTLCSS flips the logical properties once.
+ */
+
+.track-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+/*
+ * T318 — the two-column dialog grid (ProgramsScreen: `1fr 1fr`, gap 14). One column below the
+ * tablet breakpoint: two fields side by side at 360px leave each label room for about one word,
+ * and a long Arabic programme name wraps under its own label instead of overflowing.
+ */
+.track-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-4);
+}
+
+.track-form-grid__full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 767.98px) {
+    .track-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/*
+ * The multi-line control. Deliberately not `.track-input` with a height override: an input is a
+ * fixed-height line and a textarea is a resizable block, and sharing the class means every future
+ * change to control height silently resizes every reason field.
+ *
+ * `resize: vertical` only. Horizontal resizing inside a dialog drags the control out past its own
+ * footer, which looked like a layout bug the first time it happened.
+ */
+.track-textarea {
+    width: 100%;
+    min-height: calc(var(--control-h-md) * 2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-card);
+    color: var(--text-primary);
+    font: var(--text-body);
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.track-textarea::placeholder { color: var(--text-secondary); }
+
+.track-textarea:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: var(--ring-focus);
+}
+
+/*
+ * Identifiers that must read left-to-right inside an RTL page: course codes, section numbers,
+ * university ids. `unicode-bidi: isolate` rather than leaving it to `dir="ltr"` alone, so the
+ * surrounding neutral characters cannot reorder around it — a copied id coming back with its parts
+ * swapped is the failure this prevents.
+ *
+ * Tabular figures because the comparison a registrar actually makes here is scanning a column for
+ * the one id that differs by a single digit, which proportional figures make impossible.
+ */
+.track-code {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-variant-numeric: tabular-nums;
+}
+
+/* A standing notice above a list, such as the branches deactivation statement. */
+.track-notice,
+.track-meta,
+.track-pagination {
+    margin-block: var(--space-4);
+}
+
+// The list pager (resources/views/pagination/track.blade.php): the range at the inline start, the
+// steps at the inline end, wrapping beneath each other on a phone.
+.track-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.track-pager__summary { margin: 0; font: var(--text-body-sm); color: var(--text-secondary); }
+
+.track-pager__pages {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.track-pager__step,
+.track-pager__page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    min-width: 36px;
+    height: 36px;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font: var(--text-body-sm);
+    text-decoration: none;
+}
+
+a.track-pager__step:hover,
+a.track-pager__page:hover { background: var(--gray-100); }
+
+a.track-pager__step:focus-visible,
+a.track-pager__page:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+
+// Unavailable, not hidden: the row keeps its shape, and the step reads as there-but-not-now.
+.track-pager__step--off { color: var(--text-secondary); cursor: default; }
+
+.track-pager__page--current {
+    background: var(--track-blue);
+    color: var(--text-on-brand);
+    font-weight: var(--fw-bold);
+}
+
+.track-pager__gap { padding: 0 var(--space-1); color: var(--text-secondary); }
+
+/*
+ * A withdrawn enrollment: still present, visibly inactive. Dimmed rather than struck through,
+ * because a strikethrough reads as "deleted" and the whole point of the row is that nothing was.
+ * The reason beneath it stays at full contrast — it is the part someone came here to read.
+ */
+.track-table__row--muted td { color: var(--text-secondary); }
+
+.track-table__note {
+    margin: var(--space-1) 0 0;
+    color: var(--text-secondary);
+    font: var(--text-caption);
+}
+
+.track-table__row--muted .track-table__note { color: var(--text-primary); }
+
+/* A second badge beside the first, for a term that is both `active` and `current`. */
+.track-badge--trailing { margin-inline-start: var(--space-2); }
+
+/*
+ * The section metadata panel.
+ *
+ * `.track-dl` is `auto 1fr`, which is right for a two-column label/value list and wrong for six
+ * short pairs: the first column shrinks to its content and the second absorbs everything left, so
+ * the panel renders with a dead strip across most of its width. Visible immediately in the US4
+ * baseline and in nothing else, because this is the only panel with six fields.
+ *
+ * auto-fit with a floor instead, so the pairs distribute across the card at every width and fall to
+ * fewer columns on a narrow screen without a breakpoint.
+ */
+.track-meta .track-dl {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+}
+
+.track-meta .track-dl dt {
+    margin-bottom: var(--space-1);
+    font: var(--text-caption);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// The import wizard (T239–T246)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+
+/*
+ * Alpine's own convention, and absent until now because no earlier screen hid anything before
+ * Alpine started. The wizard does — the queue-waiting alert and the chosen-file panel must not flash
+ * on load and then vanish.
+ */
+[x-cloak] { display: none !important; }
+
+.track-import { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.track-import__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    justify-content: flex-end;
+    margin-top: var(--space-2);
+}
+
+.track-import__term { max-width: 22rem; }
+
+.track-import__progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-8) 0;
+    text-align: center;
+}
+
+.track-import__progress > .track-alert { align-self: stretch; text-align: start; }
+.track-import__bar { width: min(26rem, 100%); }
+.track-import__spinner { color: var(--track-green); }
+
+@media (prefers-reduced-motion: no-preference) {
+    .track-import__spinner { animation: track-rotate var(--dur-spin) linear infinite; }
+}
+
+.track-import__progress-title { margin: 0; font: var(--text-h4); }
+.track-import__counter { margin: 0; font: var(--text-caption); color: var(--text-secondary); }
+.track-import__hint { margin: 0; font: var(--text-body-sm); color: var(--text-secondary); }
+.track-import__subhead { margin: var(--space-2) 0 0; font: var(--text-h4); }
+
+.track-import__reasons {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: var(--text-caption);
+    color: var(--text-secondary);
+}
+
+.track-import__reasons--error { color: var(--status-danger-fg); }
+
+.track-import-file {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}
+
+.track-import-file .track-icon { color: var(--track-green); }
+
+.track-inline-form { display: inline; }
+
+/*
+ * The drop zone is a <label>, so its whole surface opens the file chooser and it has one accessible
+ * name. The input inside is visually hidden, which also hides its focus ring — so the ring is drawn
+ * on the zone instead, or a keyboard user would tab into a control they cannot see.
+ */
+.track-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-8) var(--space-5);
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-subtle);
+    text-align: center;
+    cursor: pointer;
+}
+
+.track-dropzone:focus-within { border-color: var(--border-focus); box-shadow: var(--ring-focus); }
+.track-dropzone--active { border-color: var(--track-blue); background: var(--blue-50); }
+.track-dropzone--chosen { border-color: var(--track-green); background: var(--green-50); }
+.track-dropzone--error { border-color: var(--red-500); }
+.track-dropzone__icon { color: var(--track-blue); }
+.track-dropzone--chosen .track-dropzone__icon { color: var(--track-green); }
+.track-dropzone__title { font: var(--text-body); font-weight: var(--fw-bold); }
+// --gray-600, not --text-secondary: on the zone's tinted fills #6B7280 drops below 4.5:1 (T265).
+.track-dropzone__hint { font: var(--text-body-sm); color: var(--gray-600); }
+
+.track-dropzone__file {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-weight: var(--fw-bold);
+}
+
+/* The mapping step: one select per target, as many columns as fit. */
+.track-mapping {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-3) var(--space-4);
+}
+
+.track-mapping__options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+}
+
+.track-mapping__options legend { padding: 0 var(--space-2); font: var(--text-body); font-weight: var(--fw-bold); }
+.track-mapping__hint { margin: 0; font: var(--text-caption); color: var(--text-secondary); }
+
+/*
+ * T334 — the registrar confirmation panel: each value as the file wrote it, then what it resolved
+ * to. A label column beside a value column on a desktop, stacked on a phone. The given value is
+ * <bdi>-safe text in the reader's direction; long Arabic course and campus names wrap rather than
+ * push the panel wider than the screen.
+ */
+.track-registrar__lead { margin: 0 0 var(--space-4); font: var(--text-body); color: var(--text-secondary); }
+
+.track-registrar__facts {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+}
+
+.track-registrar__fact {
+    display: grid;
+    grid-template-columns: minmax(7rem, 12rem) minmax(0, 1fr);
+    gap: var(--space-3);
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--border-default);
+}
+
+.track-registrar__fact:last-child { border-block-end: 0; }
+.track-registrar__fact dt { font-weight: var(--fw-bold); color: var(--text-secondary); }
+.track-registrar__fact dd { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); margin: 0; overflow-wrap: anywhere; }
+.track-registrar__given { color: var(--text-secondary); }
+.track-registrar__arrow { color: var(--text-tertiary, var(--text-secondary)); }
+.track-registrar__resolved { font-weight: var(--fw-bold); }
+
+.track-registrar__columns summary { cursor: pointer; font-weight: var(--fw-bold); padding-block: var(--space-2); }
+.track-registrar__columns[open] summary { margin-block-end: var(--space-3); }
+
+@media (max-width: 767.98px) {
+    .track-registrar__fact { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+}
+
+/* The report's four counters sit in one row on a desktop, as the reference shows them. */
+.track-stats--four { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// The language switch (T274) — the reference's LangSwitch, a two-option segmented control
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+.track-segmented {
+    display: inline-flex;
+    gap: 2px;
+    margin: 0;
+    padding: 3px;
+    border-radius: var(--radius-md);
+    background: var(--gray-100);
+}
+
+.track-segmented__option {
+    height: calc(var(--space-6) + var(--space-1));
+    padding: 0 10px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    // --gray-600: --text-secondary on the --gray-100 track measures 4.3:1, under AA (T265).
+    color: var(--gray-600);
+    font: var(--text-caption);
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+}
+
+// The current language is raised, weighted and coloured — three signals, so the state does not rest
+// on colour alone (FR-077); aria-pressed carries it for a screen reader.
+.track-segmented__option[aria-pressed="true"] {
+    background: var(--surface-card);
+    box-shadow: var(--shadow-xs);
+    color: var(--track-blue);
+    font-weight: var(--fw-bold);
+}
+
+.track-segmented__option:focus-visible {
+    outline: none;
+    box-shadow: var(--ring-focus);
+}
+
+// The preferences page: a setting's name and explanation, with its control at the inline end.
+.track-preference {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+
+.track-preference__label { margin: 0; font: var(--text-body); font-weight: var(--fw-bold); }
+.track-preference__hint { margin: var(--space-1) 0 0; font: var(--text-body-sm); color: var(--text-secondary); }

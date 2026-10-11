@@ -75,7 +75,28 @@ what the file was understood to mean **before** mapping.
   export", naming the other modes
 - the campus value resolves to **no** branch, or to **more than one** (FR-099)
 - the course name matches **no** course (FR-100); a match against several courses is **not** a 422 —
-  it becomes a row-level decision at preview
+  the candidates are returned in `resolved.course_candidates` and the operator chooses at the
+  **confirmation step** (below)
+
+**Confirmation step** *(2026-10-10 — replaces "at preview")*. Every import choice is made at
+`PUT /imports/{id}/mapping`, and commit refuses `options`, so the registrar's two choices are made
+there too, as `options`:
+
+- `course_id` — one of `resolved.course_candidates`, when the name matched several. Omitted, every
+  row is flagged `import.ambiguous_course` at preview and **skipped** at commit, listed in the report.
+- `program_id` — for a section this import will **create**: one of the course's **active**
+  programmes. Omitted, the course's single active programme is used; with none or several, the rows
+  are `import.unresolvable_section`. A deactivated programme never receives a new section.
+
+Both are validated again when the check runs, so a programme deactivated in between is refused.
+
+**Re-import**: an existing enrollment has only `academic_status` and `roster_sequence` written, and
+only when they differ; `status`, `withdrawn_at` and `withdraw_reason` are never written (FR-111). The
+write bypasses the model's audit trait — `enrollment.updated` is not a contract key — and the
+replaced values are kept on the import row as `resolved.previous_academic_status` /
+`resolved.previous_roster_sequence`. `import.committed` for this mode also carries the block and any
+**notices**: a degree or activity the settings list lacks (a new section takes the list's first
+value), or an existing section that keeps its own differing one. Notices are shown on the preview.
 
 **Audited**: `import.uploaded` with the filename and the parsed metadata.
 
@@ -84,6 +105,17 @@ what the file was understood to mean **before** mapping.
 Course bulk upload. Permission `import.course.run`. **Request**: `file`.
 **201**: as the common shape with `mode: "course"`. **Audited**: `import.uploaded`.
 
+*As built (Phase 16, 2026-10-11):* columns `course_code`, `name_ar`, `programs` (required) and
+`name_en` (optional — the Arabic name stands in). `programs` lists several, separated by a comma or
+the Arabic comma, each named by code or either name. No term: the job's `term_id` is null and
+FR-067's "same file" is judged within the organization. An existing code is **matched**: its stored
+names stand and the row's programmes are **added** to its associations, never removed. Mapping
+`options`: `create_missing_programs` (bool — create an unknown programme, or skip the row),
+`new_program_unit` (`admin`|`tech`, for programmes created), `associate_inactive_programs` (bool —
+the spec's "associated only on confirmation"). A programme created here takes the name as its code
+when the name is a valid code, otherwise a generated `IMP-` code the Super Admin may correct.
+Templates: `GET /imports/new/courses/template` (a screen route).
+
 ### POST /api/v1/imports/users *(Amendment 1 — FR-104, FR-105)*
 
 Staff account bulk upload. Permission `import.user.run`. **Request**: `file`.
@@ -91,6 +123,19 @@ Staff account bulk upload. Permission `import.user.run`. **Request**: `file`.
 
 Every account this mode commits is created with an unusable password hash and `first_login_at` null,
 so sign-in is refused until a Super Admin reset sets a real hash (FR-105, mirroring FR-059).
+
+*As built (Phase 16, 2026-10-11):* "unusable" is FR-059's: the hash of 64 random characters nobody
+is told — not a sentinel string, which Laravel's bcrypt verification would answer with an exception
+rather than a refusal. Columns `name_ar`, `name_en`, `email`, `role` (required) and `branches`
+(required for `BRANCH_COORDINATOR`, ignored — not even resolved — otherwise; each written as a campus
+with its gender, «<campus> (طلاب)», so two same-named branches are never guessed between). `role`
+accepts the role name or its label in either language, and only the staff roles
+`BRANCH_COORDINATOR` and `INSTRUCTOR` *(review, 2026-10-11)*: any other, `SUPER_ADMIN` included, is
+`import.unknown_role` — a Super Admin is created deliberately, on the form. Re-uploading the same
+course or staff file is flagged (`duplicate_of`) but never committed link-only: both modes are
+idempotent by construction, so a second run creates only what the first did not. The job takes **no** mapping `options` (422): every defect is
+an error. Accounts are created in the operator's organization. No term, as for courses.
+Template: `GET /imports/new/users/template`.
 
 ### POST /api/v1/sections/{id}/imports
 
@@ -103,6 +148,30 @@ caller teaches or has a grant for.
 
 **404**: the section is not in the caller's scope — an instructor cannot learn that another
 instructor's section exists (FR-054, and the attempt is audited as `access.denied`).
+
+**403**: the section is in scope but the caller may not import into it — they lack
+`import.section.run`, or they neither teach it nor hold a grant for it (a coordinator, typically).
+A Super Admin may import into any section. *(Implemented 2026-10-09, SectionPolicy::importRoster.)*
+
+The job's term is the section's term; the file is read as two columns (`university_id`,
+`student_name`) and cannot name another section. A two-column template, headed in the reader's
+language, is served at `GET /sections/{id}/import/template` (a screen route, same authorization).
+
+Further section-mode rules *(2026-10-09)*:
+
+- **Every later step re-checks the section.** Mapping, validate, preview, commit and resume require
+  the owner to still pass `importRoster` on the job's section (ImportJobPolicy::run), and each commit
+  chunk asks again; a chunk that finds the authority gone stops the import as `failed` and writes
+  `access.denied` (reason `import_authority_lost`).
+- **"Previously imported" (FR-067) compares within the same section.** Two instructors may upload
+  identical lists for different sections.
+- **The stored name of an existing student is quoted only if they are already in the job's section.**
+  For anyone else the name-mismatch reason says only that the name differs: the lookup is unscoped,
+  and quoting the name would let an instructor read any student's name off the preview.
+- **A soft-deleted student is refused** (`import.student_unavailable`), never restored by a section list.
+- **An archived or deleted term takes no section list** (409).
+- **`options` is refused** on a section job's mapping (422): a section list creates no course or
+  account.
 
 **Audited**: `import.uploaded`.
 
@@ -132,6 +201,22 @@ in the file's header row.
 
 `options` records the user's choices for unrecognised courses and unregistered instructors
 (FR-058); they take effect at commit, not before.
+
+**Added in implementation (Phase 8, 2026-10-08)** — two things FR-090 forced that FR-052 predates:
+
+- an optional eleventh target, `program_code`. Every section belongs to exactly one programme, and
+  the ten central columns name none. A new section takes its course's programme when the course has
+  exactly one; otherwise the row's `program_code` decides it.
+- `options.new_course_program_id` (nullable, an active programme). A course the import creates has
+  no programme yet, so "create unknown courses" is only meaningful if the operator also says which
+  programme those courses join. Without it — and without a `program_code` on the row — a section
+  that would have to be created is reported as `import.unresolvable_section` rather than attached to
+  a programme chosen by guess.
+- **Section numbers are compared normalised** (2026-10-09): trimmed, Arabic-Indic digits folded,
+  upper-cased, leading zeros dropped from all-digit numbers. "١", "1" and "01" are one section, and a
+  file's "131" links to an existing section stored as "0131".
+- **The wizard state lives in its own migration** (`2026_10_08_000001_add_wizard_state_to_import_jobs_table`):
+  `summary`, `link_only`, `preview_fetched_at`, `commit_requested_at`, `queued_at`, `heartbeat_at`.
 
 ---
 
@@ -164,16 +249,20 @@ The job streams the file, writing one `import_rows` row per source row with a st
 
 | Mode | Category | Row outcome | Reason key |
 |---|---|---|---|
-| `registrar` | Course name matches several courses | `warning` | `import.ambiguous_course` — the operator picks one at preview (FR-100) |
+| `registrar` | Course name matches several courses | `warning` | `import.ambiguous_course` — the operator picks one at the confirmation step, or the row is skipped (FR-100) |
 | `registrar` | Academic status outside regular / withdrawn / excused | `warning` | `import.unknown_academic_status` — stored null, row still imports |
 | `registrar` | Sequence missing or non-numeric | `warning` | `import.invalid_sequence` — stored null, row still imports (FR-112) |
+| `registrar` | Sequence repeated within the file | `warning` | `import.duplicate_sequence` — kept as given, names the first row *(2026-10-10)* |
 | `course` | Duplicate course code within the file | `error` | `import.duplicate_in_file` |
 | `course` | Program named does not exist | `warning` | `import.unknown_program` — create or skip, the operator's choice |
 | `course` | Program named is deactivated | `warning` | `import.inactive_program` — associated only on confirmation (spec Edge Cases) |
 | `user` | Email already held by any account, active or deactivated | `error` | `import.email_taken` (FR-005) |
 | `user` | Role is `BRANCH_COORDINATOR` with no branch named | `error` | `import.coordinator_needs_branch` (FR-004) |
 | `user` | Role not one of the seeded role names | `error` | `import.unknown_role` |
-| `user` | Branch named does not exist | `error` | `import.unknown_branch` |
+| `user` | Branch named does not exist | `error` | `import.unknown_branch` — also when a name without a gender matches two branches |
+| `course` | Programme name shared by two programmes | `error` | `import.ambiguous_program` — name it by its code *(2026-10-11)* |
+| `course`, `user` | A value longer than its column | `error` | `import.too_long` — names the column and limit *(2026-10-11)* |
+| `course` | Code already exists | informational | `import.existing_course` — matched, stored names kept *(2026-10-11)* |
 
 ---
 
@@ -212,8 +301,10 @@ the caller (FR-062).
 
 Permission as above; caller owns the job.
 
-**Request**: `confirm` (required, must be `true`), `options` (optional; overrides the stored
-create-or-skip choices)
+**Request**: `confirm` (required, must be `true`). **Changed 2026-10-09:** `options` is no
+longer accepted here (422). Validation reads the create-or-skip choices and the preview's counts are
+built from them, so a commit on different choices would write what nobody validated or saw.
+Changing a choice means mapping again, which re-validates.
 
 **202**: `{ "data": { "id", "status": "committing" } }`. A self-chaining
 `CommitImportChunkJob` walks `import_rows` in 500-row chunks, each chunk one transaction, linking
@@ -225,17 +316,28 @@ chunks intact (FR-065).
 A row that violates a unique index is recorded as an error reason and the chunk continues — one
 bad row does not fail its chunk (research.md R-04).
 
-**409**: the job is not in `validated` state, or the preview was never fetched.
+**409**: the job is not in `validated` state, or the preview was never fetched. The state change is
+a compare-and-set in one UPDATE, so of two concurrent commits only one gets 202 and starts a chain.
 
-**Audited**: `import.committed` with the filename, the row counts, and who ran it (FR-073).
+Whether this is a re-import of an already imported file (FR-067) is decided here, once, and stored on
+the job as `link_only`; it does not change if another import of the same file completes meanwhile.
+Each chunk takes a row lock on the job before reading the checkpoint, so a duplicated or redelivered
+chunk run cannot process the same rows as another, and each chunk re-checks that the owner still
+exists, is active, and holds the run permission — otherwise the import stops as `failed`.
+
+**Audited**: `import.committed` with the filename, the final row counts, and who ran it (FR-073),
+written when the last chunk completes.
 
 ### POST /api/v1/imports/{id}/resume
 
-Resume a failed commit. Permission as above; caller owns the job.
+Resume a failed commit. Permission as above; caller owns the job. Also resumes a commit whose
+worker went silent — `committing`, with a heartbeat after the queueing and older than 15 minutes —
+because a worker that dies between chunks runs no failure handler and leaves nothing queued.
 
 **202**: `{ "data": { "id", "status": "committing", "resuming_from_row_id": 12500 } }`
 
-**409**: the job is not in `failed` state.
+**409**: the job is neither `failed` after a commit nor a stalled commit, or another resume claimed
+it first (compare-and-set).
 
 **Audited**: `import.resumed`.
 
@@ -266,6 +368,10 @@ source row with **row number, column, submitted value, and reason** (FR-071), lo
 caller, Arabic-safe. Materialized from `import_errors`.
 
 **404**: the job has no errors, or is not visible to the caller.
+
+A download writes nothing: the report is streamed from `import_rows` by id and localised as it is
+written. `import_errors` is filled once, when the import completes, in the language of the person
+who ran it.
 
 **Audited**: `import.error_report_downloaded`.
 

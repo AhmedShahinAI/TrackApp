@@ -13,25 +13,32 @@
 
 @php
     $isEn = app()->isLocale('en');
+
+    /*
+     * Sent back with errors (x-track-dialog, "Coming back with errors"): reopen as the same create or
+     * edit, with what was typed. `user` is rebuilt from the account id on the server, never from
+     * posted JSON, and `draft` carries the typed values over it.
+     */
+    $returned = old('_dialog') === 'user-dialog';
+    $returnedUser = $returned && ctype_digit((string) old('_dialog_user'))
+        ? $users->getCollection()->firstWhere('id', (int) old('_dialog_user'))
+        : null;
+    $fieldError = fn (string $field): ?string => $returned ? $errors->first($field) : null;
 @endphp
 
-<div x-data="{
-    user: null,
-    role: '',
-    init() {
-        window.addEventListener('track-dialog-open', (event) => {
-            if (event.detail?.id !== 'user-dialog') return;
-            this.user = event.detail.user ?? null;
-            this.role = '';
-        });
-    },
-}">
+<div x-data="trackUserDialog"
+     data-base="{{ url('/users') }}" data-store="{{ route('users.store') }}"
+     data-user="{{ $returnedUser === null ? '' : json_encode(['id' => $returnedUser->id, 'name_ar' => $returnedUser->name_ar, 'name_en' => $returnedUser->name_en, 'email' => $returnedUser->email]) }}"
+     data-draft="{{ $returned ? json_encode(['name_ar' => old('name_ar'), 'name_en' => old('name_en'), 'email' => old('email')]) : '' }}"
+     data-role="{{ $returned ? (string) old('role', '') : '' }}">
     {{-- The form wraps the dialog, not the other way round: Blade hoists x-slot content out of
          the component body, so a form opened inside the default slot would not contain the footer
          and its submit button would be orphaned. --}}
-    <form method="POST" x-bind:action="user ? `{{ url('/users') }}/${user.id}` : '{{ route('users.store') }}'"
+    <form method="POST" x-bind:action="action()"
           novalidate x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
+        <x-track-dialog-marker for="user-dialog" />
+        <input type="hidden" name="_dialog_user" :value="userId()">
 
         <x-track-dialog id="user-dialog" size="form" :title="__('users.create')">
             <template x-if="user">
@@ -45,7 +52,8 @@
                     name="name_ar"
                     :label="__('users.fields.name_ar')"
                     :required="true"
-                    x-bind:value="user?.name_ar ?? ''"
+                    :error="$fieldError('name_ar')"
+                    x-bind:value="field('name_ar')"
                 />
 
                 <x-track-input
@@ -53,7 +61,8 @@
                     :label="__('users.fields.name_en')"
                     :required="true"
                     dir="ltr"
-                    x-bind:value="user?.name_en ?? ''"
+                    :error="$fieldError('name_en')"
+                    x-bind:value="field('name_en')"
                 />
 
                 <div style="grid-column: 1 / -1">
@@ -64,7 +73,8 @@
                         icon="mail"
                         :required="true"
                         dir="ltr"
-                        x-bind:value="user?.email ?? ''"
+                        :error="$fieldError('email')"
+                        x-bind:value="field('email')"
                     />
                 </div>
 
@@ -78,6 +88,7 @@
                             :label="__('users.fields.password')"
                             icon="key-round"
                             :hint="__('auth.password_change.rule')"
+                            :error="$fieldError('password')"
                             :required="true"
                             autocomplete="new-password"
                         />
@@ -91,6 +102,7 @@
                             :label="__('users.fields.role')"
                             :placeholder="__('users.filters.all')"
                             :required="true"
+                            :error="$fieldError('role')"
                             x-model="role"
                             :options="[
                                 ['value' => 'SUPER_ADMIN', 'label' => __('users.roles.SUPER_ADMIN')],
@@ -105,11 +117,13 @@
                 <template x-if="role === 'BRANCH_COORDINATOR'">
                     <div style="grid-column: 1 / -1">
                         <x-track-field :label="__('users.fields.branches')" for="user-branches" :required="true"
-                                       :hint="__('users.errors.branches_required')">
+                                       :hint="__('users.errors.branches_required')"
+                                       :error="$fieldError('branch_ids') ?: $fieldError('branch_ids.*')">
                             <select id="user-branches" name="branch_ids[]" multiple size="5"
                                     class="track-input" style="height: auto">
                                 @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}">
+                                    <option value="{{ $branch->id }}"
+                                        @selected($returned && in_array((string) $branch->id, array_map('strval', (array) old('branch_ids', [])), true))>
                                         {{ $isEn ? $branch->campus_name_en : $branch->campus_name_ar }}
                                     </option>
                                 @endforeach

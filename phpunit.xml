@@ -5,11 +5,12 @@
          colors="true"
 >
     <!--
-        T007 — six testsuites. The four beyond Unit and Feature exist because the constitution makes
+        T007 — seven testsuites. The five beyond Unit and Feature exist because the constitution makes
         each of them a build gate in its own right, and a gate buried inside a general run is one
         nobody notices failing.
 
-        Default run: Unit, Feature, Architecture, Scope, Authorization.
+        Default run: Unit, Feature, Architecture, Scope, Authorization, Enumeration (T357 — run on its
+        own as well, with testsuite=Enumeration, before every release).
         Excluded by default: the performance group — it seeds up to 1.5M rows, so it is kept out of
         the default run while its budgets are still measured before acceptance (principle VII).
     -->
@@ -19,6 +20,14 @@
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <!-- Its own suite, below: excluded here so a full run does not execute it twice. -->
+            <exclude>tests/Feature/Support/Enumeration</exclude>
+        </testsuite>
+        <!-- T357 — Amendment 2. The support channel must not reveal whether a University ID exists
+             (FR-117, SC-026), and that guarantee is run on its own, before every release:
+             php artisan test with testsuite=Enumeration. -->
+        <testsuite name="Enumeration">
+            <directory>tests/Feature/Support/Enumeration</directory>
         </testsuite>
         <!-- Principle IV and VI enforced mechanically: no hard-coded branch names, no hard-coded
              visual values, every route authorized, lang/ar and lang/en at key parity. -->

@@ -32,10 +32,10 @@ final class InSetting implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_string($value) || ! in_array($value, Settings::values($this->settingKey), true)) {
-            $fail('validation.in_setting')->translate([
-                'attribute' => $attribute,
-                'setting' => $this->settingKey,
-            ]);
+            // No `attribute` replacement of our own: passing the raw name ("degree") overrode the
+            // translated one, so an Arabic message read «في degree». Laravel fills :attribute from
+            // the lang file's attribute map, as it does for every built-in rule.
+            $fail('validation.in_setting')->translate();
         }
     }
 }

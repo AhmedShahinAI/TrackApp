@@ -93,10 +93,15 @@ class Section extends Model implements ConstrainableToBranches, ConstrainableToS
         return $this->belongsTo(Course::class);
     }
 
-    /** @return BelongsTo<Program, $this> */
+    /**
+     * With trashed: a soft-deleted programme is still the one this section belongs to (FR-090), and
+     * the default SoftDeletes scope would load it as null and blank the section's programme column.
+     *
+     * @return BelongsTo<Program, $this>
+     */
     public function program(): BelongsTo
     {
-        return $this->belongsTo(Program::class);
+        return $this->belongsTo(Program::class)->withTrashed();
     }
 
     /** @return BelongsTo<User, $this> */

@@ -38,6 +38,15 @@ final class ModuleServiceProvider extends ServiceProvider
         'Students',
         'Imports',
         'Settings',
+
+        // Amendment 2 (T354) — the student support channel. Its PUBLIC routes are not loaded from
+        // here but from routes/public.php (T355), so the platform's whole unauthenticated surface
+        // stays readable in one short file. Its staff side, when it exists, goes in Routes/web.php
+        // and Routes/api.php like any module's — and, like every module's web.php, wraps its own
+        // routes in the `auth` group: `web` alone authenticates nobody. PublicSurfaceTest fails a
+        // route here that forgets.
+        'Support',
+
         'Shared',
     ];
 

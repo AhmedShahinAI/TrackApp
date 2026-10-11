@@ -96,6 +96,9 @@ Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
     })->name('home');
 
     Route::get('/profile', fn () => view('profile.index'))->name('profile');
+
+    // T274 — the interface language, stored on the account.
+    Route::get('/profile/preferences', fn () => view('profile.preferences'))->name('profile.preferences');
 });
 
 /*

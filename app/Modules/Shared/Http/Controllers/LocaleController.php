@@ -41,6 +41,12 @@ final class LocaleController
             $request->session()->put('locale', $locale);
         }
 
-        return back();
+        // T279 — back to the page the switch was on, but only on this host. `back()` follows the
+        // Referer header, which is caller input; the CSRF check already stops a cross-site post, and
+        // this stops the redirect from ever leaving the application if something else gets through.
+        $previous = url()->previous();
+        $sameHost = parse_url($previous, PHP_URL_HOST) === $request->getHost();
+
+        return redirect()->to($sameHost ? $previous : ($user !== null ? route('home') : route('login')));
     }
 }

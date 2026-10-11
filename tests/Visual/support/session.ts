@@ -45,11 +45,15 @@ export function adminFor(locale: 'ar' | 'en'): Credentials {
  * duplication is the point: it is what lets an `en-*` baseline be English without any test writing
  * to a row another worker is reading.
  */
-export function accountFor(role: 'admin' | 'coordinator' | 'instructor', locale: 'ar' | 'en'): Credentials {
+export function accountFor(role: 'admin' | 'coordinator' | 'instructor' | 'unassigned', locale: 'ar' | 'en'): Credentials {
     const accounts = {
         admin: { ar: 'm.alsalem@mu.edu.sa', en: 'm.alharbi@mu.edu.sa' },
         coordinator: { ar: 'k.alshammari@mu.edu.sa', en: 's.alqahtani@mu.edu.sa' },
         instructor: { ar: 'r.alanazi@mu.edu.sa', en: 'o.alzahrani@mu.edu.sa' },
+
+        // Instructors with no section and no grant (US6). The English one is the same account as
+        // `instructor.en`, which has never had a section either.
+        unassigned: { ar: 'l.aldosari@mu.edu.sa', en: 'o.alzahrani@mu.edu.sa' },
     } as const;
 
     return { email: accounts[role][locale], password: PASSWORD };

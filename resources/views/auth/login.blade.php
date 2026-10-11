@@ -40,7 +40,6 @@
           href="{{ asset('fonts/cairo-'.($rtl ? 'arabic' : 'latin').'-700-normal.woff2') }}">
 
     @vite([$rtl ? 'resources/css/app-rtl.scss' : 'resources/css/app-ltr.scss', 'resources/js/app.js'])
-    <style>[x-cloak] { display: none !important; }</style>
 </head>
 <body>
     <main class="track-login">
@@ -50,21 +49,14 @@
 
                 {{-- A real form, not a JS-only switch: the sign-in screen must work for someone
                      with JavaScript disabled, and it is the one screen where that is plausible. --}}
-                <form method="POST" action="{{ route('locale.update') }}" class="track-login__lang">
-                    @csrf
-                    <input type="hidden" name="locale" value="{{ $rtl ? 'en' : 'ar' }}">
-                    <x-track-button variant="ghost" size="sm" type="submit">
-                        {{ $rtl ? 'EN' : 'ع' }}
-                    </x-track-button>
-                </form>
+                <x-track-locale-switch class="track-login__lang" />
             </div>
 
             <h1 class="track-login__title">{{ __('auth.title') }}</h1>
             <p class="track-login__subtitle">{{ __('auth.subtitle') }}</p>
 
             <form method="POST" action="{{ route('login') }}" novalidate class="track-login__fields"
-                  x-data="{ submitting: false, remaining: {{ (int) $retryAfter }} }"
-                  x-init="if (remaining > 0) { const t = setInterval(() => { if (--remaining <= 0) clearInterval(t) }, 1000) }"
+                  x-data="trackLoginForm" data-retry-after="{{ (int) $retryAfter }}"
                   x-on:submit="submitting = true">
                 @csrf
 

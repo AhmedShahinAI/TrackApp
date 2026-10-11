@@ -36,5 +36,12 @@ return [
     'profile' => [
         'title' => 'Profile',
         'details' => 'Account details',
+        'preferences_link' => 'Preferences',
+    ],
+    'preferences' => [
+        'title' => 'Preferences',
+        'subtitle' => 'Settings for your account only',
+        'language' => 'Interface language',
+        'language_hint' => 'Saved to your account and applied on every device you sign in from.',
     ],
 ];

@@ -20,6 +20,8 @@
     an accurate screen and one that quietly claims nothing happened.
 --}}
 
+@use('App\Modules\Shared\Support\Format')
+
 @props([
     'entityType',
     'entityId',
@@ -43,7 +45,8 @@
         ->get();
 
     $rows = $entries->map(fn ($entry) => [
-        'when' => $entry->created_at?->format('d/m/Y H:i') ?? '—',
+        'when' => Format::dateTime($entry->created_at),
+        '_sort' => ['when' => $entry->created_at?->getTimestamp()],
         'actor' => $entry->user?->{'name_'.$locale} ?? $entry->user?->name_ar ?? '—',
         'action' => App\Modules\Audit\Services\AuditLabels::for((string) $entry->action),
     ])->all();

@@ -85,7 +85,8 @@ final class AuditLogExport
                 ->chunk(self::CHUNK, function ($entries) use ($writer): void {
                     foreach ($entries as $entry) {
                         $writer->addRow(self::textRow([
-                            $entry->created_at?->format('Y-m-d H:i:s') ?? '',
+                            // The reader's clock, as on the screen the export was taken from.
+                            $entry->created_at?->setTimezone((string) config('app.display_timezone'))->format('Y-m-d H:i:s') ?? '',
                             $entry->user->name_ar ?? '—',
                             AuditLabels::for((string) $entry->action),
                             (string) $entry->entity_type,
@@ -154,7 +155,7 @@ final class AuditLogExport
 
         return [
             [__('audit.export.title')],
-            [__('audit.export.generated_at'), now()->format('Y-m-d H:i:s')],
+            [__('audit.export.generated_at'), now((string) config('app.display_timezone'))->format('Y-m-d H:i:s')],
             [__('audit.export.requested_by'), $this->requestedBy->name_ar ?? '—'],
             [__('audit.export.filters'), $applied === [] ? __('audit.export.no_filters') : implode(' · ', $applied)],
             [],

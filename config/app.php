@@ -71,6 +71,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Display Timezone
+    |--------------------------------------------------------------------------
+    |
+    | Timestamps are stored in UTC (above) and shown in this zone. Every date that reaches a screen
+    | goes through App\Modules\Shared\Support\Format, which converts here — without it a Saudi
+    | reader saw every audit entry three hours early, and an evening's work dated the day before.
+    |
+    */
+
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'Asia/Riyadh'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

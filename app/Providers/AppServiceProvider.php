@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Modules\Shared\Health\QueueHeartbeat;
+use App\Modules\Shared\Monitoring\Alerts;
 use App\Modules\Shared\Navigation\Navigation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\Looping;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +36,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
         $this->registerDesignSystemComponents();
+        $this->usePaginationView();
+        $this->recordQueueHeartbeat();
         $this->allowServeCommandOverrides();
     }
 
@@ -62,6 +70,46 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)
                 ->by(mb_strtolower(trim($email)).'|'.($request->ip() ?? 'unknown'));
         });
+
+        /*
+         * Amendment 2 (T355, review) — the floor under the whole public surface: every route in
+         * routes/public.php is on the `public` group, which carries this. Per IP, because there is
+         * no user to key on.
+         *
+         * A ceiling against page-level flooding only. The contractual limits on submission — per IP
+         * and per hashed University ID, from settings (R-09, constitution "Public endpoints") — are
+         * the support endpoints' own and come with them in Phase 21; this one exists so that no
+         * public route, however added, is ever unthrottled.
+         */
+        RateLimiter::for('public', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by('public|'.($request->ip() ?? 'unknown')));
+    }
+
+    /**
+     * T276 — every worker loop says a worker is alive; /health reads it (QueueHeartbeat).
+     */
+    private function recordQueueHeartbeat(): void
+    {
+        Event::listen(Looping::class, static fn () => QueueHeartbeat::beat());
+
+        // PRD 8.8 — a failed job alerts at once, not at the next five-minute check.
+        Event::listen(JobFailed::class, static fn (JobFailed $event) => Alerts::raise(
+            'job_failed:'.$event->job->resolveName(),
+            'Queued job failed: '.$event->job->resolveName(),
+            ['connection' => $event->connectionName, 'exception' => $event->exception->getMessage()],
+        ));
+    }
+
+    /**
+     * US7 — every list paginates through resources/views/pagination/track.blade.php.
+     *
+     * The framework's own view is styled for Tailwind and worded from a lang/pagination.php this app
+     * does not have, so Arabic lists read "« Previous" (found by the T265 axe sweep).
+     */
+    private function usePaginationView(): void
+    {
+        Paginator::defaultView('pagination.track');
+        Paginator::defaultSimpleView('pagination.track');
     }
 
     /**

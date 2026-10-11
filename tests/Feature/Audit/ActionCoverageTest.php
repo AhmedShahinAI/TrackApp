@@ -39,11 +39,12 @@ use Illuminate\Support\Facades\DB;
 | The contract names the key first. Inventing one here would be deciding a product question in a
 | test file.
 |
-| ## On the thirteen that are not performed
+| ## On the nine that are not performed
 |
-| The task asks for all 38. Thirteen of them belong to features later phases build — terms,
-| programs, instructor reassignment, withdrawal, the import pipeline — and a test cannot perform an
-| action that has no code. Rather than assert 38 and mean 25, each one is named in
+| The task asks for all 38. Nine of them belong to features later phases build — terms, programs,
+| instructor reassignment, withdrawal — and a test cannot perform an action that has no code. (The
+| import pipeline's four were in this list until US5 landed them.) Rather than assert 38 and mean
+| 29, each one is named in
 | actionsAwaitingTheirPhase() with the phase that will emit it. The arithmetic below is asserted, so
 | the day a phase lands and its entry is not removed, this test says so.
 |
@@ -167,6 +168,22 @@ function actionPerformers(): array
             DB::table('audit_logs')->delete();
             $program->update(['name_ar' => 'برنامج معدّل']);
         },
+        // Phase 14 — through the real endpoints, which own both keys.
+        'program.deactivated' => function (): void {
+            $program = Program::factory()->create(['organization_id' => anOrganisation()->id]);
+            $admin = aUser('SUPER_ADMIN');
+            DB::table('audit_logs')->delete();
+
+            test()->actingAs($admin)->putJson("/api/v1/programs/{$program->id}", ['is_active' => false]);
+        },
+        'program.courses_changed' => function (): void {
+            $program = Program::factory()->create(['organization_id' => anOrganisation()->id]);
+            $course = Course::factory()->create(['organization_id' => anOrganisation()->id]);
+            $admin = aUser('SUPER_ADMIN');
+            DB::table('audit_logs')->delete();
+
+            test()->actingAs($admin)->putJson("/api/v1/programs/{$program->id}/courses", ['course_ids' => [$course->id]]);
+        },
 
         'section.created' => fn () => Section::factory()->create(),
         'section.updated' => function (): void {
@@ -191,6 +208,41 @@ function actionPerformers(): array
             ]);
         },
 
+        /*
+         * The import pipeline (US5). Each runs through the real endpoints, so the flow also writes
+         * the student, section and enrollment entries the commit creates — which is the point of
+         * running it here: the allowlist test below then proves none of those is off-contract.
+         */
+        'import.uploaded' => function (): void {
+            $world = importWorld();
+            DB::table('audit_logs')->delete();
+
+            uploadRoster($world['admin'], rosterFile([rosterRow($world)]), $world['term']->id);
+        },
+        'import.committed' => function (): void {
+            $world = importWorld();
+            DB::table('audit_logs')->delete();
+
+            importRoster($world, [rosterRow($world, ['section_number' => '611'])], ['create_missing_instructors' => true]);
+        },
+        'import.resumed' => function (): void {
+            $world = importWorld();
+            $job = importRoster($world, [rosterRow($world)]);
+
+            // A commit that died: the state the resume endpoint exists for.
+            $job->forceFill(['status' => 'failed'])->save();
+            DB::table('audit_logs')->delete();
+
+            test()->actingAs($world['admin'])->postJson(route('api.v1.imports.resume', $job));
+        },
+        'import.error_report_downloaded' => function (): void {
+            $world = importWorld();
+            $job = importRoster($world, [rosterRow($world, ['university_id' => 'bad'])]);
+            DB::table('audit_logs')->delete();
+
+            test()->actingAs($world['admin'])->get(route('api.v1.imports.errors.download', $job))->streamedContent();
+        },
+
         'audit.exported' => function (): void {
             $admin = aUser('SUPER_ADMIN');
             DB::table('audit_logs')->delete();
@@ -199,7 +251,7 @@ function actionPerformers(): array
     ];
 }
 
-test('the performers and the deferred list together account for all 38 contract keys', function (): void {
+test('the performers and the deferred list together account for all 43 contract keys', function (): void {
     $performed = array_keys(actionPerformers());
     $deferred = array_keys(actionsAwaitingTheirPhase());
 

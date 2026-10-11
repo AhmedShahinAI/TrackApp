@@ -9,6 +9,8 @@
     "deactivate" to someone whose next click would 403 is a worse screen than one that omits it.
 --}}
 
+@use('App\Modules\Shared\Support\Format')
+
 @php
     $isEn = app()->isLocale('en');
 
@@ -27,7 +29,10 @@
         'branches' => $u->coordinatorBranches->map($campus)->implode('، ')
             ?: __('common.labels.none'),
         'status' => $u->is_active ? __('status.active') : __('status.inactive'),
-        'last_login' => $u->last_login_at?->format('d/m/Y H:i') ?? __('users.never_signed_in'),
+        'last_login' => Format::dateTime($u->last_login_at, __('users.never_signed_in')),
+        // Kept although the column no longer sorts in the browser (the server orders every page):
+        // every date cell carries its timestamp, which DateColumnsSortTest holds the tables to.
+        '_sort' => ['last_login' => $u->last_login_at?->getTimestamp() ?? 0],
     ])->all();
 
     /*
@@ -76,6 +81,13 @@
                     </x-track-button>
                 </span>
             @endcan
+
+            {{-- T349 — staff accounts in bulk (FR-104), beside creating one by hand. --}}
+            @can('import.user.run')
+                <x-track-button variant="secondary" icon="file-spreadsheet" :href="route('imports.create.users')">
+                    {{ __('imports.actions.users') }}
+                </x-track-button>
+            @endcan
         </x-slot:actions>
     </x-track-page-header>
 
@@ -111,6 +123,20 @@
             ]"
         />
 
+        {{-- Sorted by the server, across every page (UserController::index): sorting «آخر دخول» in
+             the browser reordered only the 25 rows on screen, and never surfaced the dormant
+             accounts on the other pages. --}}
+        <x-track-select
+            name="sort"
+            :label="__('users.filters.sort')"
+            :selected="request('sort', 'name')"
+            :options="[
+                ['value' => 'name', 'label' => __('users.sorts.name')],
+                ['value' => 'last_login', 'label' => __('users.sorts.last_login')],
+                ['value' => 'last_login_desc', 'label' => __('users.sorts.last_login_desc')],
+            ]"
+        />
+
         <div class="track-filters__search">
             <x-track-input
                 name="q"
@@ -132,12 +158,14 @@
             :empty="__('users.empty.message')"
             empty-icon="user-cog"
             :columns="[
-                ['key' => 'name', 'label' => __('users.fields.name_ar')],
+                ['key' => 'name', 'label' => __('users.fields.name')],
                 ['key' => 'email', 'label' => __('users.fields.email')],
                 ['key' => 'role', 'label' => __('users.fields.role')],
                 ['key' => 'branches', 'label' => __('users.fields.branches'), 'sortable' => false],
                 ['key' => 'status', 'label' => __('users.fields.status')],
-                ['key' => 'last_login', 'label' => __('users.fields.last_login')],
+                // Not sortable in the browser: the sort filter above orders every page. (No double
+                // quotes in this comment: it sits inside a double-quoted attribute and would close it.)
+                ['key' => 'last_login', 'label' => __('users.fields.last_login'), 'sortable' => false],
                 // `actions.more`, not `labels.more`. The key lives under `actions` in lang/{ar,en}/common.php,
                 // so the wrong path resolved to nothing and Laravel printed the key itself as a column
                 // heading — in both locales, at every width, frozen into the baselines since Phase 4.

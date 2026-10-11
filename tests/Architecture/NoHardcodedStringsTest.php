@@ -158,3 +158,34 @@ test('the scanner finds prose and ignores markup', function (): void {
     $multiline = viewTextNodes("<x-track-button\n    variant=\"primary\"\n    :disabled=\"\$count > 3\"\n/>");
     expect(isTranslatableProse($multiline))->toBeFalse();
 });
+
+/*
+ * US7 review — the attributes a reader hears or sees, written as literals.
+ *
+ * The text-node scan above strips every tag with its attributes, so `label="Term name"` on a
+ * component sailed through it and rendered English on the Arabic create-term dialog. These are the
+ * attributes that reach a person — a field's label, a placeholder, a tooltip, an accessible name —
+ * and a literal in any of them is a string in one language only. Bound (`:label`) and echoed
+ * (`{{ __() }}`) values are the translator's; a literal with no letters (`1446/1447`) is the same in
+ * both languages.
+ */
+test('no spoken attribute carries a literal', function (): void {
+    $offenders = [];
+    $spoken = 'label|placeholder|title|aria-label|hint|alt|subtitle|caption|empty';
+
+    foreach (translatableViewFiles() as $path) {
+        $contents = (string) preg_replace(['/\{\{--.*?--\}\}/s', '/<!--.*?-->/s'], ' ', (string) file_get_contents($path));
+
+        preg_match_all('/(?<![:\w-])('.$spoken.')="([^"]*)"/', $contents, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as [, $attribute, $value]) {
+            $literal = trim((string) preg_replace('/\{\{.*?\}\}|\{!!.*?!!\}/s', '', $value));
+
+            if (preg_match('/\p{L}{2,}/u', $literal) === 1) {
+                $offenders[] = str_replace(base_path().DIRECTORY_SEPARATOR, '', $path).": {$attribute}=\"{$value}\"";
+            }
+        }
+    }
+
+    expect($offenders)->toBe([]);
+});

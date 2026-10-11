@@ -9,6 +9,9 @@
     `columns` is a list of:
         ['key' => 'name_ar', 'label' => '...', 'numeric' => false, 'sortable' => true]
 
+    A row may carry `_sort` => [key => raw value] for a cell whose text does not sort — a date shown
+    as DD/MM/YYYY sorts by day of month as text, so its row passes the timestamp here.
+
     A column with a slot named after its key renders through that slot instead of printing the
     value, which is how a status cell becomes an x-track-status-badge without this component
     knowing what a status is.
@@ -33,6 +36,15 @@
     'caption' => null,
 
     /*
+     * An optional per-row class, as a closure receiving the row: fn (array $row) => 'x' | null.
+     *
+     * Added for the withdrawn-enrollment rows on the student page, which have to read as inactive
+     * down the whole row rather than only in their status cell. A renderer cannot do it — a
+     * renderer owns one <td> and the class belongs on the <tr>.
+     */
+    'rowClass' => null,
+
+    /*
      * Per-column cell renderers: ['status' => fn (array $row) => ...]. A closure rather than a
      * Blade slot because a slot is rendered once while a cell is rendered per row — the original
      * slot-based attempt could not see $row, which the accounts screen (T131) found immediately.
@@ -53,7 +65,7 @@
     ])->filter()->implode(' ');
 @endphp
 
-<div x-data="trackDataTable" {{ $attributes }}>
+<div x-data="trackDataTable" data-sprite="{{ config('icons.sprite') }}" {{ $attributes }}>
     @if ($searchable)
         <div class="track-table__toolbar">
             <x-track-input
@@ -99,7 +111,7 @@
                                 >
                                     {{ $column['label'] ?? $key }}
                                     <svg class="track-icon" width="14" height="14" aria-hidden="true" focusable="false">
-                                        <use :href="`{{ config('icons.sprite') }}#${sortKey === @js($key) ? (sortAsc ? 'arrow-up' : 'arrow-down') : 'arrow-up-down'}`"></use>
+                                        <use :href="sortIcon(@js($key))"></use>
                                     </svg>
                                 </button>
                             @else
@@ -131,17 +143,22 @@
                     @foreach ($rows as $row)
                         @php
                             $url = $rowUrl ? (is_callable($rowUrl) ? $rowUrl($row) : $rowUrl) : null;
+                            $extra = $rowClass ? ($rowClass)($row) : null;
                         @endphp
 
                         <tr
                             @if ($url)
-                                class="track-table__row--clickable"
+                                class="track-table__row--clickable {{ $extra }}"
+                            @elseif ($extra)
+                                class="{{ $extra }}"
+                            @endif
+                            @if ($url)
                                 {{-- A clickable row is also keyboard-reachable. Without tabindex and
                                      the key handler, the whole table is mouse-only. --}}
                                 tabindex="0"
                                 role="link"
-                                x-on:click="window.location = @js($url)"
-                                x-on:keydown.enter="window.location = @js($url)"
+                                x-on:click="visit(@js($url))"
+                                x-on:keydown.enter="visit(@js($url))"
                             @endif
                         >
                             @foreach ($columns as $column)
@@ -149,11 +166,12 @@
                                     $key = $column['key'] ?? '';
                                     $numeric = $column['numeric'] ?? false;
                                     $value = data_get($row, $key);
+                                    $sortValue = data_get($row, '_sort.'.$key) ?? $value;
                                 @endphp
 
                                 <td
                                     data-label="{{ $column['label'] ?? $key }}"
-                                    data-sort-value="{{ is_scalar($value) ? $value : '' }}"
+                                    data-sort-value="{{ is_scalar($sortValue) ? $sortValue : '' }}"
                                     @class(['track-table__cell--numeric' => $numeric])
                                 >
                                     @if (isset($renderers[$key]))

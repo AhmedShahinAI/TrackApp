@@ -80,7 +80,8 @@ records the caller cannot otherwise reach.
 Exactly one entry per occurrence (FR-028). The list is a contract: a Pest test performs each
 action once and asserts the count and the action key.
 
-**38 action keys** after Amendment 1 (34 originally, plus 4 for programs).
+**43 action keys** after Amendment 2 (34 originally, plus 4 for programs, plus 5 for the student
+support channel — data-model.md Group 7 "Audit actions").
 
 | Area | Action keys |
 |---|---|
@@ -94,6 +95,7 @@ action once and asserts the count and the action key.
 | Students | `student.created`, `student.updated`, `enrollment.created`, `enrollment.withdrawn` |
 | Imports | `import.uploaded`, `import.committed`, `import.resumed`, `import.error_report_downloaded` — each carrying the `mode`, which Amendment 1 extended to five values |
 | Audit | `audit.exported` |
+| Student support *(Amendment 2)* | `support.request_created` (actor null, `channel: public`), `support.responded`, `support.status_changed`, `support.reassigned`, `support.anonymised` (actor null, `channel: system`) |
 
 **Never recorded in any entry**: a password, a password hash, a session token, or a CSRF token.
 A Pest test asserts that no `old_values` or `new_values` payload written by any audited path

@@ -21,6 +21,19 @@ export default function trackDataTable() {
             this.visibleCount = this.rows().length;
         },
 
+        // The sort indicator's icon. A method rather than a template literal in the markup, which the
+        // CSP build of Alpine cannot evaluate; the sprite's URL comes from the table's data-sprite.
+        sortIcon(key) {
+            const name = this.sortKey === key ? (this.sortAsc ? 'arrow-up' : 'arrow-down') : 'arrow-up-down';
+
+            return `${this.$root.dataset.sprite}#${name}`;
+        },
+
+        // A clickable row. `window` is out of reach of the CSP build's expressions.
+        visit(url) {
+            window.location.assign(url);
+        },
+
         rows() {
             return Array.from(this.$refs.table?.querySelectorAll('tbody tr') ?? []);
         },

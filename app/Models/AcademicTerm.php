@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Modules\Audit\Concerns\Auditable;
+use Carbon\CarbonInterface;
 use Database\Factories\AcademicTermFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,6 +20,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * `is_current` carries no database-level uniqueness, because MySQL has no partial unique index.
  * FR-036's "exactly one current term" is held by the SetCurrentTerm action inside a transaction; the
  * scope below is only a convenience for reading it.
+ *
+ * The two dates are declared here as well as cast below. A cast is invisible to static analysis, so
+ * without these a reader — human or analyser — sees `string` and `$term->start_date->isoFormat()`
+ * looks like a bug when it is correct. They are documentation of the cast, not a second source.
+ *
+ * @property CarbonInterface|null $start_date
+ * @property CarbonInterface|null $end_date
+ * @property bool $is_current
  */
 #[Fillable([
     'name_ar', 'name_en', 'academic_year', 'semester', 'start_date', 'end_date', 'status', 'is_current',

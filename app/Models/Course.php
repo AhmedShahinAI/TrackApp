@@ -42,6 +42,24 @@ class Course extends Model
         return $this->belongsToMany(Program::class);
     }
 
+    /**
+     * The programmes a NEW section of this course may be placed in: the active ones (FR-092, spec
+     * Edge Cases). A deactivated programme keeps the sections it already holds but takes no new
+     * ones, so an import deciding "the course's one programme" must not count it — counted, a course
+     * whose only programme was deactivated kept receiving new sections under it.
+     *
+     * @return list<int>
+     */
+    public function activeProgramIds(): array
+    {
+        return $this->programs()
+            ->where('programs.is_active', true)
+            ->orderBy('programs.id')
+            ->pluck('programs.id')
+            ->map(static fn (mixed $id): int => (int) $id)
+            ->all();
+    }
+
     /** @return list<string> */
     public function auditedAttributes(): array
     {

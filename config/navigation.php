@@ -12,11 +12,11 @@ declare(strict_types=1);
 | order of the sidebar is a product decision, and a product decision that requires a deployment to
 | change is a product decision nobody makes.
 |
-| ## The two departures from the reference
+| ## The departure from the reference
 |
-| **`programs` is omitted from SUPER_ADMIN.** The reference lists it between `branches` and
-| `courses`. T153 holds it back pending conflict C-04, so the entry is absent rather than stubbed —
-| a stub would promise a screen whose shape is still being argued about.
+| **`programs`** was held back by T153 pending conflict C-04. C-04 was accepted (2026-09-27) and the
+| screen built in Phase 14, so T321 restored it between `branches` and `courses`, as the reference
+| has it.
 |
 | **`dashboard` and `initiatives` are stubbed.** Both are in the reference and neither has a screen
 | in this feature. They render, and they lead to a "coming in a later phase" placeholder rather than
@@ -45,22 +45,44 @@ return [
         'dashboard' => ['icon' => 'layout-dashboard', 'route' => null, 'permission' => 'dashboard.view', 'stub' => true],
         'initiatives' => ['icon' => 'lightbulb', 'route' => null, 'permission' => 'dashboard.view', 'stub' => true],
         'users' => ['icon' => 'user-cog', 'route' => 'users.index', 'permission' => 'user.view'],
-        'terms' => ['icon' => 'calendar-range', 'route' => null, 'permission' => 'term.view', 'stub' => true],
-        'branches' => ['icon' => 'building-2', 'route' => null, 'permission' => 'branch.view', 'stub' => true],
-        'courses' => ['icon' => 'book-open', 'route' => null, 'permission' => 'course.view', 'stub' => true],
+        // US4 built all four screens, so none of these are stubs any more.
+        'terms' => ['icon' => 'calendar-range', 'route' => 'terms.index', 'permission' => 'term.view'],
+        'branches' => ['icon' => 'building-2', 'route' => 'branches.index', 'permission' => 'branch.view'],
+        // Phase 14 (T321) — FR-095: only a Super Admin's list carries it.
+        'programs' => ['icon' => 'graduation-cap', 'route' => 'programs.index', 'permission' => 'program.view'],
+        'courses' => ['icon' => 'book-open', 'route' => 'courses.index', 'permission' => 'course.view'],
+        // `user`, not `graduation-cap`: that glyph is the reference's for `programs`, and two
+        // identical icons in one collapsed sidebar can be told apart only by their tooltips.
+        'students' => ['icon' => 'user', 'route' => 'students.index', 'permission' => 'student.view'],
         'sections' => ['icon' => 'users', 'route' => 'sections.index', 'permission' => 'section.view'],
         'mysections' => ['icon' => 'users', 'route' => 'sections.index', 'permission' => 'section.view'],
-        'imports' => ['icon' => 'file-up', 'route' => null, 'permission' => 'import.view', 'stub' => true],
+        // US5 built the wizard, so this is no longer a stub.
+        'imports' => ['icon' => 'file-up', 'route' => 'imports.index', 'permission' => 'import.view'],
         // US3 built the screen, so this is no longer a stub.
         'audit' => ['icon' => 'shield-check', 'route' => 'audit.index', 'permission' => 'audit.view'],
     ],
 
     /*
-     * The order each known role sees. `programs` is absent from SUPER_ADMIN on purpose — see above.
+     * The order each known role sees.
+     *
+     * `programs` for SUPER_ADMIN only, per the approved sidebar. A coordinator holds `program.view`
+     * so the section screens can name and filter by programme, not to manage the list.
+     *
+     * The sidebar is a curation, never the authorization. A coordinator who types /programs gets
+     * the list read-only, which is deliberate: T315 says a coordinator may read programmes, and the
+     * list is institution-wide reference data (plan.md Amendment 1), with section counts limited to
+     * their own branches. Managing is FR-095's, enforced server-side by `program.create` and
+     * `program.edit`, which only SUPER_ADMIN holds. ProgramEndpointsTest pins both halves.
      */
     'roles' => [
-        'SUPER_ADMIN' => ['home', 'dashboard', 'initiatives', 'users', 'terms', 'branches', 'courses', 'sections', 'imports', 'audit'],
-        'BRANCH_COORDINATOR' => ['home', 'initiatives', 'sections', 'imports', 'audit'],
+        'SUPER_ADMIN' => ['home', 'dashboard', 'initiatives', 'users', 'terms', 'branches', 'programs', 'courses', 'sections', 'students', 'imports', 'audit'],
+        'BRANCH_COORDINATOR' => ['home', 'initiatives', 'sections', 'students', 'imports', 'audit'],
+        /*
+         * No `students` for an instructor, although the permission would allow it and the screen
+         * would be correctly scoped. An instructor reaches a student through the section they
+         * teach, which is the only context in which the record means anything to them; a flat list
+         * of their students answers a question nobody in that role asks.
+         */
         'INSTRUCTOR' => ['home', 'mysections', 'imports'],
     ],
 ];

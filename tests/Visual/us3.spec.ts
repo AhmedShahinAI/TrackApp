@@ -108,9 +108,26 @@ for (const locale of ['ar', 'en'] as const) {
             await page.waitForTimeout(200);
             await expect(page.locator('.track-activity')).toBeVisible();
 
+            /*
+             * The timestamp is replaced, not masked.
+             *
+             * A mask paints over a cell's *content* but the cell still occupies the width its real
+             * text demands — so a panel captured at 21:30 and verified at 22:05 lays out one pixel
+             * differently and the whole shot fails, with the diff showing nothing but the magenta
+             * block moving. That is what happened across all sixteen projects after a regeneration
+             * and a verification run an hour apart.
+             *
+             * Writing a constant into the cell makes the width a property of the test rather than
+             * of the clock, which is what the mask was reaching for in the first place.
+             */
+            await page.evaluate(() => {
+                document
+                    .querySelectorAll('.track-activity td:first-child, .track-activity td[data-label*="الوقت"], .track-activity td[data-label*="When"]')
+                    .forEach((cell) => { cell.textContent = '—'; });
+            });
+
             await expect(page.locator('.track-activity')).toHaveScreenshot(
                 `${locale}-activity-panel.png`,
-                { mask: volatileColumns(page) },
             );
         });
     });

@@ -194,6 +194,11 @@ concern into a build failure.
 
 ## R-06: Typed EAV performance spike — method and thresholds
 
+> **Result (2026-10-09): PASS on SQLite, PROVISIONAL** — all five thresholds met with a 59× margin;
+> the deciding MySQL run is outstanding. Measurements, plans, findings and the index recommendation:
+> [spike-eav-results.md](./spike-eav-results.md). Note on method: "cold" runs need the engine's cache
+> emptied (`EAV_SPIKE_COLD_COMMAND`); a fresh connection alone gives warm-cache numbers.
+
 **Decision**: An `EavSpikeSeeder` generates, without Eloquent, a realistic shape:
 1 term, 6 branches, 3,000 sections, 30,000 students, 30,000 enrollments, 10 initiatives ×
 5 schema versions, 50 field definitions, 30,000 `student_initiative_records`, and
@@ -320,6 +325,23 @@ protection silently, which is worse than an outage the user can see.
 **Verification**: a test asserting submission is refused when no valid challenge is presented, when a
 challenge is replayed, when it has expired, and when the challenge store is unavailable.
 
+**Outcome (kickoff check, Phase 18, T358)**: ALTCHA 3.3.0 makes no call to an external origin, but it
+starts its hashing workers from `blob:` URLs and falls back to `data:` URLs. Under the CSP both are
+refused, because `worker-src` falls back to `script-src 'self'`, and allowing them would be a new
+exemption (T359). So the **hand-rolled variant** is used. It lives in `resources/js/pow/`
+(`puzzle.js`, `worker.js`, `solve.js`), and Vite emits the worker as its own hashed file on our
+origin. The README section "Student support channel" describes it. The exact puzzle, which the T370
+verifier must match:
+
+- `challenge`: base64url, matching `[A-Za-z0-9_-]{16,256}`.
+- `difficulty`: an integer from 1 to 32. The server chooses it, stores it with the challenge, and
+  never reads it from the request.
+- `nonce`: an integer from 0 to 2^53 − 1.
+- An answer is valid when `SHA-256(UTF-8(challenge + ":" + canonicalDecimal(nonce)))` starts with at
+  least `difficulty` zero bits, counted from the most significant bit across byte boundaries.
+- Any nonce that meets the rule is valid; the verifier must not require the smallest one. Verifying an
+  answer costs one hash.
+
 ---
 
 ## R-09: Two independent rate limits
@@ -403,11 +425,18 @@ padded floor holds.
 
 **Decision**: **10 characters of Crockford base32** drawn from a cryptographically secure random source,
 plus a check character, rendered uppercase and hyphenated for legibility — for example
-`K7Q2-M9XV-T3`. Crockford base32 excludes `I`, `L`, `O` and `U`, which removes the digit-letter
+`K7Q2-M9XV-T3X` (stored canonical, `K7Q2M9XVT3X`, in `char(11)`; the hyphens are presentation). Crockford base32 excludes `I`, `L`, `O` and `U`, which removes the digit-letter
 confusions a student reads out over a phone and the accidental obscenity the `U` omission avoids.
 
 Stored with a unique index. Generation retries on collision, which at 50 bits of entropy will not
 happen but must not corrupt if it does.
+
+**The check character (Phase 19)** is **Luhn mod 32** over the same alphabet, not Crockford's own check
+symbol: Crockford's is mod 37 and needs five extra symbols, one of them `U`, which this decision excludes.
+Luhn mod 32 catches every single-character substitution and every swap of adjacent characters except
+`0`↔`Z` — Luhn's known blind spot, as `09`↔`90` is for mod 10 — and a unit test pins that exactly. Input is
+forgiven the way Crockford intends: case, hyphens and spaces are ignored, `I` and `L` read as `1`, `O` as
+`0`.
 
 **Explicitly rejected: any time-ordered identifier.** ULID, UUIDv7, Snowflake, and an auto-increment
 with an offset all encode creation order, and several encode creation time. FR-122 and SC-027 require a

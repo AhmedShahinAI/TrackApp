@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 /**
  * T116 — sign in and sign out.
@@ -111,13 +112,6 @@ final class LoginController
         RateLimiter::clear($key);
 
         /*
-         * FR-012 — captured BEFORE the write. Once first_login_at is set, the fact that this was
-         * the first sign-in is unrecoverable, and the banner has to be decided from the state as it
-         * was when the request arrived.
-         */
-        $isFirstLogin = $user->first_login_at === null;
-
-        /*
          * The guard is named, never inferred. This platform authenticates with the session guard,
          * and `auth:sanctum` calls Auth::shouldUse('sanctum') — so the default guard on any request
          * that has passed through the API stack is Sanctum's RequestGuard, which has no login().
@@ -128,14 +122,21 @@ final class LoginController
         // Against session fixation: the id the client arrived with never becomes an authenticated id.
         $request->session()->regenerate();
 
-        DB::transaction(function () use ($user, $isFirstLogin): void {
-            $user->forceFill(array_filter([
-                'first_login_at' => $isFirstLogin ? now() : null,
-                'last_login_at' => now(),
-            ], static fn ($v) => $v !== null))->saveQuietly();
+        /*
+         * The sign-in is recorded — the two timestamps and `auth.login` — or it does not stand.
+         * The session is authenticated above (the audit entry needs its user), so a failure here
+         * signs it out again before rethrowing: a 500 that left the cookie authenticated would be a
+         * sign-in with no `last_login_at` and no entry saying it happened.
+         */
+        try {
+            $isFirstLogin = DB::transaction(fn (): bool => $this->recordSignIn($user));
+        } catch (Throwable $e) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-            app(Auditor::class)->record('auth.login', $user, [], ['first_login' => $isFirstLogin]);
-        });
+            throw $e;
+        }
 
         if ($isFirstLogin) {
             // Read once by the layout and discarded, so it cannot reappear on a later sign-in.
@@ -165,6 +166,43 @@ final class LoginController
         }
 
         return redirect()->intended($landing);
+    }
+
+    /**
+     * FR-012, FR-113 — the sign-in's two timestamps, and its audit entry. Returns whether this was
+     * the account's first sign-in.
+     *
+     * "First" is decided by the database, not by the row as it was read: a conditional update that
+     * sets first_login_at only WHERE it is still null. Read from the loaded model, two first
+     * sign-ins at once (a double-submitted form, two devices) both saw null, both wrote, and both
+     * were recorded as the first. Now exactly one update matches.
+     *
+     * Through the base query builder, so neither write touches `updated_at`: a sign-in is not an
+     * edit to the account, and at the scale target every login would otherwise move the account's
+     * "last modified" time. Model events are not wanted here either — the contract records a
+     * sign-in as `auth.login`, written below, never as `user.updated`.
+     */
+    private function recordSignIn(User $user): bool
+    {
+        $now = now();
+        $rows = User::query()->whereKey($user->getKey())->toBase();
+
+        $isFirstLogin = $user->first_login_at === null
+            && (clone $rows)->whereNull('first_login_at')->update(['first_login_at' => $now]) === 1;
+
+        $rows->update(['last_login_at' => $now]);
+
+        // The in-memory model agrees with the row, without becoming dirty.
+        $stored = $now->format($user->getDateFormat());
+
+        $user->setRawAttributes(array_merge($user->getAttributes(), array_filter([
+            'first_login_at' => $isFirstLogin ? $stored : null,
+            'last_login_at' => $stored,
+        ])), sync: true);
+
+        app(Auditor::class)->record('auth.login', $user, [], ['first_login' => $isFirstLogin]);
+
+        return $isFirstLogin;
     }
 
     public function destroy(Request $request): JsonResponse|RedirectResponse

@@ -7,6 +7,44 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Student support channel — proof-of-work challenge (T358, research.md R-08)
+
+The public support form (Amendment 2) is protected by a **self-hosted proof-of-work challenge**.
+The **hand-rolled fallback** from R-08 was chosen, not the ALTCHA widget.
+
+- **Why not ALTCHA (checked at 3.3.0).** ALTCHA itself requests no external origin: its `fetch`
+  calls go only to the challenge and verify URLs it is given, and `altcha.org` appears only as a
+  footer link. But it starts its hashing workers from `blob:` URLs, falling back to `data:` URLs.
+  Under this platform's Content-Security-Policy (`worker-src` falls back to `script-src 'self'`),
+  both are refused. Allowing them would be a new CSP exemption, which T359 forbids.
+- **What is used instead**: `resources/js/pow/`, three dependency-free modules.
+  - `puzzle.js` holds the one definition of the puzzle and the one `search` loop. It includes a
+    pure-JavaScript SHA-256, so it also works where `crypto.subtle` is missing (plain-HTTP origins).
+  - `worker.js` runs `search` off the main thread.
+  - `solve.js` starts the worker with `new Worker(new URL('./worker.js', import.meta.url), { type: 'module' })`.
+    Vite (`worker.format: 'es'`) emits the worker as its own hashed file under `/build/assets/`,
+    on our own origin, so `script-src 'self'` covers it. Never `?worker&inline`, which would become
+    a `blob:` URL. Where the worker cannot start or load, `solve.js` runs the same `search` in the
+    page, so either path returns the same nonce.
+  - The search yields to the event loop, reports progress, has an iteration cap, and stops when its
+    `AbortSignal` fires. It rejects with `invalid`, `exhausted` or `aborted`, and the form then
+    refuses to submit (fail closed, FR-129).
+  - None of the files makes a network request. `tests/Architecture/ChallengeSolverIsSelfHostedTest.php`
+    keeps every file in the directory that way. `tests/Feature/Security/NoNewCspExemptionTest.php`
+    pins the policy unchanged, including on the `public` route group.
+- **The puzzle**. The server's verifier (T370) must check exactly this rule:
+  - `challenge` is base64url, matching `[A-Za-z0-9_-]{16,256}`.
+  - `difficulty` is an integer from 1 to 32. The server chooses it and remembers it with the
+    challenge; it never takes it from the request.
+  - `nonce` is an integer from 0 to 2^53 − 1. It is submitted as `challenge_solution`.
+  - The answer is accepted when `SHA-256` of the UTF-8 bytes of `challenge + ":" + nonce`, with the
+    nonce in canonical decimal (no sign, no leading zeros), starts with at least `difficulty` zero
+    bits, counted from the most significant bit across byte boundaries.
+  - **Any** nonce that meets the rule is valid. The verifier must not require the smallest one;
+    checking an answer takes one hash.
+- **Tests**: `npm run test:js` (Node's built-in `node:test`, also run in CI). It checks the puzzle
+  against Node's own SHA-256.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

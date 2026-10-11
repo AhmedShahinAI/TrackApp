@@ -37,6 +37,11 @@ final class PasswordController
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
             'password' => ['required', 'string', 'confirmed', new PasswordPolicy],
+
+            // The form marks the confirmation field required, so the server says so about that
+            // field too (T263): `confirmed` alone reports a missing confirmation against `password`,
+            // and the error then appears under the wrong input.
+            'password_confirmation' => ['required', 'string'],
         ], [
             'password.confirmed' => __('auth.errors.mismatch'),
         ]);

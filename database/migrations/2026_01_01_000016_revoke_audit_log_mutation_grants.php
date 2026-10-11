@@ -42,6 +42,16 @@ return new class extends Migration
             // No GRANT OPTION, or no such grant to revoke. Both are expected locally and in CI.
             // Swallowing here is safe because it is not the only thing standing between the
             // application and a rewritten audit row.
+            //
+            // Not silently where it matters, though (security review R-03): on staging or production
+            // the deploy log says so, and `php artisan track:audit-grants --strict` — the step after
+            // migrate in docs/runbook-deploy.md — fails the deploy until a DBA applies the revoke.
+            if (app()->environment(['staging', 'production'])) {
+                Illuminate\Support\Facades\Log::critical('audit_logs REVOKE was not applied; run track:audit-grants', [
+                    'reason' => $e->getMessage(),
+                ]);
+                fwrite(STDERR, "WARNING: audit_logs REVOKE UPDATE, DELETE was not applied. A DBA must apply it; verify with `php artisan track:audit-grants --strict`.\n");
+            }
         }
     }
 

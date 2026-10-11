@@ -21,8 +21,14 @@ import { stabilise } from './helpers/render-reference';
 
 /* The Super Admin is chosen by locale — adminFor() in support/session.ts explains why. */
 
-/** User 3, د. فيصل العتيبي — an instructor who has never signed in, so the banner shows for them. */
-const FIRST_TIME = { email: 'f.alotaibi@mu.edu.sa', password: 'Track2026' };
+/**
+ * Never-signed-in instructors, one per locale, so the banner shows for them: user 3 (Arabic) and
+ * user 12 (English). Signing in consumes the state, so each is owned by its own locale's 1440 project.
+ */
+const FIRST_TIME = {
+    ar: { email: 'f.alotaibi@mu.edu.sa', password: 'Track2026' },
+    en: { email: 'y.alomari@mu.edu.sa', password: 'Track2026' },
+};
 
 /** User 6, أ. سلمان الرشيدي — deactivated, for the refusal state. */
 const DEACTIVATED = { email: 's.alrashidi@mu.edu.sa', password: 'Track2026' };
@@ -108,9 +114,14 @@ for (const locale of ['ar', 'en'] as const) {
             await page.goto(`/login?locale=${locale}`);
             await page.fill('input[name="email"]', 'nobody@mu.edu.sa');
             await page.fill('input[name="password"]', 'definitely-wrong');
-            await page.click('button[type="submit"]');
+            await page.click('.track-login__fields button[type="submit"]');
             await page.waitForLoadState('networkidle');
             await stabilise(page);
+
+            // The refusal itself, before its picture: a click that landed on the language switch
+            // (the page's first submit button) once produced a "failure" baseline with no failure in it.
+            await expect(page.locator('.track-login__fields .track-alert--danger')).toBeVisible();
+            await expectLocale(page, locale);
 
             // FR-009: the alert says nothing about which field was wrong, and the baseline is what
             // would catch someone "helpfully" making it specific.
@@ -123,9 +134,14 @@ for (const locale of ['ar', 'en'] as const) {
             await page.goto(`/login?locale=${locale}`);
             await page.fill('input[name="email"]', DEACTIVATED.email);
             await page.fill('input[name="password"]', DEACTIVATED.password);
-            await page.click('button[type="submit"]');
+            await page.click('.track-login__fields button[type="submit"]');
             await page.waitForLoadState('networkidle');
             await stabilise(page);
+
+            // The refusal itself, before its picture: a click that landed on the language switch
+            // (the page's first submit button) once produced a "failure" baseline with no failure in it.
+            await expect(page.locator('.track-login__fields .track-alert--danger')).toBeVisible();
+            await expectLocale(page, locale);
 
             await expect(page.locator('.track-login__fields')).toHaveScreenshot(
                 `${locale}-login-deactivated.png`,
@@ -170,9 +186,12 @@ for (const locale of ['ar', 'en'] as const) {
              * Consumes the fixture's one never-signed-in account: signing in writes
              * first_login_at, and the banner is then gone for every other project. One owner.
              */
-            skipUnlessPrimary(testInfo, locale);
+            test.skip(
+                testInfo.project.name !== `${locale}-1440`,
+                `Consumes ${locale}'s one never-signed-in account; owned by ${locale}-1440.`,
+            );
 
-            await signIn(page, locale, FIRST_TIME);
+            await signIn(page, locale, FIRST_TIME[locale]);
             await stabilise(page);
 
             const banner = page.locator('.track-alert--warning').first();
@@ -291,7 +310,11 @@ for (const locale of ['ar', 'en'] as const) {
             await page.goto('/profile');
             await stabilise(page);
 
-            await expect(page).toHaveScreenshot(`${locale}-profile.png`, { fullPage: true });
+            // Last sign-in is this run's own sign-in, so it changes every run.
+            await expect(page).toHaveScreenshot(`${locale}-profile.png`, {
+                fullPage: true,
+                mask: [page.locator('dd:has(> .num)')],
+            });
 
             await page.goto('/profile/password');
             await stabilise(page);

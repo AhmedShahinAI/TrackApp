@@ -18,12 +18,15 @@
     and degrades to visible text if styling fails.
 --}}
 
+@use('App\Modules\Shared\Support\Format')
+
 @php
     $locale = app()->getLocale();
 
     $rows = $entries->map(fn ($entry) => [
         'id' => $entry->id,
-        'when' => $entry->created_at?->format('d/m/Y H:i') ?? '—',
+        'when' => Format::dateTime($entry->created_at),
+        '_sort' => ['when' => $entry->created_at?->getTimestamp()],
         'actor' => $entry->user?->{'name_'.$locale} ?? $entry->user?->name_ar ?? '—',
         'action' => $entry->action,
         'entity' => $entry->entity_type === null
@@ -55,11 +58,13 @@
                  * `audit.fields.campus_name_ar` at the reader. The column name is the honest
                  * fallback: it is what the database calls the field, and it is readable.
                  */
-                $label = \Illuminate\Support\Facades\Lang::has('audit.fields.'.$field)
+                // $fieldLabel, not $label: reusing the outer loop's name overwrote "before"/"after",
+                // and the side's heading printed `audit.<last field>` at the reader.
+                $fieldLabel = \Illuminate\Support\Facades\Lang::has('audit.fields.'.$field)
                     ? __('audit.fields.'.$field)
                     : $field;
 
-                $lines .= '<div><dt>'.e($label).'</dt>'
+                $lines .= '<div><dt>'.e($fieldLabel).'</dt>'
                     .'<dd>'.e(is_scalar($value) ? (string) $value : json_encode($value, JSON_UNESCAPED_UNICODE)).'</dd></div>';
             }
 

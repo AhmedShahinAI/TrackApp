@@ -353,13 +353,19 @@ The spike measures the design that will ship.
 Must pass before this feature is accepted, because Phase 2 depends on the answer.
 
 ```bash
-php artisan db:seed --class=EavSpikeSeeder        # ~1,500,000 values; expect 10-20 minutes
+# The spike seeds and measures its OWN database (a SQLite file in storage/app, or a MySQL schema of
+# its own); the seeder refuses any other connection. ~30 s to seed 1,500,000 values on SQLite.
 php artisan test --group=performance tests/Performance/EavSpikeTest.php
+EAV_SPIKE_INDEXES=false php artisan test --group=performance tests/Performance/EavSpikeTest.php
+# The deciding run, on the production engine (a dedicated schema; see spike-eav-results.md):
+EAV_SPIKE_MYSQL_DATABASE=track_eav_spike php artisan test --group=performance tests/Performance/EavSpikeTest.php
 ```
 
-Measures the five queries in [research.md R-06](./research.md) as p95 over 10 cold runs and
-writes `specs/001-foundation-access-roster/spike-eav-results.md` with row counts, the index set,
-`EXPLAIN` output, measured p95s, and PASS/FAIL per threshold.
+Measures the five queries in [research.md R-06](./research.md) as p95 over 10 runs, each on a fresh
+connection (truly cold only with `EAV_SPIKE_COLD_COMMAND`, e.g. a MySQL restart; otherwise the OS and
+engine caches are warm), and writes `storage/app/eav-spike-results.json` — row counts, the index set,
+plans, every timing, the machine — from which `spike-eav-results.md` is updated, with PASS/FAIL per
+threshold.
 
 **On any FAIL**: record the finding and the proposed remedy in that same file before Phase 2
 planning starts. The ranked remedy candidates are already listed in research.md R-06 — do not
@@ -589,6 +595,9 @@ php artisan test                # all suites except Performance
 php artisan test --group=performance
 php artisan test --testsuite=Architecture
 npx playwright test             # visual regression (components + screens + RTL) and axe-core
+npx playwright test --project=first-paint --no-deps   # SC-015 first paint, alone on the server; also
+                                                      # runs last in the line above, but is skipped
+                                                      # there if any screenshot project failed
 
 # Amendment 2 — the support channel's own gates:
 php artisan test tests/Feature/Support/Enumeration    # byte-identical failures + the timing floor

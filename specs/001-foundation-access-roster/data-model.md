@@ -396,7 +396,7 @@ Group 1–6 schema.
 
 | Column | Type | Notes |
 |---|---|---|
-| `reference` | char(12) | **UNIQUE**. Crockford base32 + check character, e.g. `K7Q2-M9XV-T3`. Non-derivable — see [research.md](./research.md) R-11 |
+| `reference` | char(11) | **UNIQUE**. Ten Crockford base32 characters + a check character, stored canonical (`K7Q2M9XVT3X`) and shown hyphenated (`K7Q2-M9XV-T3X`). Non-derivable — see [research.md](./research.md) R-11. *Phase 19: `char(11)`, not `char(12)` — the earlier example had ten symbols in all, which cannot be ten plus a check* |
 | `student_id` | FK → `students.id` **nullable**, restrict | Nullable **only** so retention can anonymise (R-12). Never null on creation |
 | `term_id` | FK → `academic_terms.id` restrict | The term in which active enrollment was verified at submission |
 | `category` | varchar(40) | Validated against the `support_categories` setting. **Not** a database enum, so adding a category needs no migration (constitution IV) |
@@ -469,7 +469,8 @@ permitted, so a closed request is final and accepts no further response (FR-150)
 ## Permissions
 
 Four new permissions, seeded into feature 001's permission set (which Amendment 1 left at 42, so this
-takes it to **46**):
+takes it to **46**; Amendment 4's `section.approve` makes the shipped total **47**). They were seeded with
+the base set by `PermissionSeeder` and `RoleSeeder` (T045, T473), so Phase 19 added no separate seeder:
 
 | Permission | SUPER_ADMIN | BRANCH_COORDINATOR | INSTRUCTOR |
 |---|---|---|---|
@@ -486,8 +487,10 @@ college-wide view. An instructor holds none of the four (FR-142).
 
 ## Settings
 
-Six new keys, all read through feature 001's existing cached facade. None of these values appears as a
-literal anywhere in code.
+Eight new keys, all read through feature 001's existing cached facade (`SupportSettingSeeder`, T367). None
+of these values appears as a literal anywhere in code. A rate limit is **one** row holding
+`{max_attempts, decay_minutes}`, read with `Settings::limit()`, so a count and its window cannot be edited
+out of step.
 
 | Key | Default | Used by |
 |---|---|---|
@@ -498,6 +501,7 @@ literal anywhere in code.
 | `support_status_throttle_ip` | 10 per hour | FR-131 |
 | `support_min_response_ms` | 400 | [research.md](./research.md) R-10 timing floor |
 | `support_retention_months` | 24 | FR-159 |
+| `support_challenge_difficulty` | 16 | [research.md](./research.md) R-08 — leading zero bits the proof-of-work must reach. *Added in Phase 19: T370 reads the difficulty "from settings" and no key existed* |
 
 ---
 

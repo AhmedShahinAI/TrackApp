@@ -1,0 +1,80 @@
+// T375 — the public layout (Amendment 2): the student support pages, outside the application shell.
+//
+// Tokens only. No hex, no rgb, no px radius, shadow or duration (NoHardcodedVisualValuesTest); the
+// one px value below is a max-width, which the design system expresses in px and has no token for.
+//
+// Logical properties throughout, so the RTL entry needs nothing from RTLCSS here: `inline` is
+// right-to-left in Arabic and left-to-right in English without a mirrored rule.
+//
+// One centred column on every width. The sign-in page drops its brand column below 768px; this
+// page never had one, because a student reaching it from a link on a phone is the common case.
+
+.track-public {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--surface-page);
+    color: var(--text-primary);
+}
+
+.track-public__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding-block: var(--space-4);
+    padding-inline: var(--space-6);
+    background: var(--surface-card);
+    border-block-end: 1px solid var(--border-default);
+}
+
+.track-public__lang { margin: 0; }
+
+.track-public__main {
+    flex: 1;
+    width: 100%;
+    // A reading column: a description field wider than this is harder to write in, not easier.
+    max-width: 720px;
+    margin-inline: auto;
+    padding-block: var(--space-10) var(--space-12);
+    padding-inline: var(--space-6);
+}
+
+.track-public__title {
+    font: var(--text-h2);
+    margin: 0 0 var(--space-2);
+}
+
+.track-public__lead {
+    font: var(--text-body);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-6);
+}
+
+.track-public__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.track-public__footer {
+    padding-block: var(--space-4);
+    padding-inline: var(--space-6);
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+@media (max-width: 575.98px) {
+    .track-public__header,
+    .track-public__main { padding-inline: var(--space-4); }
+
+    .track-public__main { padding-block: var(--space-6) var(--space-10); }
+
+    .track-public__card { padding: var(--space-4); }
+}

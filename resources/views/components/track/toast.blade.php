@@ -1,7 +1,7 @@
 {{--
     T078 — x-track-toast and its region.
 
-    Fixed to the bottom-start corner, which is bottom-left in Arabic. Auto-dismisses after ~4s,
+    Fixed to the bottom-end corner, which is bottom-left in Arabic and clear of the sidebar. Auto-dismisses after ~4s,
     except on the error tone: an error carries a retry action (FR-080, FR-081), and a message that
     disappears before the user can act on it is worse than no message.
 
@@ -29,10 +29,10 @@
         x-data="trackToasts"
     >
         <template x-for="toast in toasts" :key="toast.id">
-            <div class="track-toast" :class="`track-toast--${toast.tone}`">
+            <div class="track-toast" :class="'track-toast--' + toast.tone">
                 <span class="track-alert__icon">
                     <svg class="track-icon" width="18" height="18" aria-hidden="true" focusable="false">
-                        <use :href="`{{ config('icons.sprite') }}#${toast.icon}`"></use>
+                        <use :href="'{{ config('icons.sprite') }}#' + toast.icon"></use>
                     </svg>
                 </span>
 

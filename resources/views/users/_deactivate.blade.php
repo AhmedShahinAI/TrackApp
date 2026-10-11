@@ -7,14 +7,22 @@
     and leaving it unsaid makes a Super Admin hesitate over a reversible action.
 --}}
 
-<div x-data="{ userId: null, userName: '' }"
-     x-on:track-dialog-open.window="if ($event.detail?.id === 'user-deactivate') {
-         userId = $event.detail.userId;
-         userName = $event.detail.userName ?? '';
-     }">
-    <form method="POST" x-bind:action="`{{ url('/users') }}/${userId}/deactivate`"
+@php
+    // Sent back with errors: reopen on the same account (x-track-dialog, "Coming back with errors").
+    $returned = old('_dialog') === 'user-deactivate' && ctype_digit((string) old('_dialog_user'));
+@endphp
+
+<div x-data="trackUserTarget"
+     data-dialog="user-deactivate" data-base="{{ url('/users') }}" data-suffix="deactivate"
+     data-user-id="{{ $returned ? (int) old('_dialog_user') : '' }}"
+     data-user-name="{{ $returned ? (string) old('_dialog_subject', '') : '' }}"
+     x-on:track-dialog-open.window="receive($event)">
+    <form method="POST" x-bind:action="action()"
           x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
+        <x-track-dialog-marker for="user-deactivate" />
+        <input type="hidden" name="_dialog_user" :value="userId">
+        <input type="hidden" name="_dialog_subject" :value="userName">
         @method('PATCH')
 
         <x-track-dialog id="user-deactivate" :title="__('users.deactivate.title')">

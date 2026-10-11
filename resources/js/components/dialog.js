@@ -25,6 +25,19 @@ export default function trackDialog(initiallyOpen = false) {
         open: initiallyOpen,
         trigger: null,
 
+        // A dialog open on arrival is one the server sent back with errors (x-track-dialog). Focus
+        // goes to the first field that failed, so the next keystroke fixes it.
+        init() {
+            if (! this.open) {
+                return;
+            }
+
+            this.$nextTick(() => {
+                const invalid = this.$refs.panel?.querySelector('[aria-invalid="true"]');
+                (invalid ?? this.focusable()[0] ?? this.$refs.panel)?.focus();
+            });
+        },
+
         show(trigger = null) {
             this.trigger = trigger instanceof HTMLElement ? trigger : document.activeElement;
             this.open = true;
@@ -35,6 +48,20 @@ export default function trackDialog(initiallyOpen = false) {
                 const first = this.focusable()[0] ?? this.$refs.panel;
                 first?.focus();
             });
+        },
+
+        // The open / close events name a dialog by id; each dialog answers only its own. A method,
+        // because the CSP build of Alpine cannot evaluate an `if` in the template.
+        onOpen(event) {
+            if (event.detail && event.detail.id === this.$root.id) {
+                this.show(event.target);
+            }
+        },
+
+        onClose(event) {
+            if (event.detail && event.detail.id === this.$root.id) {
+                this.close();
+            }
         },
 
         close() {

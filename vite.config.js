@@ -79,6 +79,16 @@ export default defineConfig({
             },
         },
     },
+    /*
+     * T358 (review) — the support form's proof-of-work worker (resources/js/pow/worker.js) is a module
+     * worker, started with `new Worker(new URL('./worker.js', import.meta.url), { type: 'module' })`.
+     * Vite emits it as its own hashed file beside the bundle: same origin, so the CSP's
+     * `script-src 'self'` covers it with no exemption, and every deploy ships a fresh name. 'es' to
+     * match `type: 'module'`. Never `?worker&inline`, which would become a blob: URL the CSP refuses.
+     */
+    worker: {
+        format: 'es',
+    },
     server: {
         watch: {
             ignored: [

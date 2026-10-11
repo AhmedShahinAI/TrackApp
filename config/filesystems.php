@@ -35,7 +35,10 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // T278 — off. `serve` registered GET and PUT `storage/{path}` over this root, which is
+            // the same directory the private disk keeps import files in: a URL into it, outside the
+            // CSRF check, that nothing here ever signs. The constitution's floor is "no URL".
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

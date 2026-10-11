@@ -59,9 +59,20 @@
                 <option value="">{{ $placeholder }}</option>
             @endif
 
+            {{-- A plain list of strings (the mapping step's headers) is its own value; any keyed map
+                 submits its KEY. The test was `is_int($key)`, which made every id-keyed map — terms,
+                 branches, courses, programmes, instructors — submit its label instead of its id, so
+                 those forms failed validation when posted from a browser.
+
+                 The one shape this cannot tell apart: a map whose keys are exactly 0, 1, 2 … in
+                 order IS a list. Database ids never start at 0, so id maps are safe; a hand-written
+                 map keyed 0..n-1 must pass [['value' => …, 'label' => …]] rows instead, which are
+                 always read as written. --}}
+            @php $isList = array_is_list($options); @endphp
+
             @foreach ($options as $key => $option)
                 @php
-                    $optValue = is_array($option) ? ($option['value'] ?? $key) : (is_int($key) ? $option : $key);
+                    $optValue = is_array($option) ? ($option['value'] ?? $key) : ($isList ? $option : $key);
                     $optLabel = is_array($option) ? ($option['label'] ?? $option['value'] ?? $key) : $option;
                 @endphp
                 <option value="{{ $optValue }}" @selected((string) $current === (string) $optValue)>{{ $optLabel }}</option>

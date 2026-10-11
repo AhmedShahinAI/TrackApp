@@ -7,14 +7,22 @@
     afterwards means a locked-out colleague.
 --}}
 
-<div x-data="{ userId: null, userName: '' }"
-     x-on:track-dialog-open.window="if ($event.detail?.id === 'user-reset') {
-         userId = $event.detail.userId;
-         userName = $event.detail.userName ?? '';
-     }">
-    <form method="POST" x-bind:action="`{{ url('/users') }}/${userId}/reset-password`"
+@php
+    // Sent back with errors: reopen on the same account (x-track-dialog, "Coming back with errors").
+    $returned = old('_dialog') === 'user-reset' && ctype_digit((string) old('_dialog_user'));
+@endphp
+
+<div x-data="trackUserTarget"
+     data-dialog="user-reset" data-base="{{ url('/users') }}" data-suffix="reset-password"
+     data-user-id="{{ $returned ? (int) old('_dialog_user') : '' }}"
+     data-user-name="{{ $returned ? (string) old('_dialog_subject', '') : '' }}"
+     x-on:track-dialog-open.window="receive($event)">
+    <form method="POST" x-bind:action="action()"
           novalidate x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
+        <x-track-dialog-marker for="user-reset" />
+        <input type="hidden" name="_dialog_user" :value="userId">
+        <input type="hidden" name="_dialog_subject" :value="userName">
 
         <x-track-dialog id="user-reset" size="form" :title="__('users.reset_password.title')">
             <p style="margin: 0 0 var(--space-3)">
@@ -32,6 +40,7 @@
                     :label="__('users.fields.password')"
                     icon="key-round"
                     :hint="__('auth.password_change.rule')"
+                    :error="$returned ? $errors->first('password') : null"
                     :required="true"
                     autocomplete="new-password"
                 />

@@ -149,12 +149,16 @@ final class AuditLogController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_PER_PAGE],
         ]);
 
+        // The days the person picked are Riyadh days, matching the dates the list shows them
+        // (Format::dateTime); the column is UTC, so each bound is converted before it is compared.
+        $zone = (string) config('app.display_timezone', 'Asia/Riyadh');
+
         return AuditLog::query()
             ->when($request->filled('user_id'), fn ($q) => $q->where('user_id', $request->integer('user_id')))
             ->when($request->filled('action'), fn ($q) => $q->where('action', $request->string('action')->toString()))
             ->when($request->filled('entity_type'), fn ($q) => $q->where('entity_type', $request->string('entity_type')->toString()))
             ->when($request->filled('entity_id'), fn ($q) => $q->where('entity_id', $request->integer('entity_id')))
-            ->when($request->filled('date_from'), fn ($q) => $q->where('created_at', '>=', $request->date('date_from')))
+            ->when($request->filled('date_from'), fn ($q) => $q->where('created_at', '>=', $request->date('date_from', null, $zone)?->startOfDay()->utc()))
             /*
              * endOfDay, because a date is a day and not a midnight.
              *
@@ -163,7 +167,7 @@ final class AuditLogController extends Controller
              * naming that date returned zero rows. The same bug reached the export, which is built
              * from this builder, so a report of "the last week" silently ended seven days ago.
              */
-            ->when($request->filled('date_to'), fn ($q) => $q->where('created_at', '<=', $request->date('date_to')?->endOfDay()))
+            ->when($request->filled('date_to'), fn ($q) => $q->where('created_at', '<=', $request->date('date_to', null, $zone)?->endOfDay()->utc()))
             ->when($request->filled('branch_id'), fn ($q) => $this->narrowToBranch($q, $request->integer('branch_id')));
     }
 

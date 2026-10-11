@@ -58,7 +58,7 @@ Submit a support request. **Unauthenticated.** The primary endpoint of this feat
 | `category` | yes | One of `support_categories` (FR-120) |
 | `description` | yes | Non-empty, at most `support_description_max` characters (FR-115, FR-121) |
 | `contact` | no | Free text the student types. **Never** read from any stored record (FR-116) |
-| `challenge_solution` | yes | A valid, unconsumed, unexpired nonce (FR-128) |
+| `challenge_solution` | yes | A valid, unconsumed, unexpired nonce (FR-128). Any nonce meeting the rule in research.md R-08 is accepted, not only the smallest; the difficulty is the one stored with the challenge, never read from the request |
 | `_honeypot` | must be empty | Completion rejects the submission |
 | `_issued_at` | yes | Must be at least the configured minimum age |
 

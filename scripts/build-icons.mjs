@@ -46,6 +46,9 @@ const ICONS = {
     direction: [
         'chevron-down', 'chevron-up', 'chevron-left', 'chevron-right',
         'chevrons-left', 'chevrons-right', 'arrow-up', 'arrow-down', 'arrow-up-down',
+
+        // US5's wizard Continue buttons, which point the way the reading direction goes.
+        'arrow-left', 'arrow-right',
     ],
     actions: [
         'plus', 'pencil', 'trash-2', 'copy', 'download', 'upload', 'search', 'filter',
@@ -60,6 +63,9 @@ const ICONS = {
         'calendar-days', 'calendar-plus', 'clipboard-list', 'file-spreadsheet',
         'folder-open', 'award', 'medal', 'star', 'flask-conical', 'scan-search',
         'map-pin', 'mouse-pointer-click',
+
+        // US5's upload drop zone (T241).
+        'cloud-upload',
     ],
 };
 

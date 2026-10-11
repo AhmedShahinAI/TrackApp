@@ -8,6 +8,14 @@
 
     Widths 480 (confirm) and 560 (form). The `inline` variant drops the overlay for a panel that
     lives in the page — the import wizard's confirmation step uses it.
+
+    ## Coming back with errors
+
+    A dialog form posts a hidden `_dialog` naming its dialog (`x-track-dialog-marker`). When the server
+    refuses — 422 beside a field, or a 409 flashed as `conflict` — the redirect brings that value back
+    in the old input, and the dialog it names opens itself with the refusal showing. Without this, the
+    page reloaded with the dialog shut and every error in it out of sight: the person saw nothing
+    happen and nothing told them why.
 --}}
 
 @props([
@@ -20,6 +28,12 @@
 ])
 
 @php
+    $reopened = ! $inline && $errors->any() && old('_dialog') === $id;
+
+    if ($reopened) {
+        request()->attributes->set('track.dialog_reopened', true);
+    }
+
     $classes = collect([
         'track-dialog',
         $size === 'form' ? 'track-dialog--form' : null,
@@ -33,7 +47,7 @@
          so `#user-dialog` matched nothing — the dialogs were in the DOM and unreachable by id, which
          the US1 visual suite found by looking for one. --}}
     id="{{ $id }}"
-    x-data="trackDialog(@js($open))"
+    x-data="trackDialog(@js($open || $reopened))"
     @if (! $inline)
         x-show="open"
         x-cloak
@@ -41,8 +55,8 @@
         x-on:click.self="{{ $closeOnScrim ? 'close()' : '' }}"
         x-on:keydown.escape.window="close()"
     @endif
-    x-on:track-dialog-open.window="if ($event.detail?.id === '{{ $id }}') show($event.target)"
-    x-on:track-dialog-close.window="if ($event.detail?.id === '{{ $id }}') close()"
+    x-on:track-dialog-open.window="onOpen($event)"
+    x-on:track-dialog-close.window="onClose($event)"
 >
     <div
         class="{{ $classes }}"
@@ -70,7 +84,13 @@
             </header>
         @endif
 
-        <div class="track-dialog__body">{{ $slot }}</div>
+        <div class="track-dialog__body">
+            @if ($reopened && $errors->has('conflict'))
+                <x-track-alert tone="danger">{{ $errors->first('conflict') }}</x-track-alert>
+            @endif
+
+            {{ $slot }}
+        </div>
 
         @isset($footer)
             <footer class="track-dialog__footer">{{ $footer }}</footer>

@@ -86,9 +86,13 @@ export default defineConfig({
         },
     },
 
-    projects: LOCALES.flatMap(({ id, locale }) =>
+    projects: [
+        ...LOCALES.flatMap(({ id, locale }) =>
         WIDTHS.map((width) => ({
             name: `${id}-${width}`,
+            // First paint is measured on its own, below: a timing taken while another worker loads
+            // the same single-process dev server measures the queue, not the page.
+            testIgnore: /fcp\.spec\.ts/,
             use: {
                 ...devices['Desktop Chrome'],
                 locale,
@@ -96,9 +100,34 @@ export default defineConfig({
                 // Honour prefers-reduced-motion so the 120-280ms transitions cannot make a
                 // screenshot race the animation (design-system.md section 10).
                 contextOptions: { reducedMotion: 'reduce' },
+                // The harness injects a style tag to freeze animations before each screenshot, which
+                // the application's CSP (T277) rightly refuses. Screenshots and axe measure layout and
+                // markup, not the policy; tests/Visual/csp.spec.ts turns this off and checks the
+                // policy against every screen on its own.
+                bypassCSP: true,
             },
         })),
-    ),
+        ),
+
+        /*
+         * SC-015's first-paint budget (fcp.spec.ts), after every other project has finished, in one
+         * project, so nothing else is in flight on the server while a page is timed. The spec covers
+         * both locales itself, in order on one worker.
+         *
+         * A dependent project is skipped when a dependency fails, so a screenshot failure would hide
+         * the first-paint result. The gate therefore also runs it on its own:
+         *     npx playwright test --project=first-paint --no-deps          (quickstart.md, Full gate)
+         */
+        {
+            name: 'first-paint',
+            testMatch: /fcp\.spec\.ts/,
+            dependencies: LOCALES.flatMap(({ id }) => WIDTHS.map((width) => `${id}-${width}`)),
+            use: {
+                ...devices['Desktop Chrome'],
+                viewport: { width: 1440, height: 900 },
+            },
+        },
+    ],
 
     // Boot the application for the suite. Reuses a running server locally; always starts a fresh
     // one in CI so a stale build can never be measured.

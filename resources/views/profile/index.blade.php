@@ -6,6 +6,8 @@
     such.
 --}}
 
+@use('App\Modules\Shared\Support\Format')
+
 @php
     $user = auth()->user();
     $locale = app()->getLocale();
@@ -51,20 +53,25 @@
                     </dd>
                 @endif
 
+                {{-- The reference's ProfileScreen puts the language switch among the account's own
+                     facts; the preferences page explains it further (T274). --}}
+                <dt>{{ __('common.labels.language') }}</dt>
+                <dd><x-track-locale-switch /></dd>
+
                 <dt>{{ __('users.fields.last_login') }}</dt>
-                <dd>
-                    @if ($user->last_login_at)
-                        <span class="num">{{ $user->last_login_at->format('d/m/Y H:i') }}</span>
-                    @else
-                        {{ __('users.never_signed_in') }}
-                    @endif
-                </dd>
+                {{-- One rule for the null case, the same as the accounts list: Format::dateTime's own
+                     $empty, so "never" cannot drift between the two screens. --}}
+                <dd><span class="num">{{ Format::dateTime($user->last_login_at, __('users.never_signed_in')) }}</span></dd>
             </dl>
         </x-track-card>
 
         <x-track-card :title="__('auth.password_change.title')">
             <x-track-button variant="secondary" icon="key-round" :href="route('profile.password.edit')" :block="true">
                 {{ __('auth.password_change.title') }}
+            </x-track-button>
+
+            <x-track-button variant="ghost" icon="settings" :href="route('profile.preferences')" :block="true" class="mt-2">
+                {{ __('home.profile.preferences_link') }}
             </x-track-button>
         </x-track-card>
     </div>

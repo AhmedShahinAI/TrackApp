@@ -28,4 +28,21 @@ Route::prefix('sections')->name('sections.')->group(function (): void {
     Route::get('{section}', [SectionController::class, 'show'])
         ->middleware('can:section.view')
         ->name('show');
+
+    Route::post('/', [SectionController::class, 'store'])
+        ->middleware('can:section.create')
+        ->name('store');
+
+    Route::put('{section}', [SectionController::class, 'update'])
+        ->middleware('can:section.edit')
+        ->name('update');
+
+    /*
+     * Its own endpoint and its own permission. Reassigning a section moves who may open it from now
+     * on; it is not an edit to a field, and conflating the two would make "may fix a typo in a
+     * section number" and "may hand a section to someone else" the same authority.
+     */
+    Route::patch('{section}/instructor', [SectionController::class, 'changeInstructor'])
+        ->middleware('can:section.change_instructor')
+        ->name('instructor');
 });

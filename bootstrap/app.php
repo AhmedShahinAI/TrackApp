@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -17,15 +18,34 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function (): void {
+            // T276 — outside every group: no session, no cookies, no CSRF for a probe that runs every
+            // few seconds. `/up` (Laravel's) stays as the bare liveness check; this is readiness.
+            Route::get('/health', App\Modules\Shared\Http\Controllers\HealthController::class)
+                ->middleware('throttle:60,1')
+                ->name('health');
+
             // T012 — /api/v1 on the web stack plus Sanctum. The session guard is what authenticates
             // this platform, so these routes need the session and CSRF, not a bearer token.
             Route::middleware(['web', 'auth:sanctum', 'throttle:api'])
                 ->prefix('api/v1')
                 ->name('api.v1.')
                 ->group(base_path('routes/api_v1.php'));
+
+            // T355 — the public surface (Amendment 2), in its own file so every unauthenticated route
+            // of the platform can be read in one place. Loaded on the `public` group defined below
+            // — `web` (CSRF through the guest session, the CSP, the locale) plus a per-IP throttle —
+            // and never on auth:sanctum. PublicSurfaceTest holds the whole surface to this file.
+            Route::middleware('public')->group(base_path('routes/public.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // T275 — first of all, globally: every log line a request writes, including one from a
+        // middleware that refuses it, carries the request's id.
+        // PRD 8.8 — counts each request's final status for the error-rate alert. Prepended before
+        // AssignRequestId is, so the id stays outermost.
+        $middleware->prepend(App\Modules\Shared\Monitoring\RequestOutcomes::class);
+        $middleware->prepend(App\Modules\Shared\Http\Middleware\AssignRequestId::class);
+
         // T094 — appended to the web group, so it runs after the session and authentication have
         // resolved. Prepending it would mean $request->user() is still null and every page renders
         // in the default locale rather than the user's own (FR-074).
@@ -44,7 +64,30 @@ return Application::configure(basePath: dirname(__DIR__))
          * is the worst kind of half-working.
          */
         $middleware->web(prepend: [
+            // T277 — outermost in the group, for the reason above: a refusal thrown by a scoped
+            // binding or a `can:` check comes back through it as a rendered page, and that page
+            // carries the policy too.
+            App\Modules\Shared\Http\Middleware\ContentSecurityPolicy::class,
             App\Modules\Authorization\Http\Middleware\AuditDeniedAccess::class,
+        ]);
+
+        /*
+         * Amendment 2 (T355, review) — the one group a public route may use. Defined once, here, so
+         * a route added to routes/public.php cannot silently gain or lose part of its stack:
+         *
+         *   - `web`: the CSP and security headers (prepended above), CSRF, the locale. CSRF needs a
+         *     session to hold its token, so a visitor gets Laravel's GUEST session cookie — what
+         *     contracts/support-public.md specifies. It is never an authenticated session: nothing
+         *     on this group signs anyone in, and FR-124's "no session" is about a student never
+         *     authenticating, which this cannot do;
+         *   - `throttle:public`: a per-IP floor (AppServiceProvider), so no public route is ever
+         *     unthrottled. The contract's two-axis submission limits come with the routes.
+         *
+         * Never auth:sanctum, and nothing that resolves a user.
+         */
+        $middleware->group('public', [
+            'web',
+            'throttle:public',
         ]);
 
         $middleware->alias([
@@ -67,6 +110,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // PRD 8.8 — error tracking. Inert until SENTRY_LARAVEL_DSN names the university-approved
+        // instance; personal data is not sent (config/sentry.php `send_default_pii` false).
+        Sentry\Laravel\Integration::handles($exceptions);
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
@@ -95,6 +142,23 @@ return Application::configure(basePath: dirname(__DIR__))
             app()->setLocale(SetLocale::resolveFor($request));
         });
 
+        /*
+         * What the caller asked for, not what the URL looks like.
+         *
+         * Laravel's default is `$request->is('api/*')`, which is right when /api is a separate stack
+         * for machines. Here it is not: /api/v1 runs on the `web` stack with the session and CSRF
+         * (see withRouting above) precisely so the screens can post to it, and every Phase 7 dialog
+         * does. Under the default, a failed dialog submission answered 422 with a JSON body — the
+         * browser showed the JSON, the form never came back, and `$errors` was never populated, so
+         * every inline error binding in those dialogs was unreachable.
+         *
+         * `expectsJson()` is true for an API client (it sends `Accept: application/json`) and false
+         * for a form post, which is the distinction that was actually meant. The explicit 404, 403
+         * and 409 handlers below keep their own `is('api/*')` checks, so a bare API call still gets
+         * a JSON refusal rather than an HTML page.
+         */
+        $exceptions->shouldRenderJsonWhen(fn (Request $request): bool => $request->expectsJson());
+
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
             if (! ($request->is('api/*') || $request->expectsJson())) {
                 return null;
@@ -109,5 +173,27 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return response()->json(['message' => __('authorization.refusal.forbidden_title')], 403);
+        });
+
+        /*
+         * A 409 is a business refusal, so a browser gets it back on the form it came from.
+         *
+         * The academic actions answer 409 for the states a person can actually reach — already
+         * withdrawn, a term that does not exist yet, a transition the state machine forbids. For an
+         * API client the status is the answer. For the dialogs, which post as ordinary forms, an
+         * unhandled 409 renders the generic error page: the person loses the screen they were
+         * working in and is told nothing about the one thing that went wrong.
+         *
+         * Flashed into the default error bag so the dialog shows it the same way it shows a
+         * validation failure, because to the person at the keyboard it is the same kind of event.
+         */
+        $exceptions->render(function (ConflictHttpException $e, Request $request) {
+            if ($request->is('api/*') && $request->expectsJson()) {
+                return null;
+            }
+
+            return back()
+                ->withInput()
+                ->withErrors(['conflict' => $e->getMessage() ?: __('common.errors.generic')]);
         });
     })->create();

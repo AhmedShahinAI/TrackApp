@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-/* T099 — the English half of the shared wording. Key for key with lang/ar/common.php. */
-
 return [
     'actions' => [
         'save' => 'Save',
@@ -26,8 +24,8 @@ return [
         'logout' => 'Sign out',
         'dismiss' => 'Dismiss',
         'more' => 'More',
+        'clear' => 'Clear filters',
     ],
-
     'labels' => [
         'required' => 'Required',
         'optional' => 'Optional',
@@ -39,22 +37,27 @@ return [
         'results' => 'results',
         'page' => 'Page',
         'lastLogin' => 'Last sign-in',
-        'never' => 'Never signed in',
         'language' => 'Language',
         'profile' => 'Profile',
         'notifications' => 'Notifications',
         'help' => 'Help',
         'menu' => 'Menu',
         'skipToContent' => 'Skip to content',
+        'actions' => 'Actions',
     ],
-
+    'pagination' => [
+        'label' => 'Pages',
+        'summary' => 'Showing :from–:to of :total',
+        'previous' => 'Previous',
+        'next' => 'Next',
+        'page' => 'Page :page',
+    ],
     'empty' => [
         'title' => 'Nothing here yet',
         'message' => 'No records have been added.',
         'noResults' => 'No matches',
         'noResultsMessage' => 'Try different search terms, or clear some filters.',
     ],
-
     'errors' => [
         'forbidden' => 'You do not have access',
         'forbiddenMessage' => 'This page needs a permission your account does not hold. Ask an administrator if you need it.',
@@ -63,13 +66,17 @@ return [
         'generic' => 'That did not go through',
         'genericMessage' => 'Try again. If it keeps happening, tell support.',
     ],
-
     'queue' => [
         'waiting' => 'Queued',
         'waitingMessage' => 'Background processing is unavailable right now. The job is saved and you will be told when it finishes.',
     ],
-
     'validation' => [
         'inSetting' => 'That value is not one of the permitted options.',
+    ],
+    'fields' => [
+        'reason' => 'Reason',
+    ],
+    'messages' => [
+        'saved' => 'Your changes were saved.',
     ],
 ];
