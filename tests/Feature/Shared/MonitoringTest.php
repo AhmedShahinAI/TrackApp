@@ -48,6 +48,9 @@ beforeEach(function (): void {
     Log::forgetChannel('alerts');
     Cache::flush();
 
+    // Seeded, as a deployment is: unreadable settings are an alert of their own (support retention).
+    (new Database\Seeders\SettingSeeder)->run();
+
     Route::get('/__ok', fn () => 'ok');
     Route::get('/__boom', fn () => abort(500));
 });
@@ -135,4 +138,76 @@ test('the checks are scheduled every five minutes', function (): void {
 
     expect($events)->toHaveCount(1)
         ->and($events->first()->expression)->toBe('*/5 * * * *');
+});
+
+test('a support request kept past its retention says the sweep has stopped', function (): void {
+    $world = supportStaffWorld();
+    $late = supportRequestFor($world['branch']);
+    $late->forceFill(['created_at' => now()->subMonths(24)->subDays(3)])->saveQuietly();
+
+    $this->artisan('track:monitor')->expectsOutputToContain('support retention: OVERDUE')->assertSuccessful();
+
+    expect(alertsRaised())->toContain('support_retention_overdue');
+});
+
+test('requests inside their retention, or within the grace days, raise nothing', function (): void {
+    $world = supportStaffWorld();
+    $graced = supportRequestFor($world['branch']);
+    $graced->forceFill(['created_at' => now()->subMonths(24)->subDay()])->saveQuietly();
+
+    $this->artisan('track:monitor')->expectsOutputToContain('support retention: on time')->assertSuccessful();
+
+    expect(alertsRaised())->not->toContain('support_retention_overdue');
+});
+
+// ---- SEC-082 (security plan G-20): the security conditions ----
+
+function auditRows(string $action, int $count, ?int $userId = null): void
+{
+    for ($i = 0; $i < $count; $i++) {
+        DB::table('audit_logs')->insert(['user_id' => $userId, 'action' => $action, 'ip_address' => '10.0.0.1', 'created_at' => now()]);
+    }
+}
+
+test('any account lock alerts at once', function (): void {
+    auditRows('auth.login_blocked', 1);
+
+    $this->artisan('track:monitor')->assertSuccessful();
+
+    expect(alertsRaised())->toContain('login_blocked');
+});
+
+test('failed sign-ins alert past the level, not below it', function (): void {
+    config(['monitoring.login_failures' => 10]);
+
+    auditRows('auth.login_failed', 10);
+    $this->artisan('track:monitor')->assertSuccessful();
+    expect(alertsRaised())->not->toContain('login_failures');
+
+    auditRows('auth.login_failed', 1);
+    $this->artisan('track:monitor')->assertSuccessful();
+    expect(alertsRaised())->toContain('login_failures');
+});
+
+test('one account refused unusually often alerts, with its id and nothing else about it', function (): void {
+    config(['monitoring.denied_per_user' => 5]);
+    $walker = aUser('INSTRUCTOR');
+    auditRows('access.denied', 6, $walker->id);
+    auditRows('access.denied', 3, aUser('INSTRUCTOR')->id);
+
+    $this->artisan('track:monitor')->assertSuccessful();
+
+    expect(alertsRaised())->toContain('access_denied_spike');
+
+    $line = collect(explode("\n", (string) file_get_contents(alertLogFile())))->first(fn ($l) => str_contains($l, 'access_denied_spike'));
+    expect(json_decode((string) $line, true)['context']['user_ids'])->toBe([$walker->id])
+        ->and((string) $line)->not->toContain($walker->email);
+});
+
+test('old security events outside the window raise nothing', function (): void {
+    DB::table('audit_logs')->insert(['action' => 'auth.login_blocked', 'ip_address' => '10.0.0.1', 'created_at' => now()->subHour()]);
+
+    $this->artisan('track:monitor')->assertSuccessful();
+
+    expect(alertsRaised())->not->toContain('login_blocked');
 });

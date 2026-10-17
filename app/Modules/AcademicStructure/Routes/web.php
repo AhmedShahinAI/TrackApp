@@ -7,7 +7,7 @@ use App\Modules\AcademicStructure\Http\Controllers\CourseController;
 use App\Modules\AcademicStructure\Http\Controllers\ProgramController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
+Route::middleware(['auth', 'active', 'session.auth', 'password.own'])->group(function (): void {
     Route::get('/branches', [BranchController::class, 'index'])
         ->middleware('can:branch.view')
         ->name('branches.index');

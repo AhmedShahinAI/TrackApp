@@ -61,6 +61,17 @@ final class ImportJobPolicy
         }
 
         /*
+         * SEC-055 (G-22 review). The central and registrar modes resolve sections in ANY branch of
+         * the organization and write enrollments into them. That was safe only because the seeded
+         * roles give these permissions to the Super Admin alone; a role added later (FR-020: roles are
+         * data) holding them without scope.bypass_all would have imported into branches it cannot
+         * see. So the modes that cross branches require the bypass itself, not just the permission.
+         */
+        if (in_array($job->mode, ['central', 'registrar'], true) && ! $actor->can('scope.bypass_all')) {
+            return false;
+        }
+
+        /*
          * A section job is driven only while its owner may still import into that section.
          *
          * Ownership alone let every later step through after the section was reassigned or the grant

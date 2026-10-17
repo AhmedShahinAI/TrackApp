@@ -26,7 +26,7 @@ test('a Super Admin creates an instructor with both names and a role', function 
             'name_ar' => 'د. فيصل العتيبي',
             'name_en' => 'Dr. Faisal Al-Otaibi',
             'email' => 'f.alotaibi@mu.edu.sa',
-            'password' => 'Track2026',
+            'password' => 'Track2026-Own',
             'role' => 'INSTRUCTOR',
         ])
         ->assertCreated()
@@ -46,8 +46,8 @@ test('a Super Admin creates an instructor with both names and a role', function 
      * of Argon2id per fixture user. Asserting the stored algorithm would therefore assert the test
      * override rather than what ships.
      */
-    expect(Hash::check('Track2026', $created->password))->toBeTrue()
-        ->and($created->password)->not->toBe('Track2026');
+    expect(Hash::check('Track2026-Own', $created->password))->toBeTrue()
+        ->and($created->password)->not->toBe('Track2026-Own');
 
     // What ships, read from the shipped configuration rather than from the running one: config()
     // resolves HASH_DRIVER, which phpunit.xml has already overridden to bcrypt.
@@ -61,7 +61,7 @@ test('the response never contains a password field', function (): void {
         'name_ar' => 'اسم',
         'name_en' => 'Name',
         'email' => 'new@mu.edu.sa',
-        'password' => 'Track2026',
+        'password' => 'Track2026-Own',
         'role' => 'INSTRUCTOR',
     ]);
 
@@ -69,7 +69,7 @@ test('the response never contains a password field', function (): void {
     $body = $response->getContent();
 
     expect($body)->not->toContain('password')
-        ->and($body)->not->toContain('Track2026')
+        ->and($body)->not->toContain('Track2026-Own')
         ->and($body)->not->toContain('argon2');
 });
 
@@ -80,7 +80,7 @@ test('the audit payload excludes the password entirely', function (): void {
         'name_ar' => 'اسم',
         'name_en' => 'Name',
         'email' => 'audited@mu.edu.sa',
-        'password' => 'Track2026',
+        'password' => 'Track2026-Own',
         'role' => 'INSTRUCTOR',
     ]);
 
@@ -96,7 +96,7 @@ test('the audit payload excludes the password entirely', function (): void {
     // The allowlist in User::auditedAttributes() is what guarantees this, not the action
     // remembering to strip it — so this would fail if `password` were ever added to the list.
     expect($payload)->not->toContain('password')
-        ->and($payload)->not->toContain('Track2026')
+        ->and($payload)->not->toContain('Track2026-Own')
         ->and($payload)->not->toContain('argon2')
         // The non-sensitive attributes are there, so the entry is not simply empty.
         ->and($payload)->toContain('audited@mu.edu.sa');
@@ -111,7 +111,7 @@ test('a coordinator requires at least one branch', function (): void {
             'name_ar' => 'منسق',
             'name_en' => 'Coordinator',
             'email' => 'coord@mu.edu.sa',
-            'password' => 'Track2026',
+            'password' => 'Track2026-Own',
             'role' => 'BRANCH_COORDINATOR',
         ])
         ->assertStatus(422)
@@ -129,7 +129,7 @@ test('a coordinator created with branches gets them attached', function (): void
             'name_ar' => 'منسق',
             'name_en' => 'Coordinator',
             'email' => 'coord@mu.edu.sa',
-            'password' => 'Track2026',
+            'password' => 'Track2026-Own',
             'role' => 'BRANCH_COORDINATOR',
             'branch_ids' => [$branch->id],
         ])
@@ -150,7 +150,7 @@ test('an instructor needs no branches at creation', function (): void {
             'name_ar' => 'مدرس',
             'name_en' => 'Instructor',
             'email' => 'inst@mu.edu.sa',
-            'password' => 'Track2026',
+            'password' => 'Track2026-Own',
             'role' => 'INSTRUCTOR',
         ])
         ->assertCreated();
@@ -165,7 +165,7 @@ test('a duplicate email is refused', function (): void {
             'name_ar' => 'اسم',
             'name_en' => 'Name',
             'email' => 'taken@mu.edu.sa',
-            'password' => 'Track2026',
+            'password' => 'Track2026-Own',
             'role' => 'INSTRUCTOR',
         ])
         ->assertStatus(422)
@@ -192,7 +192,7 @@ test('a duplicate email is refused even against a soft-deleted account', functio
             'name_ar' => 'اسم',
             'name_en' => 'Name',
             'email' => 'departed@mu.edu.sa',
-            'password' => 'Track2026',
+            'password' => 'Track2026-Own',
             'role' => 'INSTRUCTOR',
         ])
         ->assertStatus(422)
@@ -210,7 +210,7 @@ test('a duplicate email is refused regardless of capitalisation', function (): v
             'name_ar' => 'اسم',
             'name_en' => 'Name',
             'email' => 'TAKEN@MU.EDU.SA',
-            'password' => 'Track2026',
+            'password' => 'Track2026-Own',
             'role' => 'INSTRUCTOR',
         ])
         ->assertStatus(422)
@@ -241,7 +241,7 @@ test('the locale defaults from the setting', function (): void {
         'name_ar' => 'اسم',
         'name_en' => 'Name',
         'email' => 'defaulted@mu.edu.sa',
-        'password' => 'Track2026',
+        'password' => 'Track2026-Own',
         'role' => 'INSTRUCTOR',
     ])->assertCreated()->assertJsonPath('data.locale', 'ar');
 });
@@ -254,7 +254,7 @@ test('a caller without user.create is refused', function (): void {
             'name_ar' => 'اسم',
             'name_en' => 'Name',
             'email' => 'nope@mu.edu.sa',
-            'password' => 'Track2026',
+            'password' => 'Track2026-Own',
             'role' => 'INSTRUCTOR',
         ])
         ->assertForbidden();

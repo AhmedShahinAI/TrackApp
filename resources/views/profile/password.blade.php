@@ -21,6 +21,11 @@
     </x-track-page-header>
 
     <div style="max-width: 520px">
+        {{-- SEC-047 (D-3): why every other page brought them here. --}}
+        @if (auth()->user()?->password_change_required)
+            <x-track-alert tone="warning" class="mb-4">{{ __('auth.password_change.required') }}</x-track-alert>
+        @endif
+
         <x-track-card>
             <form method="POST" action="{{ route('profile.password.update') }}" novalidate
                   x-data="{ submitting: false }" x-on:submit="submitting = true">
@@ -45,7 +50,7 @@
                         :hint="__('auth.password_change.rule')"
                         autocomplete="new-password"
                         :required="true"
-                        minlength="8"
+                        minlength="{{ \App\Modules\Shared\Rules\PasswordPolicy::MIN_LENGTH }}"
                     />
 
                     <x-track-input

@@ -84,8 +84,12 @@ function hasAuthorizationGate(array $middleware): bool
 
 /**
  * Whether the action behind a route authorizes in its own body — `$this->authorize(...)`, a
- * `Gate::authorize`, or a form request's `authorize()`. A controller that does this is correct; it
+ * `Gate::authorize`, a `denyAs404`, a controller helper named authorize…(), or a typed form request
+ * (whose `authorize()` Laravel runs before the action). A controller that does this is correct; it
  * simply cannot be seen from the route definition.
+ *
+ * SEC-053 (G-09): judged on the route's own METHOD, not its file. A file-wide match let an
+ * unprotected action pass because a different action in the same controller authorized.
  */
 function actionAuthorizesInternally(RouteDefinition $route): bool
 {
@@ -97,21 +101,110 @@ function actionAuthorizesInternally(RouteDefinition $route): bool
 
     [$class, $method] = explode('@', $action, 2);
 
-    if (! class_exists($class)) {
+    if (! class_exists($class) || ! method_exists($class, $method)) {
         return false;
     }
 
-    $file = (new ReflectionClass($class))->getFileName();
+    $reflection = new ReflectionMethod($class, $method);
+
+    foreach ($reflection->getParameters() as $parameter) {
+        $type = $parameter->getType();
+
+        if ($type instanceof ReflectionNamedType && ! $type->isBuiltin()
+            && is_subclass_of($type->getName(), Illuminate\Foundation\Http\FormRequest::class)) {
+            return true;
+        }
+    }
+
+    $file = $reflection->getFileName();
 
     if ($file === false) {
         return false;
     }
 
-    $contents = (string) file_get_contents($file);
+    $lines = file($file) ?: [];
+    $body = implode('', array_slice($lines, $reflection->getStartLine() - 1, $reflection->getEndLine() - $reflection->getStartLine() + 1));
 
-    return preg_match('/\b(authorize|authorizeForUser|denyAs404)\s*\(/', $contents) === 1
-        && str_contains($contents, 'function '.$method);
+    return preg_match('/\b(authorize\w*|denyAs404)\s*\(/', $body) === 1;
 }
+
+/**
+ * SEC-053 (G-09) — authenticated web pages whose rule is "you are you", by name, with the reason.
+ *
+ * The web stack was outside this gate entirely; a page added without `can:` was invisible to it.
+ * These are the pages that legitimately have no permission: each shows or changes only the caller's
+ * own account, or is the page every signed-in person lands on.
+ *
+ * @var array<string, string>
+ */
+const SELF_SCOPED_WEB_ROUTES = [
+    'home' => 'the landing page; its panels are filtered by permission and scope inside',
+    'profile' => 'the caller\'s own profile',
+    'profile.preferences' => 'the caller\'s own preferences',
+    'profile.password.edit' => 'the caller\'s own password form',
+    'profile.password.update' => 'the caller\'s own password change (current password required)',
+    'logout' => 'ends the caller\'s own session',
+];
+
+/**
+ * Authenticated web routes: carry `auth`, and are not the API (gated above) or the dev gallery.
+ *
+ * @return list<RouteDefinition>
+ */
+function authenticatedWebRoutes(): array
+{
+    $routes = [];
+
+    foreach (Route::getRoutes()->getRoutes() as $route) {
+        if (str_starts_with($route->uri(), 'api/')) {
+            continue;
+        }
+
+        if (in_array('auth', $route->gatherMiddleware(), true)) {
+            $routes[] = $route;
+        }
+    }
+
+    return $routes;
+}
+
+test('every authenticated web route carries an authorization check (SEC-053)', function (): void {
+    $offenders = [];
+
+    foreach (authenticatedWebRoutes() as $route) {
+        if (array_key_exists((string) $route->getName(), SELF_SCOPED_WEB_ROUTES)) {
+            continue;
+        }
+
+        /** @var list<string> $middleware */
+        $middleware = $route->gatherMiddleware();
+
+        if (hasAuthorizationGate($middleware) || actionAuthorizesInternally($route)) {
+            continue;
+        }
+
+        $offenders[] = implode('|', $route->methods()).' '.$route->uri().' ('.($route->getName() ?? 'unnamed').')';
+    }
+
+    expect($offenders)->toBe([]);
+});
+
+test('the web gate fires on an unprotected page, and every web exception exists (SEC-053, SEC-054)', function (): void {
+    // The planted route SEC-054 asks for: authenticated, no `can:`, a closure. It must be caught.
+    Route::middleware(['web', 'auth'])->get('__web_architecture_probe', fn (): string => 'leak')->name('__web_probe');
+    Route::getRoutes()->refreshNameLookups();
+
+    $caught = collect(authenticatedWebRoutes())->first(fn ($route) => $route->uri() === '__web_architecture_probe');
+
+    expect($caught)->not->toBeNull()
+        ->and(hasAuthorizationGate($caught->gatherMiddleware()))->toBeFalse()
+        ->and(actionAuthorizesInternally($caught))->toBeFalse()
+        ->and(array_key_exists('__web_probe', SELF_SCOPED_WEB_ROUTES))->toBeFalse();
+
+    $names = collect(Route::getRoutes()->getRoutes())->map(fn ($route) => $route->getName())->filter()->all();
+
+    expect(array_values(array_diff(array_keys(SELF_SCOPED_WEB_ROUTES), $names)))->toBe([]);
+});
 
 test('every api/v1 route carries an authorization check', function (): void {
     $offenders = [];

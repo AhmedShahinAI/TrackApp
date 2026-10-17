@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
+Route::middleware(['auth', 'active', 'session.auth', 'password.own'])->group(function (): void {
     Route::get('/users', [UserController::class, 'index'])
         ->middleware('can:user.view')
         ->name('users.index');

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Modules\Settings\Settings;
 use App\Modules\Shared\Health\QueueHeartbeat;
 use App\Modules\Shared\Monitoring\Alerts;
 use App\Modules\Shared\Navigation\Navigation;
+use App\Modules\Support\Http\SupportLimitReached;
+use App\Modules\Support\Services\SupportLimits;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Http\Request;
@@ -18,6 +21,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\Response;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->refuseUnsafeProductionConfiguration();
         $this->configureRateLimiting();
         $this->registerDesignSystemComponents();
         $this->usePaginationView();
@@ -59,30 +65,38 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(120)
             ->by($request->user()?->getAuthIdentifier() ?? $request->ip() ?? 'unknown'));
 
-        // Constitution security floor: "login 5 attempts/minute per email and IP".
-        //
-        // Both axes in one key, which is what the floor specifies: it stops a single address
-        // grinding one account, and it stops one account being ground from one address. A
-        // distributed attack on one account is handled by the account lockout in FR-010, not here.
-        RateLimiter::for('login', function (Request $request): Limit {
-            $email = (string) $request->input('email', '');
-
-            return Limit::perMinute(5)
-                ->by(mb_strtolower(trim($email)).'|'.($request->ip() ?? 'unknown'));
-        });
+        // The sign-in limits (constitution floor: 5 a minute per email and IP, plus the per-account
+        // limit of SEC-041) live in LoginController, not here. A named `login` limiter was defined
+        // here once and never attached to a route, which read as protection that did not exist; it
+        // was removed (SEC-043) so there is one place to look.
 
         /*
-         * Amendment 2 (T355, review) — the floor under the whole public surface: every route in
-         * routes/public.php is on the `public` group, which carries this. Per IP, because there is
-         * no user to key on.
+         * Amendment 2 (T355, Phase 19 review) — the floor under the whole public surface: every
+         * route in routes/public.php is on the `public` group, which carries this. Per IP, because
+         * there is no user to key on, and read from the `public_throttle` setting (constitution IV).
          *
          * A ceiling against page-level flooding only. The contractual limits on submission — per IP
-         * and per hashed University ID, from settings (R-09, constitution "Public endpoints") — are
-         * the support endpoints' own and come with them in Phase 21; this one exists so that no
+         * and per hashed University ID (R-09) — are SupportLimits'; this one exists so that no
          * public route, however added, is ever unthrottled.
+         *
+         * Its refusal is SupportLimitReached, the one refusal of the public surface (FR-130), not
+         * Laravel's: that would be a second page shape with X-RateLimit-Limit and -Remaining headers,
+         * telling the caller which limiter fired and how close it is to the next. The headers
+         * Laravel offers the callback are dropped for the same reason; only Retry-After is sent.
          */
-        RateLimiter::for('public', fn (Request $request): Limit => Limit::perMinute(60)
-            ->by('public|'.($request->ip() ?? 'unknown')));
+        RateLimiter::for('public', function (Request $request): Limit {
+            $limit = Settings::limit(Settings::PUBLIC_THROTTLE);
+
+            return Limit::perMinutes($limit['decay_minutes'], $limit['max_attempts'])
+                ->by('public|'.SupportLimits::addressBucket($request->ip()))
+                // The whole window, not the seconds left on this caller's counter (Phase 20 review):
+                // a countdown is a readout of the counter. The floor is per address and says nothing
+                // about any identifier, so it may differ from the submission limits' 3600 — those two
+                // must not differ from each other, and do not (SupportLimits::retryAfterSeconds).
+                ->response(fn (Request $request): Response => (new SupportLimitReached(
+                    $limit['decay_minutes'] * 60,
+                ))->render($request));
+        });
     }
 
     /**
@@ -172,6 +186,33 @@ class AppServiceProvider extends ServiceProvider
      *
      * Only connection and driver names are added. Nothing here forwards a credential.
      */
+    /**
+     * SEC-073 (security plan G-12) — a production or staging host will not run with a development
+     * configuration.
+     *
+     * .env.example is the developer file (debug on, debug logging), and copying it to a server is the
+     * easy mistake: stack traces to every visitor, every query binding in the logs, the session cookie
+     * sent over plain HTTP. Each of these is one line, so the cheapest control is to refuse to start.
+     * The failure is loud on purpose — a deploy that boots with debug on is worse than one that does
+     * not boot. .env.production.example carries the values that pass.
+     */
+    private function refuseUnsafeProductionConfiguration(): void
+    {
+        if (! $this->app->environment(['production', 'staging'])) {
+            return;
+        }
+
+        $problems = array_keys(array_filter([
+            'APP_DEBUG must be false' => (bool) config('app.debug'),
+            'SESSION_SECURE_COOKIE must be true' => ! (bool) config('session.secure'),
+            'LOG_LEVEL must not be debug' => config('logging.channels.json.level') === 'debug',
+        ]));
+
+        if ($problems !== []) {
+            throw new RuntimeException('Unsafe configuration for '.$this->app->environment().': '.implode('; ', $problems).'. See .env.production.example.');
+        }
+    }
+
     private function allowServeCommandOverrides(): void
     {
         if (! class_exists(ServeCommand::class)) {

@@ -11,10 +11,14 @@ use App\Models\Organization;
 use App\Models\Program;
 use App\Models\Section;
 use App\Models\SectionAccessGrant;
+use App\Models\SectionApprovalHistory;
 use App\Models\SectionEnrollment;
 use App\Models\SectionInstructorHistory;
 use App\Models\Student;
+use App\Models\SupportRequest;
+use App\Models\SupportResponse;
 use App\Models\User;
+use App\Modules\Support\Services\ReferenceGenerator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -77,25 +81,25 @@ class UiFixtureSeeder extends Seeder
      * @var list<array{string, string, string}>
      */
     private const REGISTRAR_ROWS = [
-        ['1', '442104959', 'سعود بن محمد بن ابراهيم الشدوخي'],
-        ['2', '462103556', 'علي بن ابراهيم بن علي حدادي'],
-        ['3', '462109105', 'عبدالعزيز بن عبدالرحمن بن عبدالعزيز الجويعي'],
-        ['4', '462109230', 'يونس بن علي بن محمد حدادي'],
-        ['5', '462109232', 'فهد بن سلطان بن ماضي العتيبي'],
-        ['6', '471103890', 'عبدالمجيد بن محمد بن عبدالله الراشد'],
-        ['7', '471104932', 'عبدالعزيز بن محمد بن سالم البديري المطيري'],
-        ['8', '471105041', 'ثامر بن ابراهيم بن حمد اللهيب'],
-        ['9', '471105043', 'عبدالسلام بن فهد بن حمود السبيعي'],
-        ['10', '471105048', 'عبدالرحمن بن عبدالله بن ضميان السبيعي العنزي'],
-        ['11', '471105050', 'مازن بن بشير بن نافع العنزي'],
-        ['12', '471105056', 'ريان بن جلوي بن مسفر المطيري'],
-        ['13', '471105058', 'تركي بن سلمان بن فيصل العتيبي'],
-        ['14', '471105060', 'بدر بن فهد بن سليمان السبيعي العنزي'],
-        ['15', '471105061', 'سلمان بن بدر بن محمد الشثيلي المطيري'],
-        ['16', '471105064', 'عبدالعزيز بن مطلق بن حمد العيباني المطيري'],
-        ['17', '471105067', 'فهد بن منيور بن قريزح الضبيطي المطيري'],
-        ['18', '471105068', 'فارس بن مرزوق بن مقبل البديرى المطيرى'],
-        ['19', '471105069', 'عبدالعزيز بن حمد بن عبدالعزيز الجوف'],
+        ['1', '999000001', 'باسل أنور لطفي راشد جابر اليامي'],
+        ['2', '999000002', 'فارس نصار نصار هلال هلال القرني'],
+        ['3', '999000003', 'مازن راشد مراد نصار فهمي البارقي'],
+        ['4', '999000004', 'عادل راشد راشد صابر عاطف الهذلي'],
+        ['5', '999000005', 'مازن حمدان أنور عاطف راشد الوادعي'],
+        ['6', '999000006', 'لؤي ثامر غازي عاطف فهمي القرني'],
+        ['7', '999000007', 'غسان فهمي راشد شاكر ضياء عاطف الكثيري'],
+        ['8', '999000008', 'شادي عاطف قاسم ضياء غازي البارقي'],
+        ['9', '999000009', 'رائد وائل راشد وائل غازي النجدي'],
+        ['10', '999000010', 'شادي بدر ضياء ضياء ضياء راشد الفيفي'],
+        ['11', '999000011', 'طارق لطفي ثامر حمدان قاسم الوادعي'],
+        ['12', '999000012', 'جمال مراد مراد غازي حمدان البارقي'],
+        ['13', '999000013', 'وليد فهمي راشد عاطف ثامر اليامي'],
+        ['14', '999000014', 'رائد بدر سامي ياسر مراد حمدان الصاعدي'],
+        ['15', '999000015', 'شادي ثامر هلال ثامر راشد لطفي المالكي'],
+        ['16', '999000016', 'فارس ثامر جابر شاكر ياسر ضياء الوادعي'],
+        ['17', '999000017', 'سالم جابر سامي جابر أنور وائل الحميدي'],
+        ['18', '999000018', 'فارس لطفي لطفي ضياء شاكر نصار الكثيري'],
+        ['19', '999000019', 'غسان غازي فهمي أنور لطفي اليامي'],
     ];
 
     public function run(): void
@@ -127,7 +131,52 @@ class UiFixtureSeeder extends Seeder
             $this->seedStudentsAndEnrollments();
             $this->seedAuditEntries();
             $this->seedImports();
+            $this->seedSupportRequests();
         });
+    }
+
+    /**
+     * Phase 21 (T410) — three support requests for the staff queue and detail baselines: one waiting,
+     * one being handled with a reply, one rejected with its reason. Students 100–102 are enrolled in
+     * the current term (seedStudentsAndEnrollments). References are fixed, with valid check
+     * characters, so a screen can be addressed by one: FX00000001…3.
+     *
+     * The waiting time on these is relative to "now", so it changes as the calendar does; the visual
+     * spec masks it rather than pinning a duration that is only true for a day.
+     */
+    private function seedSupportRequests(): void
+    {
+        $requests = [
+            [1, 100, 'incorrect_data', 'new', null, null, '2026-09-28 09:15:00', 'اسمي في الشعبة مكتوب بشكل خاطئ.', '0551234567'],
+            [2, 101, 'section_problem', 'in_progress', 1, null, '2026-09-27 11:40:00', 'لا تظهر شعبتي في الجدول الدراسي.', null],
+            [3, 102, 'general_enquiry', 'rejected', 1, 'يُحدَّد جدولك الدراسي من عمادة القبول والتسجيل.', '2026-09-25 08:05:00', 'أريد تغيير وقت المحاضرة.', null],
+        ];
+
+        foreach ($requests as [$id, $studentId, $category, $status, $assignee, $reason, $at, $description, $contact]) {
+            $body = 'FX'.str_pad((string) $id, 8, '0', STR_PAD_LEFT);
+
+            SupportRequest::query()->withoutGlobalScopes()->firstOrNew(['id' => $id])->forceFill([
+                'reference' => $body.ReferenceGenerator::checkCharacter($body),
+                'student_id' => $studentId,
+                'term_id' => AcademicTerm::query()->where('is_current', true)->value('id'),
+                'category' => $category,
+                'description' => $description,
+                'contact' => $contact,
+                'status' => $status,
+                'rejection_reason' => $reason,
+                'assigned_to' => $assignee,
+                'submitted_ip' => '10.20.30.'.$id,
+                'created_at' => $at,
+                'updated_at' => $at,
+            ])->save();
+        }
+
+        SupportResponse::query()->firstOrNew(['id' => 1])->forceFill([
+            'support_request_id' => 2,
+            'user_id' => 1,
+            'body' => 'نراجع الأمر مع منسق الفرع وسنعود إليك قريبًا.',
+            'created_at' => '2026-09-27 13:00:00',
+        ])->save();
     }
 
     private function organizationId(): int
@@ -387,6 +436,58 @@ class UiFixtureSeeder extends Seeder
                 'created_by' => 1,
                 'requires_approval' => false,
             ])->saveQuietly();
+        }
+
+        $this->seedApprovalSections();
+    }
+
+    /**
+     * T486 — Amendment 4's two states a screen must show: section 20 waits for a decision, and section
+     * 21 was returned with a reason. Both are instructor 5's requests (r.alanazi, the Arabic instructor),
+     * in branches 1 and 2, which coordinators 4 and 9 both hold, so each locale's coordinator has one to
+     * decide. The pairs of course and programme are ones sections 11 and 16 already use.
+     */
+    private function seedApprovalSections(): void
+    {
+        // [id, branch, course, number, program, status, reviewer, reason]
+        $requests = [
+            [20, 1, 2, '401', 1, 'pending', null, null],
+            [21, 2, 4, '402', 4, 'returned', 4, 'الشعبة مكررة مع 142، يرجى تعديل الرقم.'],
+        ];
+
+        foreach ($requests as [$id, $branch, $course, $number, $program, $status, $reviewer, $reason]) {
+            $section = Section::query()->withoutGlobalScopes()->find($id) ?? new Section;
+
+            $section->forceFill([
+                'id' => $id,
+                'term_id' => 1,
+                'branch_id' => $branch,
+                'course_id' => $course,
+                'program_id' => $program,
+                'section_number' => $number,
+                'instructor_id' => 5,
+                'degree' => 'bachelor',
+                'activity' => 'lecture',
+                'status' => $status,
+                'created_by' => 5,
+                'requires_approval' => true,
+                'reviewed_by' => $reviewer,
+                'reviewed_at' => $reviewer === null ? null : '2026-09-24 10:00:00',
+                'review_reason' => $reason,
+                'created_at' => '2026-09-22 09:00:00',
+            ])->saveQuietly();
+
+            SectionApprovalHistory::query()->firstOrCreate(
+                ['section_id' => $id, 'from_status' => null, 'to_status' => 'pending'],
+                ['actor_id' => 5, 'reason' => null, 'created_at' => '2026-09-22 09:00:00'],
+            );
+
+            if ($status === 'returned') {
+                SectionApprovalHistory::query()->firstOrCreate(
+                    ['section_id' => $id, 'from_status' => 'pending', 'to_status' => 'returned'],
+                    ['actor_id' => $reviewer, 'reason' => $reason, 'created_at' => '2026-09-24 10:00:00'],
+                );
+            }
         }
     }
 

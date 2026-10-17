@@ -28,30 +28,42 @@
 <script type="text/babel" src="InitiativesScreen.jsx"></script>
 <script type="text/babel" src="DashboardParts.jsx"></script>
 <script type="text/babel" src="DashboardScreen.jsx"></script>
+<script type="text/babel" src="StudentScreens.jsx"></script>
+<script type="text/babel" src="SupportScreens.jsx"></script>
+<script type="text/babel" src="StudentsAdmin.jsx"></script>
+<script type="text/babel" src="SectionApproval.jsx"></script>
 <script type="text/babel">
-const PERM_ROUTE={users:'user.view',terms:'term.create',branches:'branch.create',courses:'course.create',audit:'audit.view',dashboard:'dashboard.view',programs:'program.create'};
+const PERM_ROUTE={users:'user.view',terms:'term.create',branches:'branch.create',courses:'course.create',audit:'audit.view',dashboard:'dashboard.view',programs:'program.create',studentsadmin:'student.view',support:'support.view',approvals:'section.approve'};
+const STUDENT_ROUTES=['myinitiatives','support','profile'];
 function App(){
-  const st=window.TRACK_STORE;const {Toast}=window.DS;
+  const st=useStore();const {Toast}=window.DS;
   const saved=JSON.parse(localStorage.getItem('track-kit-v2')||'{}');
   const [lang,setLangS]=React.useState(saved.lang||'ar');
   const [meId,setMeId]=React.useState(saved.me||null);
+  const [kind,setKind]=React.useState(saved.kind||'staff');
   const [route,setRoute]=React.useState(saved.route||{name:'home'});
   const [banner,setBanner]=React.useState(!!saved.banner);
   const [toast,setToast]=React.useState(null);
-  const me=meId&&st.user(meId);
+  const me=meId&&(kind==='student'?st.student(meId):st.user(meId));
   React.useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';},[lang]);
-  React.useEffect(()=>{localStorage.setItem('track-kit-v2',JSON.stringify({lang,me:meId,route,banner}))},[lang,meId,route,banner]);
+  React.useEffect(()=>{localStorage.setItem('track-kit-v2',JSON.stringify({lang,me:meId,kind,route,banner}))},[lang,meId,kind,route,banner]);
   const t=(k,p)=>window.TRACK_I18N.t(lang,k,p);
   const go=(name,param)=>{setRoute({name,param});const m=document.querySelector('main');if(m)m.scrollTop=0;};
   const notify=(title,message)=>{setToast({title,message});clearTimeout(window.__tt);window.__tt=setTimeout(()=>setToast(null),4000);};
   const setLang=l=>{setLangS(l);if(me){me.locale=l;}};
-  const login=u=>{const first=!u.firstLogin;if(first)u.firstLogin=st.now();u.lastLogin=st.now();st.audit(u.id,'auth.signed_in','user',u.id,null,null);setMeId(u.id);setBanner(first);setRoute({name:'home'});};
+  const login=(u,k)=>{const stu=k==='student';const first=!u.firstLogin;if(first)u.firstLogin=st.now();u.lastLogin=st.now();st.audit(stu?null:u.id,stu?'student.signed_in':'auth.signed_in',stu?'student':'user',u.id,null,stu?{uid:u.uid}:null);setKind(stu?'student':'staff');setMeId(u.id);setBanner(first&&!stu);setRoute({name:stu?'myinitiatives':'home'});};
   const logout=()=>{setMeId(null);setRoute({name:'home'});};
   const ctx={lang,setLang,t,me,route,go,logout,firstBanner:banner,dismissBanner:()=>setBanner(false)};
   let screen;
-  if(me){
+  if(me&&me.role==='STUDENT'){
+    const r=route.name==='home'?'myinitiatives':route.name;
+    if(!STUDENT_ROUTES.includes(r))screen=<RefusalScreen kind="403"/>;
+    else if(r==='myinitiatives')screen=<StudentHome/>;
+    else if(r==='support')screen=<SupportScreen key={JSON.stringify(route.param||null)} notify={notify}/>;
+    else screen=<ProfileScreen notify={notify}/>;
+  }else if(me){
     const r=route.name;const need=PERM_ROUTE[r];
-    if(need&&!st.can(me,need)){screen=<RefusalScreen kind="403"/>;}
+    if(need&&!st.can(me,need)||r==='myinitiatives'){screen=<RefusalScreen kind="403"/>;}
     else if(r==='home')screen=<HomeScreen/>;
     else if(r==='dashboard')screen=<DashboardScreen/>;
     else if(r==='profile')screen=<ProfileScreen notify={notify}/>;
@@ -65,14 +77,17 @@ function App(){
     else if(r==='sections'||r==='mysections')screen=<SectionsScreen key={r} notify={notify}/>;
     else if(r==='section')screen=<SectionDetail key={route.param} id={route.param} notify={notify}/>;
     else if(r==='students')screen=<SectionsScreen key={me.role==='INSTRUCTOR'?'mysections':'sections'} notify={notify}/>;
-    else if(r==='student')screen=<StudentDetail id={route.param}/>;
+    else if(r==='student')screen=<StudentDetail key={route.param} id={route.param} notify={notify}/>;
     else if(r==='imports')screen=<ImportsScreen/>;
     else if(r==='wizard')screen=<ImportWizard key={JSON.stringify(route.param)} params={route.param} notify={notify}/>;
     else if(r==='audit')screen=<AuditScreen notify={notify}/>;
+    else if(r==='studentsadmin')screen=<StudentsAdminScreen notify={notify}/>;
+    else if(r==='support')screen=<SupportScreen notify={notify}/>;
+    else if(r==='approvals')screen=<ApprovalsScreen notify={notify}/>;
     else screen=<RefusalScreen kind="404"/>;
   }
   return <AppCtx.Provider value={ctx}>
-    {me?<Shell>{screen}</Shell>:<LoginScreen onLogin={login}/>}
+    {me?(me.role==='STUDENT'&&me.mustChange?<ForcePasswordScreen/>:<Shell>{screen}</Shell>):<LoginScreen onLogin={login}/>}
     {toast&&<div style={{position:'fixed',bottom:24,insetInlineStart:24,zIndex:200}}><Toast title={toast.title} message={toast.message} onClose={()=>setToast(null)}/></div>}
   </AppCtx.Provider>;
 }

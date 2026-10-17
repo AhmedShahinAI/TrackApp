@@ -120,7 +120,8 @@ function registrarRows(int $count, string $status = 'منتظم', int $from = 1)
 }
 
 /**
- * The real reference file, copied so the upload's move cannot touch the original.
+ * The reference file (the registrar's real export, personal data redacted: SEC-012), copied so the
+ * upload's move cannot touch the original.
  */
 function realRegistrarFile(): UploadedFile
 {

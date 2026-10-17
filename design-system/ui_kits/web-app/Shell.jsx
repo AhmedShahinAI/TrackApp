@@ -38,9 +38,10 @@ function Panel({children,style}){return <section style={{background:'#fff',borde
 function useFakeLoad(dep){const [l,setL]=React.useState(true);React.useEffect(()=>{setL(true);const x=setTimeout(()=>setL(false),450);return()=>clearTimeout(x)},[dep]);return l;}
 
 const NAV={
- SUPER_ADMIN:[['home','house'],['dashboard','layout-dashboard'],['initiatives','lightbulb'],['users','user-cog'],['terms','calendar-range'],['branches','building-2'],['programs','graduation-cap'],['courses','book-open'],['sections','users'],['imports','file-up'],['audit','shield-check']],
- BRANCH_COORDINATOR:[['home','house'],['initiatives','lightbulb'],['sections','users'],['imports','file-up'],['audit','shield-check']],
- INSTRUCTOR:[['home','house'],['mysections','users'],['imports','file-up']],
+ SUPER_ADMIN:[['home','house'],['dashboard','layout-dashboard'],['initiatives','lightbulb'],['users','user-cog'],['studentsadmin','graduation-cap'],['terms','calendar-range'],['branches','building-2'],['programs','library'],['courses','book-open'],['sections','users'],['approvals','clipboard-check'],['imports','file-up'],['support','life-buoy'],['audit','shield-check']],
+ BRANCH_COORDINATOR:[['home','house'],['initiatives','lightbulb'],['sections','users'],['approvals','clipboard-check'],['studentsadmin','graduation-cap'],['imports','file-up'],['support','life-buoy'],['audit','shield-check']],
+ INSTRUCTOR:[['home','house'],['mysections','users'],['studentsadmin','graduation-cap'],['imports','file-up'],['support','life-buoy']],
+ STUDENT:[['myinitiatives','lightbulb'],['support','life-buoy']],
 };
 
 function LangSwitch(){
@@ -53,7 +54,7 @@ function LangSwitch(){
 function Shell({children}){
   const {Sidebar,Topbar,Icon}=window.DS;const {me,route,go,t,lang,logout}=useApp();
   const items=NAV[me.role].map(([id,icon])=>({id,icon,label:t('nav_'+id)}));
-  const base=route.name==='initiative'?'initiatives':route.name==='students'||route.name==='section'||route.name==='student'?(me.role==='INSTRUCTOR'?'mysections':'sections'):route.name==='wizard'?'imports':route.name;
+  const base=route.name==='initiative'?'initiatives':route.name==='students'||route.name==='section'?(me.role==='INSTRUCTOR'?'mysections':'sections'):route.name==='student'?'studentsadmin':route.name==='wizard'?'imports':route.name;
   return <div style={{display:'flex',height:'100vh',background:'var(--surface-page)'}}>
     <Sidebar items={items} active={base} onSelect={id=>go(id)} assetBase="../../assets/"
       footer={<button onClick={logout} style={{display:'flex',alignItems:'center',gap:12,height:42,padding:'0 14px',border:'none',borderRadius:8,background:'transparent',color:'rgba(255,255,255,.75)',font:'500 14px var(--font-sans)',cursor:'pointer'}}><Icon name="log-out" size={19}/>{t('logout')}</button>}/>

@@ -58,7 +58,7 @@ The `students` table carries `university_id`, `name_ar`, `name_en` and nothing e
 the registration unit's real export shows IDs that are structurally sequential within a cohort:
 
 ```
-471105041 · 471105043 · 471105048 · 471105050 · 471105056 · 471105058
+999000008 · 999000009 · 999000010 · 999000011 · 999000012 · 999000013
 ```
 
 Anyone holding one ID can guess dozens. "Enter your university ID, then choose a password" therefore

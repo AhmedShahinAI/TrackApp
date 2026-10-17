@@ -232,3 +232,59 @@ test('every request status has its own label in both languages, for the badge to
     expect(array_map(fn (SupportRequestStatus $s): string => $s->value, SupportRequestStatus::cases()))
         ->toBe(['new', 'in_progress', 'resolved', 'closed', 'rejected']);
 });
+
+// ── Phase 19 review ───────────────────────────────────────────────────────────────────────────────
+
+test('an Eloquent update or delete writes no audit entry of its own — the named actions do', function (): void {
+    $request = SupportRequest::factory()->create();
+    DB::table('audit_logs')->delete();
+
+    // What the retention sweep will clear: the old values must not be copied into a 5-year entry.
+    $request->forceFill(['status' => 'in_progress', 'student_id' => null, 'submitted_ip' => '0.0.0.0'])->save();
+    $request->delete();
+
+    expect(DB::table('audit_logs')->count())->toBe(0);
+});
+
+test('a request is never created without its student, its reference or its address', function (array $missing): void {
+    $attributes = SupportRequest::factory()->raw($missing);
+
+    expect(fn () => (new SupportRequest)->forceFill($attributes)->save())->toThrow(LogicException::class)
+        ->and(SupportRequest::query()->count())->toBe(0);
+})->with([
+    'no student' => [['student_id' => null]],
+    'no reference' => [['reference' => '']],
+    'no address' => [['submitted_ip' => null]],
+    'an empty address' => [['submitted_ip' => '']],
+]);
+
+test('a coordinator who also teaches still sees their branch\'s queue', function (): void {
+    $branch = Branch::factory()->create();
+    $request = supportRequestIn($branch);
+
+    $coordinator = aUser('BRANCH_COORDINATOR');
+    $coordinator->coordinatorBranches()->sync([$branch->id]);
+    Section::factory()->create(['branch_id' => $branch->id, 'instructor_id' => $coordinator->id]);
+
+    $this->actingAs($coordinator);
+
+    expect($coordinator->accessibleSectionIds())->not->toBe([])
+        ->and(SupportRequest::query()->pluck('id')->all())->toBe([$request->id]);
+});
+
+test('an enrollment in a section not yet approved grants no visibility', function (): void {
+    $branch = Branch::factory()->create();
+    $term = AcademicTerm::factory()->current()->create();
+    $student = Student::factory()->create();
+    SectionEnrollment::factory()->create([
+        'student_id' => $student->id,
+        'section_id' => Section::factory()->pending()->create(['branch_id' => $branch->id, 'term_id' => $term->id])->id,
+    ]);
+    SupportRequest::factory()->create(['student_id' => $student->id, 'term_id' => $term->id]);
+
+    $coordinator = aUser('BRANCH_COORDINATOR');
+    $coordinator->coordinatorBranches()->sync([$branch->id]);
+    $this->actingAs($coordinator);
+
+    expect(SupportRequest::query()->count())->toBe(0);
+});

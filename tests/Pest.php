@@ -166,7 +166,7 @@ function firstError(string $field): ?string
 function contractActionKeys(): array
 {
     return [
-        'auth.login', 'auth.logout', 'auth.login_failed', 'auth.login_blocked',
+        'auth.login', 'auth.logout', 'auth.login_failed', 'auth.login_blocked', 'auth.login_unblocked',
 
         'user.created', 'user.updated', 'user.deactivated', 'user.password_changed',
         'user.password_reset', 'user.roles_changed', 'user.branches_changed',
@@ -180,11 +180,16 @@ function contractActionKeys(): array
 
         'program.created', 'program.updated', 'program.deactivated', 'program.courses_changed',
 
-        'section.created', 'section.updated', 'section.instructor_changed',
+        'section.created', 'section.updated', 'section.instructor_changed', 'section.exported',
+
+        // Amendment 4 (data-model.md Group 8 "Audit actions"), Phase 27.
+        'section.submitted_for_approval', 'section.approved', 'section.returned', 'section.rejected',
+        'section.resubmitted',
 
         'student.created', 'student.updated', 'enrollment.created', 'enrollment.withdrawn',
 
         'import.uploaded', 'import.committed', 'import.resumed', 'import.error_report_downloaded',
+        'import.file_discarded',
 
         'audit.exported',
 
@@ -215,13 +220,6 @@ function actionsAwaitingTheirPhase(): array
         'branch.deactivated' => 'Phase 7 — US4',
         'section.instructor_changed' => 'Phase 7 — US4',
         'enrollment.withdrawn' => 'Phase 9 — US6, instructor rosters',
-
-        // Amendment 2. SupportRequest exists from Phase 19; nothing creates or changes one until these.
-        'support.request_created' => 'Phase 20 — US9, the public submission',
-        'support.responded' => 'Phase 21 — US10, staff answer requests',
-        'support.status_changed' => 'Phase 21 — US10',
-        'support.reassigned' => 'Phase 21 — US10',
-        'support.anonymised' => 'Phase 25 — the retention sweep',
     ];
 }
 
@@ -243,6 +241,12 @@ require_once __DIR__.'/Support/Registrar.php';
 // Phase 16 — course and staff files, and their walk.
 require_once __DIR__.'/Support/BulkImports.php';
 
+// Phase 20 — the public support form's world: settings, an enrolled student, a solved challenge.
+require_once __DIR__.'/Support/SupportPublic.php';
+
+// Phase 21 — the staff queue's world: a branch, its coordinator, an outsider, requests in it.
+require_once __DIR__.'/Support/SupportStaff.php';
+
 // US7's screen registry, shared by the localisation and UX sweeps.
 require_once __DIR__.'/Support/Screens.php';
 
@@ -251,3 +255,8 @@ require_once __DIR__.'/Support/EavSpike.php';
 
 // Phase 14's programme fixtures, shared by the Programs, Sections and Authorization suites.
 require_once __DIR__.'/Support/Programs.php';
+
+/*
+| Amendment 4 — the section approval world (Phase 27).
+*/
+require_once __DIR__.'/Support/SectionApproval.php';

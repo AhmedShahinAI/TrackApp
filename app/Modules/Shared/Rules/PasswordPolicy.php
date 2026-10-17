@@ -10,7 +10,11 @@ use Illuminate\Contracts\Validation\ValidationRule;
 /**
  * T115 — the password policy, as one rule object (FR-006).
  *
- * At least 8 characters, at least one letter, at least one digit.
+ * At least 12 characters, at least one letter, at least one digit.
+ *
+ * 12, not the PRD's original 8: the owner's decision D-2 (security plan SEC-046, 2026-10-17). With no
+ * second factor in v1, length is what the password has to carry. Existing passwords are unaffected
+ * until their next change; the rule applies wherever a password is set.
  *
  * One object rather than three copies of a regex, because three paths enforce it — create, change,
  * and reset — and the failure mode of duplication is silent: the reset path accepts a password the
@@ -22,7 +26,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
  */
 final class PasswordPolicy implements ValidationRule
 {
-    public const MIN_LENGTH = 8;
+    public const MIN_LENGTH = 12;
 
     /**
      * @param  Closure(string, ?string=): \Illuminate\Translation\PotentiallyTranslatedString  $fail

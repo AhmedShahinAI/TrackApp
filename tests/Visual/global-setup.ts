@@ -79,5 +79,19 @@ export default function globalSetup(): void {
     // T051 — the dataset every baseline renders against.
     artisan('db:seed', '--class=UiFixtureSeeder');
 
+    /*
+     * T388 — every Playwright project posts the support form from the same address (localhost), and
+     * the production defaults allow five submissions an hour per address and three per student. The
+     * confirmation and refusal screenshots need eight. Widened here, for this throwaway database only,
+     * through the Settings path so its cache is dropped with the change. The limits themselves are
+     * proven by tests/Feature/Support/Throttle, not by screenshots.
+     */
+    execFileSync('php', ['artisan', 'tinker', '--execute', [
+        "foreach (['support_throttle_ip', 'support_throttle_identifier', 'support_status_throttle_ip'] as $key) {",
+        "    App\\Models\\Setting::query()->where('key', $key)->update(['value' => json_encode(['max_attempts' => 1000, 'decay_minutes' => 60])]);",
+        '}',
+        'App\\Modules\\Settings\\Settings::forget();',
+    ].join(' ')], { env: ENV, stdio: 'pipe', encoding: 'utf8' });
+
     console.log(`  visual database prepared: ${DATABASE}`);
 }

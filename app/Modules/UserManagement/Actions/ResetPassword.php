@@ -32,7 +32,8 @@ final class ResetPassword extends TransactionalAction
         // The `hashed` cast applies on assignment, so the plaintext never reaches the database.
         // saveQuietly, because the trait's `updated` observer would otherwise write a second entry
         // for a column that is not in the audited allowlist anyway.
-        $user->forceFill(['password' => $password])->saveQuietly();
+        // SEC-047 (D-3): the reset password is the admin's, so its owner must replace it first.
+        $user->forceFill(['password' => $password, 'password_change_required' => true])->saveQuietly();
 
         $this->destroyAllSessionsFor($user);
 

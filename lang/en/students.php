@@ -5,6 +5,23 @@ declare(strict_types=1);
 return [
     'title' => 'Students',
     'subtitle' => 'Student records and their enrollments',
+
+    // T468 — v2's StudentsAdminScreen, without its sentence about student accounts (C-19).
+    'subtitle_all' => 'All students.',
+    'subtitle_scoped' => 'Students in the sections within your scope this term.',
+    'count' => ':count student|:count students',
+    'list_separator' => ', ',
+    'filters' => [
+        'q' => 'Search',
+        'q_placeholder' => 'Name or university ID',
+        'branch' => 'Branch',
+        'section' => 'Section',
+        'program' => 'Program',
+        'all_branches' => 'All branches',
+        'all_sections' => 'All sections',
+        'all_programs' => 'All programs',
+        'sections_truncated' => 'Only the first :count sections are listed. Choose a branch to narrow the list.',
+    ],
     'fields' => [
         'university_id' => 'University ID',
         'name' => 'Name',
@@ -20,7 +37,12 @@ return [
         'roster_sequence' => 'Seq.',
         'enrolled_at' => 'Enrolled',
         'withdrawn_at' => 'Withdrawn',
-        'withdraw_reason' => 'Reason',
+        'withdraw_reason' => 'Reason',        // T468, from v2's column labels.
+        'program' => 'Program',
+        'degree' => 'Degree',
+        'activity' => 'Activity',
+        'sections' => 'Sections',
+        'open_requests' => 'Open requests',
     ],
     'actions' => [
         'enroll' => 'Enroll a student',

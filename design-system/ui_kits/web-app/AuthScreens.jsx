@@ -1,31 +1,38 @@
 function LoginScreen({onLogin}){
   const {Input,Button,Logo,Alert}=window.DS;const {t,lang}=useApp();const st=useStore();
   const [email,setEmail]=React.useState('f.alotaibi@mu.edu.sa');const [pw,setPw]=React.useState('Track2026');
+  const [mode,setMode]=React.useState('staff');const en=lang==='en';
   const [err,setErr]=React.useState(null);const [fails,setFails]=React.useState(0);const [lock,setLock]=React.useState(0);const [busy,setBusy]=React.useState(false);
   React.useEffect(()=>{if(lock<=0)return;const x=setTimeout(()=>setLock(lock-1),1000);return()=>clearTimeout(x)},[lock]);
   const submit=e=>{e.preventDefault();if(lock>0)return;setBusy(true);setTimeout(()=>{setBusy(false);
-    const u=st.S.users.find(x=>x.email.toLowerCase()===email.trim().toLowerCase());
+    const u=(mode==='student'?st.S.students:st.S.users).find(x=>(x.email||'').toLowerCase()===email.trim().toLowerCase());
     if(!u||u.pw!==pw){const f=fails+1;setFails(f);st.audit(null,'auth.failed','user',u?u.id:null,null,{email});if(f>=5){setLock(60);setFails(0);setErr('lock')}else setErr('generic');return;}
     if(!u.active){setErr('deactivated');return;}
-    setErr(null);onLogin(u);},500);};
+    setErr(null);onLogin(u,mode);},500);};
+  const demoSt=st.student(106);
   const demo=[['m.alsalem@mu.edu.sa','SUPER_ADMIN'],['n.aldosari@mu.edu.sa','BRANCH_COORDINATOR'],['f.alotaibi@mu.edu.sa','INSTRUCTOR'],['s.alrashidi@mu.edu.sa','inactive']];
+  const pickMode=m=>{setMode(m);setErr(null);if(m==='student'){setEmail(demoSt.email);setPw(demoSt.pw===demoSt.uid?demoSt.uid:'');}else{setEmail('f.alotaibi@mu.edu.sa');setPw('Track2026');}};
   return <div style={{display:'flex',minHeight:'100vh',background:'var(--surface-page)'}}>
     <div style={{flex:'0 0 500px',maxWidth:'100%',display:'flex',flexDirection:'column',justifyContent:'center',padding:'40px 64px',background:'#fff'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:32}}><Logo variant="lockup" height={88} assetBase="../../assets/"/><LangSwitch/></div>
       <h1 style={{margin:0,font:'var(--text-h2)'}}>{t('login_title')}</h1>
-      <p style={{margin:'6px 0 22px',color:'var(--text-secondary)'}}>{t('login_sub')}</p>
+      <p style={{margin:'6px 0 18px',color:'var(--text-secondary)'}}>{mode==='student'?(en?'Sign in with your university email and password':'ادخل بريدك الجامعي وكلمة المرور'):t('login_sub')}</p>
+      <div role="tablist" style={{display:'grid',gridTemplateColumns:'1fr 1fr',background:'var(--gray-100)',borderRadius:10,padding:4,gap:4,marginBottom:18}}>
+        {[['staff','briefcase',en?'Faculty & staff':'منسوبو الكلية'],['student','graduation-cap',en?'Student':'طالب']].map(([k,ic,l])=><button key={k} role="tab" aria-selected={mode===k} onClick={()=>pickMode(k)} style={{height:38,border:'none',borderRadius:7,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8,background:mode===k?'#fff':'transparent',boxShadow:mode===k?'var(--shadow-xs)':'none',font:(mode===k?'700':'500')+' 14px var(--font-sans)',color:mode===k?'var(--track-blue)':'var(--text-secondary)'}}><window.DS.Icon name={ic} size={16}/>{l}</button>)}
+      </div>
       <form onSubmit={submit} noValidate style={{display:'flex',flexDirection:'column',gap:16}}>
         {err==='generic'&&<Alert tone="danger">{t('login_generic')}</Alert>}
         {err==='lock'&&lock>0&&<Alert tone="warning" icon="timer">{t('login_locked',{s:lock})}</Alert>}
         {err==='deactivated'&&<Alert tone="danger" icon="user-x">{t('login_deactivated')}</Alert>}
-        <Input label={t('email')} icon="mail" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
-        <Input label={t('password')} icon="lock" type="password" value={pw} onChange={e=>setPw(e.target.value)}/>
+        <Input label={mode==='student'?(en?'University email':'البريد الإلكتروني الجامعي'):t('email')} icon="mail" type="email" dir="ltr" placeholder={mode==='student'?'4xxxxxxxx@s.mu.edu.sa':undefined} value={email} onChange={e=>setEmail(e.target.value)}/>
+        <Input label={t('password')} icon="lock" type="password" value={pw} onChange={e=>setPw(e.target.value)} hint={mode==='student'?(en?'First sign-in: your password is your university ID.':'عند أول دخول: كلمة المرور هي رقمك الجامعي.'):undefined}/>
         <Button type="submit" size="lg" fullWidth loading={busy} disabled={lock>0}>{lock>0?lock+'s':t('sign_in')}</Button>
       </form>
       <p style={{margin:'16px 0 0',font:'400 12px/1.6 var(--font-sans)',color:'var(--text-secondary)'}}>{t('no_register')}</p>
       <div style={{marginTop:28,paddingTop:18,borderTop:'1px dashed var(--border-strong)'}}>
-        <div style={{font:'600 12px var(--font-sans)',color:'var(--text-secondary)',marginBottom:8}}>{t('demo_accounts')} · Track2026</div>
-        <div style={{display:'flex',flexWrap:'wrap',gap:6}}>{demo.map(([e,r])=><button key={e} onClick={()=>{setEmail(e);setPw('Track2026');setErr(null)}} style={{height:28,padding:'0 10px',border:'1px solid var(--border-default)',borderRadius:6,background:email===e?'var(--blue-50)':'#fff',cursor:'pointer',font:'500 12px var(--font-sans)',color:'var(--track-blue)'}}>{r==='inactive'?(lang==='en'?'Deactivated':'حساب معطّل'):t('role_'+r)}</button>)}</div>
+        <div style={{font:'600 12px var(--font-sans)',color:'var(--text-secondary)',marginBottom:8}}>{t('demo_accounts')} · {mode==='student'?(en?'password = university ID':'كلمة المرور = الرقم الجامعي'):'Track2026'}</div>
+        {mode==='student'?<div style={{display:'flex',flexWrap:'wrap',gap:6}}><button onClick={()=>pickMode('student')} style={{height:28,padding:'0 10px',border:'1px solid var(--border-default)',borderRadius:6,background:'var(--blue-50)',cursor:'pointer',font:'500 12px var(--font-sans)',color:'var(--track-blue)'}}>{demoSt.ar} · {demoSt.uid}</button></div>:
+        <div style={{display:'flex',flexWrap:'wrap',gap:6}}>{demo.map(([e,r])=><button key={e} onClick={()=>{setEmail(e);setPw('Track2026');setErr(null)}} style={{height:28,padding:'0 10px',border:'1px solid var(--border-default)',borderRadius:6,background:email===e?'var(--blue-50)':'#fff',cursor:'pointer',font:'500 12px var(--font-sans)',color:'var(--track-blue)'}}>{r==='inactive'?(lang==='en'?'Deactivated':'حساب معطّل'):t('role_'+r)}</button>)}</div>}
       </div>
     </div>
     <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',gap:36,padding:'0 64px',background:'var(--surface-sidebar)',color:'#fff'}}>
@@ -59,7 +66,8 @@ function ProfileScreen({notify}){
           <dt style={{color:'var(--text-secondary)'}}>{t('name_en')}</dt><dd style={{margin:0}} dir="ltr">{me.en}</dd>
           <dt style={{color:'var(--text-secondary)'}}>{t('email')}</dt><dd style={{margin:0,fontFamily:'var(--font-latin)'}}>{me.email}</dd>
           <dt style={{color:'var(--text-secondary)'}}>{t('role')}</dt><dd style={{margin:0}}>{t('role_'+me.role)}</dd>
-          {me.branches.length>0&&<><dt style={{color:'var(--text-secondary)'}}>{t('branches')}</dt><dd style={{margin:0}}>{me.branches.map(b=>st.branchLabel(b,lang)).join('، ')}</dd></>}
+          {me.uid&&<><dt style={{color:'var(--text-secondary)'}}>{lang==='en'?'University ID':'الرقم الجامعي'}</dt><dd style={{margin:0,fontFamily:'var(--font-latin)'}}>{me.uid}</dd></>}
+          {(me.branches||[]).length>0&&<><dt style={{color:'var(--text-secondary)'}}>{t('branches')}</dt><dd style={{margin:0}}>{me.branches.map(b=>st.branchLabel(b,lang)).join('، ')}</dd></>}
           <dt style={{color:'var(--text-secondary)'}}>{t('language')}</dt><dd style={{margin:0}}><LangSwitch/></dd>
         </dl>
       </Card>

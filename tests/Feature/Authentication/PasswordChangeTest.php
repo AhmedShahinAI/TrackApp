@@ -17,12 +17,12 @@ test('a valid change succeeds and is audited without the password', function ():
     $this->actingAs($user)
         ->put('/profile/password', [
             'current_password' => 'Track2026',
-            'password' => 'NewPass2027',
-            'password_confirmation' => 'NewPass2027',
+            'password' => 'NewPass2027-Own',
+            'password_confirmation' => 'NewPass2027-Own',
         ])
         ->assertRedirect(route('profile.password.edit'));
 
-    expect(Hash::check('NewPass2027', $user->fresh()->password))->toBeTrue();
+    expect(Hash::check('NewPass2027-Own', $user->fresh()->password))->toBeTrue();
 
     $entry = DB::table('audit_logs')->where('action', 'user.password_changed')->first();
 
@@ -31,7 +31,7 @@ test('a valid change succeeds and is audited without the password', function ():
     // FR-007 — neither the plaintext nor the hash may appear in a payload.
     $payload = ($entry->old_values ?? '').($entry->new_values ?? '');
 
-    expect($payload)->not->toContain('NewPass2027')
+    expect($payload)->not->toContain('NewPass2027-Own')
         ->and($payload)->not->toContain('Track2026')
         ->and($payload)->not->toContain('argon2');
 });
@@ -43,8 +43,8 @@ test('the wrong current password is refused', function (): void {
         ->from('/profile/password')
         ->put('/profile/password', [
             'current_password' => 'not-my-password',
-            'password' => 'NewPass2027',
-            'password_confirmation' => 'NewPass2027',
+            'password' => 'NewPass2027-Own',
+            'password_confirmation' => 'NewPass2027-Own',
         ])
         ->assertSessionHasErrors(['current_password' => __('auth.errors.wrong_current')]);
 
@@ -53,7 +53,9 @@ test('the wrong current password is refused', function (): void {
 });
 
 test('a new password equal to the current one is refused', function (): void {
-    $user = aUser('SUPER_ADMIN');
+    // A current password that itself meets the 12-character policy (SEC-046), so the refusal under
+    // test is "same as current" and not the length rule firing first.
+    $user = aUser('SUPER_ADMIN', ['password' => 'Track2026-Own']);
 
     // FR-014. The obvious implementation — comparing the two submitted strings — would miss the
     // case where they differ in form but hash to the same credential, so this is checked against
@@ -61,9 +63,9 @@ test('a new password equal to the current one is refused', function (): void {
     $this->actingAs($user)
         ->from('/profile/password')
         ->put('/profile/password', [
-            'current_password' => 'Track2026',
-            'password' => 'Track2026',
-            'password_confirmation' => 'Track2026',
+            'current_password' => 'Track2026-Own',
+            'password' => 'Track2026-Own',
+            'password_confirmation' => 'Track2026-Own',
         ])
         ->assertSessionHasErrors(['password' => __('auth.errors.same_as_current')]);
 });
@@ -75,7 +77,7 @@ test('a mismatched confirmation is refused', function (): void {
         ->from('/profile/password')
         ->put('/profile/password', [
             'current_password' => 'Track2026',
-            'password' => 'NewPass2027',
+            'password' => 'NewPass2027-Own',
             'password_confirmation' => 'DifferentPass2027',
         ])
         ->assertSessionHasErrors(['password' => __('auth.errors.mismatch')]);
@@ -105,8 +107,8 @@ test('the current session survives while others end', function (): void {
 
     $this->put('/profile/password', [
         'current_password' => 'Track2026',
-        'password' => 'NewPass2027',
-        'password_confirmation' => 'NewPass2027',
+        'password' => 'NewPass2027-Own',
+        'password_confirmation' => 'NewPass2027-Own',
     ]);
 
     /*
@@ -125,8 +127,8 @@ test('the api endpoint returns the change time', function (): void {
     $this->actingAs($user)
         ->putJson('/api/v1/auth/password', [
             'current_password' => 'Track2026',
-            'password' => 'NewPass2027',
-            'password_confirmation' => 'NewPass2027',
+            'password' => 'NewPass2027-Own',
+            'password_confirmation' => 'NewPass2027-Own',
         ])
         ->assertOk()
         ->assertJsonStructure(['data' => ['changed_at']]);
@@ -135,7 +137,7 @@ test('the api endpoint returns the change time', function (): void {
 test('an unauthenticated caller cannot change a password', function (): void {
     $this->putJson('/api/v1/auth/password', [
         'current_password' => 'Track2026',
-        'password' => 'NewPass2027',
-        'password_confirmation' => 'NewPass2027',
+        'password' => 'NewPass2027-Own',
+        'password_confirmation' => 'NewPass2027-Own',
     ])->assertUnauthorized();
 });

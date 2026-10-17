@@ -20,6 +20,7 @@ import trackDataTable from './components/data-table';
 import trackImportWizard from './components/import-wizard';
 import registerFieldValidation from './components/field-validation';
 import registerQueuePoller from './components/queue-poller';
+import { trackSupportForm } from './components/support-form';
 import { trackLoginForm, trackMappingForm, trackProgramDialog, trackUserDialog, trackUserTarget, trackWithdrawDialog } from './components/forms';
 
 Alpine.data('trackToasts', trackToasts);
@@ -33,6 +34,7 @@ Alpine.data('trackProgramDialog', trackProgramDialog);
 Alpine.data('trackUserDialog', trackUserDialog);
 Alpine.data('trackUserTarget', trackUserTarget);
 Alpine.data('trackWithdrawDialog', trackWithdrawDialog);
+Alpine.data('trackSupportForm', trackSupportForm);
 
 // Shared by the topbar toggle and the sidebar itself. A store rather than a magic property,
 // because the topbar ASSIGNS to it and a magic is read-only — and rather than component state,

@@ -9,7 +9,8 @@ use App\Modules\Shared\Rules\PasswordPolicy;
 | T113 — the password policy (FR-006)
 |--------------------------------------------------------------------------
 |
-| At least 8 characters, at least one letter, at least one digit. A unit test because the rule is
+| At least 12 characters (the owner's decision D-2, security plan SEC-046; the PRD's original was 8),
+| at least one letter, at least one digit. A unit test because the rule is
 | pure: it needs no database, no request, and no framework, and the three paths that use it
 | (create, change, reset) are tested against the HTTP surface elsewhere.
 |
@@ -18,22 +19,24 @@ use App\Modules\Shared\Rules\PasswordPolicy;
 test('a conforming password passes', function (string $candidate): void {
     expect(PasswordPolicy::passes($candidate))->toBeTrue();
 })->with([
-    'the seeded fixture password' => 'Track2026',
-    'exactly eight characters' => 'Abcdefg1',
-    'digit first' => '1abcdefg',
-    'punctuation is allowed, not required' => 'Abc-def1',
+    'exactly twelve characters' => 'Abcdefghijk1',
+    'digit first' => '1abcdefghijk',
+    'punctuation is allowed, not required' => 'Abc-defghij1',
     'long' => 'a-very-long-passphrase-with-1-digit',
 
     // An Arabic-first platform that refused a password written in Arabic would be absurd. The
     // letter check is \p{L}, not [A-Za-z], for exactly this.
-    'arabic letters count as letters' => 'كلمةمرور1',
-    'mixed scripts' => 'كلمةPass1',
+    'arabic letters count as letters' => 'كلمةمرورطويلة1',
+    'mixed scripts' => 'كلمةPassword1',
 ]);
 
 test('a non-conforming password fails', function (string $candidate): void {
     expect(PasswordPolicy::passes($candidate))->toBeFalse();
 })->with([
-    'seven characters' => 'Abcdef1',
+    'eleven characters' => 'Abcdefghij1',
+    // Nine characters: fixture accounts keep it (set by the seeder, not through the rule), but it
+    // can no longer be chosen.
+    'the fixture password' => 'Track2026',
     'no digit' => 'abcdefghij',
     'no letter' => '1234567890',
     'digits and punctuation only' => '1234-5678',
@@ -44,21 +47,21 @@ test('a non-conforming password fails', function (string $candidate): void {
     'eight bytes but four arabic characters plus a digit' => 'كلمة1',
 ]);
 
-test('the minimum length is eight', function (): void {
-    expect(PasswordPolicy::MIN_LENGTH)->toBe(8);
+test('the minimum length is twelve', function (): void {
+    expect(PasswordPolicy::MIN_LENGTH)->toBe(12);
 
     // The boundary, from both sides.
-    expect(PasswordPolicy::passes('Abcdefg1'))->toBeTrue()
-        ->and(PasswordPolicy::passes('Abcdef1'))->toBeFalse();
+    expect(PasswordPolicy::passes('Abcdefghijk1'))->toBeTrue()
+        ->and(PasswordPolicy::passes('Abcdefghij1'))->toBeFalse();
 });
 
 test('length counts characters, not bytes', function (): void {
-    // Eight Arabic characters is 16 bytes. strlen() would pass a four-character password.
-    $eightArabicPlusDigit = 'كلمةمرور1';
+    // Thirteen Arabic characters is 26 bytes. strlen() would pass a four-character password.
+    $arabicPlusDigit = 'كلمةمرورطويلة1';
 
-    expect(mb_strlen($eightArabicPlusDigit))->toBe(9)
-        ->and(strlen($eightArabicPlusDigit))->toBeGreaterThan(9)
-        ->and(PasswordPolicy::passes($eightArabicPlusDigit))->toBeTrue();
+    expect(mb_strlen($arabicPlusDigit))->toBe(14)
+        ->and(strlen($arabicPlusDigit))->toBeGreaterThan(14)
+        ->and(PasswordPolicy::passes($arabicPlusDigit))->toBeTrue();
 
     $fourArabic = 'كلمة1';
 
@@ -105,7 +108,7 @@ test('the rule object reports the policy message', function (): void {
 test('a conforming password reports nothing', function (): void {
     $failures = [];
 
-    (new PasswordPolicy)->validate('password', 'Track2026', function (string $message) use (&$failures): object {
+    (new PasswordPolicy)->validate('password', 'Track2026-Own', function (string $message) use (&$failures): object {
         $failures[] = $message;
 
         return failureStub();

@@ -6,6 +6,7 @@ namespace App\Modules\Shared\Http\Controllers;
 
 use App\Modules\Shared\Health\QueueHeartbeat;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -35,7 +36,7 @@ final class HealthController
     /** A job ready this long without being taken means the workers are not keeping up. */
     private const BACKLOG_AFTER_SECONDS = 300;
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
         $checks = [
             'database' => $this->check('database', fn (): bool => DB::select('select 1 as ok') !== []),
@@ -46,10 +47,33 @@ final class HealthController
 
         $healthy = collect($checks)->every(fn (array $check): bool => $check['status'] !== 'fail');
 
-        return response()->json([
-            'status' => $healthy ? 'ok' : 'fail',
-            'checks' => $checks,
-        ], $healthy ? 200 : 503, ['Cache-Control' => 'no-store']);
+        $body = ['status' => $healthy ? 'ok' : 'fail'];
+
+        if ($this->mayReadDetail($request)) {
+            $body['checks'] = $checks;
+        }
+
+        return response()->json($body, $healthy ? 200 : 503, ['Cache-Control' => 'no-store']);
+    }
+
+    /**
+     * SEC-091 (security plan G-18). The probe is public, and its component list with timings is a
+     * map of the stack for anyone who asks: which stores exist, which is slow, when the workers last
+     * polled. The status and its 200/503 are what a load balancer needs, so that is all anyone gets;
+     * the detail needs `X-Health-Token` matching HEALTH_TOKEN (compared in constant time).
+     *
+     * With no token configured, a production or staging host shows the status only — forgetting
+     * the token must not open the detail — while a developer machine still shows everything.
+     */
+    private function mayReadDetail(Request $request): bool
+    {
+        $token = config('monitoring.health_token');
+
+        if (! is_string($token) || $token === '') {
+            return ! app()->environment(['production', 'staging']);
+        }
+
+        return hash_equals($token, (string) $request->header('X-Health-Token', ''));
     }
 
     /**

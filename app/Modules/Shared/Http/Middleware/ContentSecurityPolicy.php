@@ -50,6 +50,16 @@ final class ContentSecurityPolicy
             return $response;
         }
 
+        return $this->apply($request, $response);
+    }
+
+    /**
+     * The policy and its companion headers, set on a response. Public so EnsureSecurityHeaders can give
+     * the same set to the responses that never pass through `web` (SEC-070, SEC-071): a URL no route
+     * matches, `/up`, `/health`.
+     */
+    public function apply(Request $request, Response $response): Response
+    {
         $response->headers->set('Content-Security-Policy', $this->policy());
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');

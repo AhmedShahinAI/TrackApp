@@ -7,6 +7,7 @@ namespace App\Modules\Settings;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
+use Throwable;
 
 /**
  * T048 - the single read path for configuration (constitution IV).
@@ -51,11 +52,21 @@ final class Settings
 
     public const SUPPORT_STATUS_THROTTLE_IP = 'support_status_throttle_ip';
 
+    public const SUPPORT_STATUS_THROTTLE_REFERENCE = 'support_status_throttle_reference';
+
     public const SUPPORT_MIN_RESPONSE_MS = 'support_min_response_ms';
 
     public const SUPPORT_RETENTION_MONTHS = 'support_retention_months';
 
     public const SUPPORT_CHALLENGE_DIFFICULTY = 'support_challenge_difficulty';
+
+    public const SUPPORT_MIN_ELAPSED_SECONDS = 'support_min_elapsed_seconds';
+
+    // T463 — whether the sign-in screen links to /support. Off until the channel is opened to students.
+    public const SUPPORT_CHANNEL_ENABLED = 'support_channel_enabled';
+
+    // The floor under every route on the `public` group (Amendment 2, T355 review).
+    public const PUBLIC_THROTTLE = 'public_throttle';
 
     public static function get(string $key): mixed
     {
@@ -78,6 +89,28 @@ final class Settings
     public static function int(string $key): int
     {
         return (int) self::get($key);
+    }
+
+    /**
+     * A feature switch: on only when the row exists and holds `true`.
+     *
+     * The one read that does not throw on a missing key. A switch that is absent has not been turned on,
+     * and the place that reads one may be a page nobody can be locked out of. The sign-in screen reads
+     * `support_channel_enabled` (T463), and a deploy that has not re-run the seeder must still let staff
+     * sign in, without the link. Anything but a stored `true` reads as off.
+     *
+     * Settings that cannot be read at all — the cache empty and the database unreachable, or the table
+     * not yet migrated — read as off too, for the reason SetLocale::configuredDefault() falls back: a
+     * page that cannot render because a switch is unreadable is worse than the switch being off
+     * (Phase 25 review, H-1).
+     */
+    public static function enabled(string $key): bool
+    {
+        try {
+            return (self::all()[$key] ?? false) === true;
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**

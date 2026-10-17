@@ -69,5 +69,14 @@ class RouteServiceProvider extends ServiceProvider
                 return $record;
             });
         }
+
+        /*
+         * T440 (Amendment 2) — `{supportRequest}` is bound by the model itself, not here
+         * (SupportRequest::getRouteKeyName / resolveRouteBinding): by reference, never the sequential
+         * id, through the scoped query, so out of scope and no such reference are one
+         * ModelNotFoundException → 404 before any policy runs (FR-143). An explicit Route::bind here
+         * duplicated that and ignored a route's `{supportRequest:field}` (Phase 23 review); there is
+         * one binding, the model's.
+         */
     }
 }

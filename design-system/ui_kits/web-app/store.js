@@ -69,14 +69,26 @@ const secIds=[11,12,13,14,15,16,17];let eid=1;
 S.students.forEach((st,i)=>{const a=secIds[i%7];S.enrollments.push({id:eid++,student:st.id,section:a,status:'active',enrolled:'2026-09-01',withdrawn:null,reason:null});
  if(i%3===0){const b=secIds[(i+2)%7];S.enrollments.push({id:eid++,student:st.id,section:b,status:'active',enrolled:'2026-09-02',withdrawn:null,reason:null});}});
 S.enrollments.forEach((e,i)=>{e.seq=0;e.acad=i%11===5?'منسحب':i%13===7?'معتذر':'منتظم';});
-const REAL_FILE={name:'filedownloadservlet(21).xlsx',size:'9 KB',meta:{campus:'المجمعة (طلاب)',degree:'الدبلوم المتوسط',course:'برمجة 2',activity:'محاضرة',section:'2298'},headers:['تسلسل','رقم الطالب','اسم الطالب','الحالة'],rows:[["1","442104959","سعود بن محمد بن ابراهيم الشدوخي","منتظم"],["2","462103556","علي بن ابراهيم بن علي حدادي","منتظم"],["3","462109105","عبدالعزيز بن عبدالرحمن بن عبدالعزيز الجويعي","منتظم"],["4","462109230","يونس بن علي بن محمد حدادي","منتظم"],["5","462109232","فهد بن سلطان بن ماضي العتيبي","منتظم"],["6","471103890","عبدالمجيد بن محمد بن عبدالله الراشد","منتظم"],["7","471104932","عبدالعزيز بن محمد بن سالم البديري المطيري","منتظم"],["8","471105041","ثامر بن ابراهيم بن حمد اللهيب","منتظم"],["9","471105043","عبدالسلام بن فهد بن حمود السبيعي","منتظم"],["10","471105048","عبدالرحمن بن عبدالله بن ضميان السبيعي العنزي","منتظم"],["11","471105050","مازن بن بشير بن نافع العنزي","منتظم"],["12","471105056","ريان بن جلوي بن مسفر المطيري","منتظم"],["13","471105058","تركي بن سلمان بن فيصل العتيبي","منتظم"],["14","471105060","بدر بن فهد بن سليمان السبيعي العنزي","منتظم"],["15","471105061","سلمان بن بدر بن محمد الشثيلي المطيري","منتظم"],["16","471105064","عبدالعزيز بن مطلق بن حمد العيباني المطيري","منتظم"],["17","471105067","فهد بن منيور بن قريزح الضبيطي المطيري","منتظم"],["18","471105068","فارس بن مرزوق بن مقبل البديرى المطيرى","منتظم"],["19","471105069","عبدالعزيز بن حمد بن عبدالعزيز الجوف","منتظم"],["20","471105074","نواف بن عبدالله بن محمد التويجري","منتظم"],["21","471105147","سليمان بن عبدالله بن سليمان العطيوي","منتظم"],["22","472113211","زياد بن عبدالله بن احمد الزعيبي","منتظم"]]};
+const REAL_FILE={name:'filedownloadservlet(21).xlsx',size:'9 KB',meta:{campus:'المجمعة (طلاب)',degree:'الدبلوم المتوسط',course:'برمجة 2',activity:'محاضرة',section:'2298'},headers:['تسلسل','رقم الطالب','اسم الطالب','الحالة'],rows:[["1","999000001","باسل أنور لطفي راشد جابر اليامي","منتظم"],["2","999000002","فارس نصار نصار هلال هلال القرني","منتظم"],["3","999000003","مازن راشد مراد نصار فهمي البارقي","منتظم"],["4","999000004","عادل راشد راشد صابر عاطف الهذلي","منتظم"],["5","999000005","مازن حمدان أنور عاطف راشد الوادعي","منتظم"],["6","999000006","لؤي ثامر غازي عاطف فهمي القرني","منتظم"],["7","999000007","غسان فهمي راشد شاكر ضياء عاطف الكثيري","منتظم"],["8","999000008","شادي عاطف قاسم ضياء غازي البارقي","منتظم"],["9","999000009","رائد وائل راشد وائل غازي النجدي","منتظم"],["10","999000010","شادي بدر ضياء ضياء ضياء راشد الفيفي","منتظم"],["11","999000011","طارق لطفي ثامر حمدان قاسم الوادعي","منتظم"],["12","999000012","جمال مراد مراد غازي حمدان البارقي","منتظم"],["13","999000013","وليد فهمي راشد عاطف ثامر اليامي","منتظم"],["14","999000014","رائد بدر سامي ياسر مراد حمدان الصاعدي","منتظم"],["15","999000015","شادي ثامر هلال ثامر راشد لطفي المالكي","منتظم"],["16","999000016","فارس ثامر جابر شاكر ياسر ضياء الوادعي","منتظم"],["17","999000017","سالم جابر سامي جابر أنور وائل الحميدي","منتظم"],["18","999000018","فارس لطفي لطفي ضياء شاكر نصار الكثيري","منتظم"],["19","999000019","غسان غازي فهمي أنور لطفي اليامي","منتظم"],["20","999000020","زياد قاسم وائل ضياء جابر الوادعي","منتظم"],["21","999000021","لؤي مراد شاكر حمدان حمدان الطلحي","منتظم"],["22","999000022","عمار ضياء أنور وائل بدر الصاعدي","منتظم"]]};
 REAL_FILE.rows.slice(0,19).forEach((r,i)=>{const st={id:500+i,uid:r[1],ar:r[2],en:''};S.students.push(st);S.enrollments.push({id:eid++,student:st.id,section:19,status:'active',enrolled:'2026-09-01',acad:r[3],seq:+r[0]});});
-S.sections.forEach(x=>{x.degree=x.degree||'البكالوريوس';x.activity=x.activity||'محاضرة';});
+S.sections.forEach(x=>{x.degree=x.degree||'البكالوريوس';x.activity=x.activity||'محاضرة';x.status=x.status||'active';});
+S.sections.push(
+ {id:31,term:1,branch:4,course:4,no:'318',instructor:3,program:2,status:'pending',suggested:[1],note:'شعبة جديدة أُضيفت بعد اكتمال الجدول.',req:{by:3,at:'2026-09-24T11:30:00'},degree:'البكالوريوس',activity:'محاضرة'},
+ {id:32,term:1,branch:1,course:3,no:'402',instructor:5,program:6,status:'pending',suggested:[1,2],note:'',req:{by:5,at:'2026-09-25T13:10:00'},degree:'البكالوريوس',activity:'محاضرة'},
+ {id:33,term:1,branch:3,course:6,no:'2310',instructor:7,program:5,status:'returned',suggested:[2],note:'',req:{by:7,at:'2026-09-20T09:00:00'},decision:{kind:'returned',by:1,at:'2026-09-21T10:15:00',reason:'رقم الشعبة لا يطابق الجدول الرسمي، يرجى التحقق.'},degree:'الدبلوم المتوسط',activity:'محاضرة'});
+S.students.slice(0,6).forEach((s,i)=>S.enrollments.push({id:9000+i,student:s.id,section:31,status:'active',enrolled:'2026-09-24',acad:'منتظم',seq:i+1}));
 const SEC_PROG={11:1,12:2,13:3,14:2,15:5,16:4,17:8,18:1,19:5};
 const COURSE_PROG={1:[2,3,5],2:[1,4],3:[5,6,9],4:[2,4],5:[1,2,3,4,5,6,7,8,9],6:[5,6]};S.courses.forEach(c=>{c.programs=c.programs||COURSE_PROG[c.id]||[];});S.sections.forEach(x=>{x.program=x.program||SEC_PROG[x.id]||1;});
+const PH=['055','050','056','059','054'];
+S.students.forEach((s,i)=>{const e=S.enrollments.find(x=>x.student===s.id);const sec=e&&S.sections.find(x=>x.id===e.section);Object.assign(s,{email:s.uid+'@s.mu.edu.sa',phone:PH[i%5]+String(1000000+((s.id*7919)%8999999)).slice(0,7),program:sec?sec.program:null,pw:s.uid,mustChange:true,active:true,firstLogin:null,lastLogin:null,role:'STUDENT',branches:[]});});
 const TPL={1:['تسجيل الطالب','التوثيق','الانتهاء'],2:['التسجيل في المنصة','اجتياز الاختبار','رفع الشهادة'],3:['حضور الورشة','الانتهاء']};
-S.assignments=[];let asid=1;S.sections.filter(x=>x.term===1).forEach(x=>{S.assignments.push({id:asid++,section:x.id,ini:1,stages:TPL[1].slice()});if(x.id%2===1&&x.id!==19)S.assignments.push({id:asid++,section:x.id,ini:2,stages:TPL[2].slice()});});
+S.assignments=[];let asid=1;S.sections.filter(x=>x.term===1&&x.status==='active').forEach(x=>{S.assignments.push({id:asid++,section:x.id,ini:1,stages:TPL[1].slice()});if(x.id%2===1&&x.id!==19)S.assignments.push({id:asid++,section:x.id,ini:2,stages:TPL[2].slice()});});
 S.marks={};
+S.tickets=[
+ {id:1,no:'TK-1001',student:106,section:12,cat:'progress',subject:'مرحلة «التوثيق» لا تظهر مكتملة',body:'رفعت التوثيق المطلوب في مبادرة مهارات المستقبل قبل يومين ولا تزال المرحلة غير مكتملة في حسابي.',status:'open',at:'2026-09-25T10:20:00',replies:[]},
+ {id:2,no:'TK-1002',student:103,section:14,cat:'enroll',subject:'شعبة مبادئ الرياضيات غير ظاهرة',body:'أنا مسجلة في شعبة 123 لمقرر مبادئ الرياضيات ولكن لا أرى المبادرة المرتبطة بها.',status:'in_progress',at:'2026-09-22T09:05:00',replies:[{kind:'user',by:7,body:'تم التحقق من التسجيل، وسيتم تحديث الربط خلال يوم عمل.',at:'2026-09-22T12:40:00'}]},
+ {id:3,no:'TK-1003',student:500,section:19,cat:'login',subject:'نسيت كلمة المرور',body:'غيّرت كلمة المرور بعد أول دخول ونسيتها.',status:'resolved',at:'2026-09-18T08:15:00',replies:[{kind:'user',by:1,body:'تمت إعادة تعيين كلمة المرور إلى رقمك الجامعي، وسيُطلب منك تغييرها عند الدخول.',at:'2026-09-18T09:02:00'}]},
+];
 S.enrollments.find(e=>e.section===11).status='withdrawn';Object.assign(S.enrollments.find(e=>e.section===11),{withdrawn:'2026-09-15',reason:'انسحاب من المقرر عبر عمادة القبول'});
 const seedAudit=[
  ['2026-09-26T07:55:12',1,'auth.signed_in','user',1,null,null],
@@ -117,7 +129,10 @@ const store={
  programName(id,lang){const p=S.programs.find(x=>x.id===id);return p?(lang==='en'?p.en:p.ar):'—';},
  term(id){return S.terms.find(t=>t.id===id);},
  currentTerm(){return S.terms.find(t=>t.current);},
+ approvalScope(u){if(!u)return[];if(u.role==='SUPER_ADMIN')return S.sections.filter(s=>s.req);if(u.role==='BRANCH_COORDINATOR')return S.sections.filter(s=>s.req&&u.branches.includes(s.branch));return[];},
  student(id){return S.students.find(s=>s.id===id);},
+ studentEnrollments(sid){return S.enrollments.filter(e=>e.student===sid&&e.status==='active');},
+ ticketScope(u){if(!u)return[];if(u.role==='SUPER_ADMIN')return S.tickets;if(u.role==='STUDENT')return S.tickets.filter(x=>x.student===u.id);const ids=new Set(store.sectionScope(u).map(s=>s.id));return S.tickets.filter(x=>x.section?ids.has(x.section):S.enrollments.some(e=>e.student===x.student&&ids.has(e.section)));},
  sectionScope(u){
   if(!u)return[];
   if(u.role==='SUPER_ADMIN')return S.sections;
@@ -130,8 +145,9 @@ const store={
  studentScope(u){const ids=new Set(store.sectionScope(u).map(s=>s.id));const st=new Set(S.enrollments.filter(e=>ids.has(e.section)).map(e=>e.student));return u.role==='SUPER_ADMIN'?S.students:S.students.filter(s=>st.has(s.id));},
  PERMS:{
   SUPER_ADMIN:['*'],
-  BRANCH_COORDINATOR:['term.view','branch.view','course.view','section.view','student.view','import.view','audit.view'],
-  INSTRUCTOR:['section.view','student.view','student.create','enrollment.create','enrollment.withdraw','import.section.run','import.view'],
+  BRANCH_COORDINATOR:['term.view','branch.view','course.view','section.view','student.view','import.view','audit.view','support.view','section.approve'],
+  INSTRUCTOR:['section.view','student.view','student.create','enrollment.create','enrollment.withdraw','import.section.run','import.view','support.view','section.request'],
+  STUDENT:['ini.self','support.view'],
  },
  can(u,p){const l=store.PERMS[u.role]||[];return l.includes('*')||l.includes(p);},
 };

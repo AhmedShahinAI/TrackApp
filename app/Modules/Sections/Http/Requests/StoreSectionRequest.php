@@ -7,8 +7,10 @@ namespace App\Modules\Sections\Http\Requests;
 use App\Models\AcademicTerm;
 use App\Models\Branch;
 use App\Models\Section;
+use App\Models\User;
 use App\Modules\Settings\Settings;
 use App\Modules\Shared\Rules\InSetting;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
@@ -50,6 +52,12 @@ final class StoreSectionRequest extends FormRequest
 
         if ($user === null) {
             return false;
+        }
+
+        // T493 — a resubmission is the creator correcting their own returned section: `section.create`,
+        // not `section.edit`, which an instructor does not hold. The creator check is the policy's.
+        if ($this->routeIs('api.v1.sections.resubmit')) {
+            return $user->can('section.create');
         }
 
         return $this->isUpdate() ? $user->can('section.edit') : $user->can('section.create');
@@ -151,6 +159,10 @@ final class StoreSectionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // T494 — FR-175: a roster may come with the section at creation, and only then. Its size,
+            // type and content are the import pipeline's to check (FileValidator), as for any upload.
+            'roster' => $this->isUpdate() ? ['prohibited'] : ['nullable', 'file'],
+
             'term_id' => ['required', 'integer', 'exists:academic_terms,id'],
 
             /*
@@ -217,7 +229,20 @@ final class StoreSectionRequest extends FormRequest
                  */
                 : ['nullable', 'integer', Rule::exists('users', 'id')
                     ->where('organization_id', $this->user()?->organization_id)
-                    ->where('is_active', true)],
+                    ->where('is_active', true),
+                    /*
+                     * SEC-051 (G-14). Active and in the organization was not enough: the named user
+                     * gains access to the pending section, so it must hold a teaching role. An
+                     * instructor naming a COLLEAGUE stays allowed: Amendment 4 designs exactly that
+                     * (a section created for someone else, approved by a coordinator before it
+                     * counts; ApprovalReviewRegressionsTest 1), and the approval is the control.
+                     */
+                    function (string $attribute, mixed $value, Closure $fail): void {
+                        // The configured teaching roles (authorization.grants.grantable_roles), as the grant endpoint uses.
+                        if (! User::query()->role(config('authorization.grants.grantable_roles', []))->whereKey((int) $value)->exists()) {
+                            $fail(__('sections.errors.instructor_invalid'));
+                        }
+                    }],
             // Settings::values() already exists for exactly this: the permitted machine values of
             // a settings list, which is what a validation rule compares against.
             // T304 — InSetting, the one rule the section form and the imports share for these lists.

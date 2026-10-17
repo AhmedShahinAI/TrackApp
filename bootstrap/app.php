@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Shared\Http\Middleware\SetLocale;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -26,7 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // T012 — /api/v1 on the web stack plus Sanctum. The session guard is what authenticates
             // this platform, so these routes need the session and CSRF, not a bearer token.
-            Route::middleware(['web', 'auth:sanctum', 'throttle:api'])
+            // `active` and `session.auth` as on every web group (SEC-031, G-02): without them a
+            // deactivated account, or a session left over from a password change, kept the API.
+            Route::middleware(['web', 'auth:sanctum', 'active', 'session.auth', 'password.own', 'throttle:api'])
                 ->prefix('api/v1')
                 ->name('api.v1.')
                 ->group(base_path('routes/api_v1.php'));
@@ -45,6 +48,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // AssignRequestId is, so the id stays outermost.
         $middleware->prepend(App\Modules\Shared\Monitoring\RequestOutcomes::class);
         $middleware->prepend(App\Modules\Shared\Http\Middleware\AssignRequestId::class);
+
+        // SEC-070, SEC-071 (G-06) — the security headers on the responses `web` never sees: an
+        // unmatched URL's 404, /up, /health. Fills in only where no policy was set.
+        $middleware->append(App\Modules\Shared\Http\Middleware\EnsureSecurityHeaders::class);
 
         // T094 — appended to the web group, so it runs after the session and authentication have
         // resolved. Prepending it would mean $request->user() is still null and every page renders
@@ -80,6 +87,9 @@ return Application::configure(basePath: dirname(__DIR__))
          *     contracts/support-public.md specifies. It is never an authenticated session: nothing
          *     on this group signs anyone in, and FR-124's "no session" is about a student never
          *     authenticating, which this cannot do;
+         *   - HideRateLimitState (Phase 20): wraps the throttle and removes the X-RateLimit-*
+         *     counters it adds to every response it lets through — a live readout of the caller's
+         *     limit that FR-130 forbids (T378 found it);
          *   - `throttle:public`: a per-IP floor (AppServiceProvider), so no public route is ever
          *     unthrottled. The contract's two-axis submission limits come with the routes.
          *
@@ -87,8 +97,17 @@ return Application::configure(basePath: dirname(__DIR__))
          */
         $middleware->group('public', [
             'web',
+            App\Modules\Shared\Http\Middleware\HideRateLimitState::class,
             'throttle:public',
         ]);
+
+        // ThrottleRequests is on Laravel's middleware priority list and is sorted ahead of anything
+        // that is not — which put it outside HideRateLimitState and left its headers in place. On the
+        // list, just before the throttle, the order above holds.
+        $middleware->prependToPriorityList(
+            before: Illuminate\Routing\Middleware\ThrottleRequests::class,
+            prepend: App\Modules\Shared\Http\Middleware\HideRateLimitState::class,
+        );
 
         $middleware->alias([
             // FR-011, FR-018 — refuses every request from a deactivated account, on any driver.
@@ -107,9 +126,21 @@ return Application::configure(basePath: dirname(__DIR__))
              */
             'session.auth' => App\Modules\Authentication\Http\Middleware\AuthenticateWebSession::class,
 
+            // SEC-047 (D-3) — a password someone else set is replaced before anything else is done.
+            'password.own' => App\Modules\Authentication\Http\Middleware\EnsurePasswordIsOwn::class,
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // SEC-081 (G-10): never flashed back into the session after a validation failure — the
+        // framework's own list, stated here so it cannot shrink unnoticed, plus the CSRF token.
+        $exceptions->dontFlash([
+            'current_password',
+            'password',
+            'password_confirmation',
+            '_token',
+        ]);
+
         // PRD 8.8 — error tracking. Inert until SENTRY_LARAVEL_DSN names the university-approved
         // instance; personal data is not sent (config/sentry.php `send_default_pii` false).
         Sentry\Laravel\Integration::handles($exceptions);
@@ -158,6 +189,22 @@ return Application::configure(basePath: dirname(__DIR__))
          * a JSON refusal rather than an HTML page.
          */
         $exceptions->shouldRenderJsonWhen(fn (Request $request): bool => $request->expectsJson());
+
+        /*
+         * Phase 23 review — a policy that refuses "as not found" (Response::denyAsNotFound) throws an
+         * AuthorizationException with status 404, which Laravel renders as a plain HttpException(404):
+         * a different body ("Not Found", in English) and, for /api without Accept, HTML instead of
+         * JSON. That difference was the tell: the support queue's refusal to an instructor did not look
+         * like a missing route, so it confirmed the queue exists (SC-038). Mapped to the real thing, it
+         * takes the NotFoundHttpException path below and is indistinguishable. AuditDeniedAccess has
+         * already recorded it by then — it catches the original exception, before this mapping.
+         */
+        $exceptions->map(
+            AuthorizationException::class,
+            fn (AuthorizationException $e) => $e->hasStatus() && $e->status() === 404
+                ? new NotFoundHttpException($e->getMessage() ?: 'Not Found', $e)
+                : $e,
+        );
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
             if (! ($request->is('api/*') || $request->expectsJson())) {

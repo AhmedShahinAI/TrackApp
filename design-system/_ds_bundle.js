@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"TRACKDesignSystem_c33017","components":[{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"Icon","sourcePath":"components/core/Icon.jsx"},{"name":"IconButton","sourcePath":"components/core/IconButton.jsx"},{"name":"Logo","sourcePath":"components/core/Logo.jsx"},{"name":"BarChart","sourcePath":"components/data/BarChart.jsx"},{"name":"Card","sourcePath":"components/data/Card.jsx"},{"name":"DataTable","sourcePath":"components/data/DataTable.jsx"},{"name":"DonutChart","sourcePath":"components/data/DonutChart.jsx"},{"name":"LineChart","sourcePath":"components/data/LineChart.jsx"},{"name":"StatCard","sourcePath":"components/data/StatCard.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"EmptyState","sourcePath":"components/feedback/EmptyState.jsx"},{"name":"ProgressBar","sourcePath":"components/feedback/ProgressBar.jsx"},{"name":"Skeleton","sourcePath":"components/feedback/Skeleton.jsx"},{"name":"StatusBadge","sourcePath":"components/feedback/StatusBadge.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Topbar","sourcePath":"components/navigation/Topbar.jsx"}],"sourceHashes":{"components/core/Button.jsx":"d97f83f2586d","components/core/Icon.jsx":"3d6a528bd1d9","components/core/IconButton.jsx":"4a7842a7cc49","components/core/Logo.jsx":"08bb03dc8e2a","components/data/BarChart.jsx":"27ed744af6ff","components/data/Card.jsx":"966d8fc71aff","components/data/DataTable.jsx":"15ab51d3b1e4","components/data/DonutChart.jsx":"773b752d4833","components/data/LineChart.jsx":"fd4a28bc6abc","components/data/StatCard.jsx":"e73d7e3baee7","components/feedback/Alert.jsx":"f2b2ad871604","components/feedback/Dialog.jsx":"8d019348c764","components/feedback/EmptyState.jsx":"7c40fba707c4","components/feedback/ProgressBar.jsx":"a4dc6c424ab6","components/feedback/Skeleton.jsx":"5156ff84437a","components/feedback/StatusBadge.jsx":"e0e00acfdcb8","components/feedback/Toast.jsx":"ceaf915d8f8d","components/feedback/Tooltip.jsx":"287eedfac744","components/forms/Checkbox.jsx":"01e720cdbdbf","components/forms/Input.jsx":"98121ce9af80","components/forms/Select.jsx":"b72e14b598f6","components/forms/Switch.jsx":"1224d694da62","components/navigation/Breadcrumbs.jsx":"efda52f83be6","components/navigation/Sidebar.jsx":"95abc14fdbc1","components/navigation/Stepper.jsx":"800c8fd26047","components/navigation/Tabs.jsx":"994fd953377e","components/navigation/Topbar.jsx":"ac6e8ced8021","ui_kits/web-app/AuditScreen.jsx":"9fc21438622a","ui_kits/web-app/AuthScreens.jsx":"fc578895cf33","ui_kits/web-app/CourseImport.jsx":"98f1059abd6e","ui_kits/web-app/DashboardParts.jsx":"693deb0254ec","ui_kits/web-app/DashboardScreen.jsx":"007d832fc84f","ui_kits/web-app/HomeScreen.jsx":"f3389b1ab8d4","ui_kits/web-app/ImportScreens.jsx":"1c67e05db24b","ui_kits/web-app/InitiativesScreen.jsx":"f3f132fa360b","ui_kits/web-app/SectionsScreens.jsx":"d7149c508bf1","ui_kits/web-app/Shell.jsx":"67683f5a9a81","ui_kits/web-app/StructureScreens.jsx":"cd9a4654bb53","ui_kits/web-app/UsersScreen.jsx":"a14cc0b715c8","ui_kits/web-app/dash-map.js":"d6e4167fbae2","ui_kits/web-app/dashboard-data.js":"bbbafb618152","ui_kits/web-app/data.js":"e1d9617885a8","ui_kits/web-app/i18n.js":"8e174faabacc","ui_kits/web-app/store.js":"ea3917541fcf","ui_kits/web-app/xlsx.js":"a5b3514b863b"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"TRACKDesignSystem_c33017","components":[{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"Icon","sourcePath":"components/core/Icon.jsx"},{"name":"IconButton","sourcePath":"components/core/IconButton.jsx"},{"name":"Logo","sourcePath":"components/core/Logo.jsx"},{"name":"BarChart","sourcePath":"components/data/BarChart.jsx"},{"name":"Card","sourcePath":"components/data/Card.jsx"},{"name":"DataTable","sourcePath":"components/data/DataTable.jsx"},{"name":"DonutChart","sourcePath":"components/data/DonutChart.jsx"},{"name":"LineChart","sourcePath":"components/data/LineChart.jsx"},{"name":"StatCard","sourcePath":"components/data/StatCard.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"EmptyState","sourcePath":"components/feedback/EmptyState.jsx"},{"name":"ProgressBar","sourcePath":"components/feedback/ProgressBar.jsx"},{"name":"Skeleton","sourcePath":"components/feedback/Skeleton.jsx"},{"name":"StatusBadge","sourcePath":"components/feedback/StatusBadge.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Topbar","sourcePath":"components/navigation/Topbar.jsx"}],"sourceHashes":{"components/core/Button.jsx":"d97f83f2586d","components/core/Icon.jsx":"3d6a528bd1d9","components/core/IconButton.jsx":"4a7842a7cc49","components/core/Logo.jsx":"08bb03dc8e2a","components/data/BarChart.jsx":"27ed744af6ff","components/data/Card.jsx":"966d8fc71aff","components/data/DataTable.jsx":"15ab51d3b1e4","components/data/DonutChart.jsx":"773b752d4833","components/data/LineChart.jsx":"fd4a28bc6abc","components/data/StatCard.jsx":"e73d7e3baee7","components/feedback/Alert.jsx":"f2b2ad871604","components/feedback/Dialog.jsx":"8d019348c764","components/feedback/EmptyState.jsx":"7c40fba707c4","components/feedback/ProgressBar.jsx":"a4dc6c424ab6","components/feedback/Skeleton.jsx":"5156ff84437a","components/feedback/StatusBadge.jsx":"e0e00acfdcb8","components/feedback/Toast.jsx":"ceaf915d8f8d","components/feedback/Tooltip.jsx":"287eedfac744","components/forms/Checkbox.jsx":"01e720cdbdbf","components/forms/Input.jsx":"98121ce9af80","components/forms/Select.jsx":"b72e14b598f6","components/forms/Switch.jsx":"1224d694da62","components/navigation/Breadcrumbs.jsx":"efda52f83be6","components/navigation/Sidebar.jsx":"95abc14fdbc1","components/navigation/Stepper.jsx":"800c8fd26047","components/navigation/Tabs.jsx":"994fd953377e","components/navigation/Topbar.jsx":"ac6e8ced8021","ui_kits/web-app/AuditScreen.jsx":"9fc21438622a","ui_kits/web-app/AuthScreens.jsx":"332dcd0d2bdd","ui_kits/web-app/CourseImport.jsx":"98f1059abd6e","ui_kits/web-app/DashboardParts.jsx":"693deb0254ec","ui_kits/web-app/DashboardScreen.jsx":"007d832fc84f","ui_kits/web-app/HomeScreen.jsx":"f3389b1ab8d4","ui_kits/web-app/ImportScreens.jsx":"1c67e05db24b","ui_kits/web-app/InitiativesScreen.jsx":"2b460b892e9b","ui_kits/web-app/SectionApproval.jsx":"65e2e87ce285","ui_kits/web-app/SectionsScreens.jsx":"13acb102b5f5","ui_kits/web-app/Shell.jsx":"373c327e3fca","ui_kits/web-app/StructureScreens.jsx":"cd9a4654bb53","ui_kits/web-app/StudentScreens.jsx":"fe05c5937f37","ui_kits/web-app/StudentsAdmin.jsx":"e15ceaecb213","ui_kits/web-app/SupportScreens.jsx":"0c8a9a30b43d","ui_kits/web-app/UsersScreen.jsx":"a14cc0b715c8","ui_kits/web-app/dash-map.js":"d6e4167fbae2","ui_kits/web-app/dashboard-data.js":"bbbafb618152","ui_kits/web-app/data.js":"e1d9617885a8","ui_kits/web-app/i18n.js":"353056ca60e5","ui_kits/web-app/store.js":"9c43d9564d8c","ui_kits/web-app/xlsx.js":"a5b3514b863b"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -2206,6 +2206,8 @@ function LoginScreen({
   const st = useStore();
   const [email, setEmail] = React.useState('f.alotaibi@mu.edu.sa');
   const [pw, setPw] = React.useState('Track2026');
+  const [mode, setMode] = React.useState('staff');
+  const en = lang === 'en';
   const [err, setErr] = React.useState(null);
   const [fails, setFails] = React.useState(0);
   const [lock, setLock] = React.useState(0);
@@ -2221,7 +2223,7 @@ function LoginScreen({
     setBusy(true);
     setTimeout(() => {
       setBusy(false);
-      const u = st.S.users.find(x => x.email.toLowerCase() === email.trim().toLowerCase());
+      const u = (mode === 'student' ? st.S.students : st.S.users).find(x => (x.email || '').toLowerCase() === email.trim().toLowerCase());
       if (!u || u.pw !== pw) {
         const f = fails + 1;
         setFails(f);
@@ -2240,10 +2242,22 @@ function LoginScreen({
         return;
       }
       setErr(null);
-      onLogin(u);
+      onLogin(u, mode);
     }, 500);
   };
+  const demoSt = st.student(106);
   const demo = [['m.alsalem@mu.edu.sa', 'SUPER_ADMIN'], ['n.aldosari@mu.edu.sa', 'BRANCH_COORDINATOR'], ['f.alotaibi@mu.edu.sa', 'INSTRUCTOR'], ['s.alrashidi@mu.edu.sa', 'inactive']];
+  const pickMode = m => {
+    setMode(m);
+    setErr(null);
+    if (m === 'student') {
+      setEmail(demoSt.email);
+      setPw(demoSt.pw === demoSt.uid ? demoSt.uid : '');
+    } else {
+      setEmail('f.alotaibi@mu.edu.sa');
+      setPw('Track2026');
+    }
+  };
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -2278,10 +2292,43 @@ function LoginScreen({
     }
   }, t('login_title')), /*#__PURE__*/React.createElement("p", {
     style: {
-      margin: '6px 0 22px',
+      margin: '6px 0 18px',
       color: 'var(--text-secondary)'
     }
-  }, t('login_sub')), /*#__PURE__*/React.createElement("form", {
+  }, mode === 'student' ? en ? 'Sign in with your university email and password' : 'ادخل بريدك الجامعي وكلمة المرور' : t('login_sub')), /*#__PURE__*/React.createElement("div", {
+    role: "tablist",
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      background: 'var(--gray-100)',
+      borderRadius: 10,
+      padding: 4,
+      gap: 4,
+      marginBottom: 18
+    }
+  }, [['staff', 'briefcase', en ? 'Faculty & staff' : 'منسوبو الكلية'], ['student', 'graduation-cap', en ? 'Student' : 'طالب']].map(([k, ic, l]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    role: "tab",
+    "aria-selected": mode === k,
+    onClick: () => pickMode(k),
+    style: {
+      height: 38,
+      border: 'none',
+      borderRadius: 7,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      background: mode === k ? '#fff' : 'transparent',
+      boxShadow: mode === k ? 'var(--shadow-xs)' : 'none',
+      font: (mode === k ? '700' : '500') + ' 14px var(--font-sans)',
+      color: mode === k ? 'var(--track-blue)' : 'var(--text-secondary)'
+    }
+  }, /*#__PURE__*/React.createElement(window.DS.Icon, {
+    name: ic,
+    size: 16
+  }), l))), /*#__PURE__*/React.createElement("form", {
     onSubmit: submit,
     noValidate: true,
     style: {
@@ -2300,9 +2347,11 @@ function LoginScreen({
     tone: "danger",
     icon: "user-x"
   }, t('login_deactivated')), /*#__PURE__*/React.createElement(Input, {
-    label: t('email'),
+    label: mode === 'student' ? en ? 'University email' : 'البريد الإلكتروني الجامعي' : t('email'),
     icon: "mail",
     type: "email",
+    dir: "ltr",
+    placeholder: mode === 'student' ? '4xxxxxxxx@s.mu.edu.sa' : undefined,
     value: email,
     onChange: e => setEmail(e.target.value)
   }), /*#__PURE__*/React.createElement(Input, {
@@ -2310,7 +2359,8 @@ function LoginScreen({
     icon: "lock",
     type: "password",
     value: pw,
-    onChange: e => setPw(e.target.value)
+    onChange: e => setPw(e.target.value),
+    hint: mode === 'student' ? en ? 'First sign-in: your password is your university ID.' : 'عند أول دخول: كلمة المرور هي رقمك الجامعي.' : undefined
   }), /*#__PURE__*/React.createElement(Button, {
     type: "submit",
     size: "lg",
@@ -2335,7 +2385,25 @@ function LoginScreen({
       color: 'var(--text-secondary)',
       marginBottom: 8
     }
-  }, t('demo_accounts'), " \xB7 Track2026"), /*#__PURE__*/React.createElement("div", {
+  }, t('demo_accounts'), " \xB7 ", mode === 'student' ? en ? 'password = university ID' : 'كلمة المرور = الرقم الجامعي' : 'Track2026'), mode === 'student' ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => pickMode('student'),
+    style: {
+      height: 28,
+      padding: '0 10px',
+      border: '1px solid var(--border-default)',
+      borderRadius: 6,
+      background: 'var(--blue-50)',
+      cursor: 'pointer',
+      font: '500 12px var(--font-sans)',
+      color: 'var(--track-blue)'
+    }
+  }, demoSt.ar, " \xB7 ", demoSt.uid)) : /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexWrap: 'wrap',
@@ -2525,7 +2593,16 @@ function ProfileScreen({
     style: {
       margin: 0
     }
-  }, t('role_' + me.role)), me.branches.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", {
+  }, t('role_' + me.role)), me.uid && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", {
+    style: {
+      color: 'var(--text-secondary)'
+    }
+  }, lang === 'en' ? 'University ID' : 'الرقم الجامعي'), /*#__PURE__*/React.createElement("dd", {
+    style: {
+      margin: 0,
+      fontFamily: 'var(--font-latin)'
+    }
+  }, me.uid)), (me.branches || []).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("dt", {
     style: {
       color: 'var(--text-secondary)'
     }
@@ -5543,7 +5620,7 @@ function ImportWizard({
   }), /*#__PURE__*/React.createElement(Button, {
     variant: "secondary",
     icon: "download",
-    onClick: () => downloadTemplate(mode === 'central' ? 'track_central_roster_template.csv' : 'track_section_roster_template.csv', mode === 'central' ? [CENTRAL_HEADERS, sampleCentral(st)[0].slice(0, CENTRAL_HEADERS.length)] : [['تسلسل', 'رقم الطالب', 'اسم الطالب', 'الحالة'], ['1', '442104959', 'اسم الطالب الرباعي', 'منتظم']])
+    onClick: () => downloadTemplate(mode === 'central' ? 'track_central_roster_template.csv' : 'track_section_roster_template.csv', mode === 'central' ? [CENTRAL_HEADERS, sampleCentral(st)[0].slice(0, CENTRAL_HEADERS.length)] : [['تسلسل', 'رقم الطالب', 'اسم الطالب', 'الحالة'], ['1', '999000001', 'اسم الطالب الرباعي', 'منتظم']])
   }, lang === 'en' ? 'Download template' : 'تنزيل القالب'), /*#__PURE__*/React.createElement(Button, {
     variant: "secondary",
     icon: "folder-open",
@@ -6820,7 +6897,10 @@ function InitiativeDetailScreen({
     DataTable,
     StatusBadge,
     StatCard,
-    ProgressBar
+    ProgressBar,
+    Tabs,
+    Input,
+    Select
   } = window.DS;
   const {
     lang,
@@ -6832,6 +6912,10 @@ function InitiativeDetailScreen({
   const en = lang === 'en';
   const ini = st.initiatives.find(i => i.id === id);
   const [edit, setEdit] = React.useState(false);
+  const [tab, setTab] = React.useState('sections');
+  const [q, setQ] = React.useState('');
+  const [fs, setFs] = React.useState('');
+  const [fl, setFl] = React.useState('');
   if (!ini) return /*#__PURE__*/React.createElement(RefusalScreen, {
     kind: "404"
   });
@@ -6853,6 +6937,20 @@ function InitiativeDetailScreen({
   const totN = rows.reduce((x, r) => x + r.n, 0),
     totD = rows.reduce((x, r) => x + r.done, 0);
   const stages = st.TPL[id] || [];
+  const studs = as.flatMap(a => {
+    const sec = st.S.sections.find(s => s.id === a.section);
+    return st.S.enrollments.filter(e => e.section === a.section && e.status === 'active').map(e => ({
+      id: a.id + '-' + e.student,
+      a,
+      sec,
+      s: st.student(e.student),
+      m: st.marks(a, e.student)
+    }));
+  });
+  const lvl = r => r.m.filter(Boolean).length;
+  const srows = studs.filter(r => (!fs || String(r.sec.id) === fs) && (fl === '' || (fl === 'done' ? r.m[r.m.length - 1] : lvl(r) === +fl && !r.m[r.m.length - 1])) && (r.s.uid + r.s.ar).toLowerCase().includes(q.toLowerCase()));
+  const secIds = new Set(as.map(a => a.section));
+  const tks = st.ticketScope(me).filter(x => x.section && secIds.has(x.section));
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PageHeader, {
     crumbs: [{
       label: t('nav_initiatives'),
@@ -6891,16 +6989,135 @@ function InitiativeDetailScreen({
     value: (totN ? Math.round(totD / totN * 100) : 0) + '%',
     label: en ? 'Completion' : 'نسبة الإنهاء',
     tone: "green"
-  })), /*#__PURE__*/React.createElement(Panel, {
+  })), /*#__PURE__*/React.createElement(Panel, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '8px 20px 0'
+    }
+  }, /*#__PURE__*/React.createElement(Tabs, {
+    value: tab,
+    onChange: setTab,
+    tabs: [{
+      id: 'sections',
+      label: en ? 'Target sections' : 'الشعب المستهدفة',
+      count: rows.length
+    }, {
+      id: 'students',
+      label: en ? 'Initiative students' : 'طلبة المبادرة',
+      count: studs.length
+    }, {
+      id: 'support',
+      label: en ? 'Support requests' : 'طلبات الدعم الفني',
+      count: tks.length
+    }]
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
     }
+  }, tab === 'students' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      font: '700 15px var(--font-sans)',
-      marginBottom: 14
+      display: 'flex',
+      gap: 10,
+      flexWrap: 'wrap',
+      alignItems: 'center'
     }
-  }, en ? 'Target sections' : 'الشعب المستهدفة'), /*#__PURE__*/React.createElement(DataTable, {
+  }, /*#__PURE__*/React.createElement(Input, {
+    size: "sm",
+    icon: "search",
+    placeholder: en ? 'Student no. / name' : 'رقم الطالب / الاسم',
+    value: q,
+    onChange: e => setQ(e.target.value),
+    style: {
+      width: 230
+    }
+  }), /*#__PURE__*/React.createElement(Select, {
+    size: "sm",
+    icon: "users",
+    value: fs,
+    onChange: e => setFs(e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'All sections' : 'كل الشعب'
+    }, ...rows.map(r => ({
+      value: String(r.sec.id),
+      label: st.course(r.sec.course).code + ' · ' + r.sec.no + ' · ' + st.branchLabel(r.sec.branch, lang)
+    }))],
+    style: {
+      width: 260
+    }
+  }), /*#__PURE__*/React.createElement(Select, {
+    size: "sm",
+    icon: "list-checks",
+    value: fl,
+    onChange: e => setFl(e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'All progress' : 'كل الحالات'
+    }, {
+      value: '0',
+      label: en ? 'Not started' : 'لم يبدأ'
+    }, ...stages.slice(0, -1).map((s, i) => ({
+      value: String(i + 1),
+      label: (en ? 'Reached: ' : 'وصل إلى: ') + s
+    })), {
+      value: 'done',
+      label: en ? 'Completed' : 'أنهى المبادرة'
+    }],
+    style: {
+      width: 220
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginInlineStart: 'auto',
+      font: '600 13px var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, srows.length, " ", en ? 'students' : 'طالب'), /*#__PURE__*/React.createElement(Button, {
+    size: "sm",
+    variant: "secondary",
+    icon: "download",
+    onClick: () => downloadTemplate('initiative_' + id + '_students.csv', [['الرقم الجامعي', 'اسم الطالب', 'المقرر', 'الشعبة', 'الفرع', ...stages], ...srows.map(r => [r.s.uid, r.s.ar, st.course(r.sec.course).code, r.sec.no, st.branchLabel(r.sec.branch, 'ar'), ...stages.map((_, i) => r.m[i] ? 'تم' : 'لم يتم')])])
+  }, t('export'))), /*#__PURE__*/React.createElement(DataTable, {
+    dense: true,
+    onRowClick: r => go('student', r.s.id),
+    columns: [{
+      key: 'uid',
+      label: en ? 'Student no.' : 'رقم الطالب',
+      numeric: true,
+      render: r => /*#__PURE__*/React.createElement("b", null, r.s.uid)
+    }, {
+      key: 'ar',
+      label: en ? 'Student name' : 'اسم الطالب',
+      wrap: true,
+      render: r => /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontWeight: 600
+        }
+      }, r.s.ar)
+    }, {
+      key: 'sec',
+      label: en ? 'Section' : 'الشعبة',
+      render: r => st.course(r.sec.course).code + ' · ' + r.sec.no
+    }, {
+      key: 'b',
+      label: t('branch'),
+      render: r => st.branchLabel(r.sec.branch, lang)
+    }, ...stages.map((s, i) => ({
+      key: 'st' + i,
+      label: s,
+      render: r => window.stageFlag(!!r.m[i], r.m[i] ? en ? 'Done' : 'تم' : en ? 'Not yet' : 'لم يتم')
+    }))],
+    rows: srows,
+    empty: en ? 'No students match' : 'لا يوجد طلبة مطابقون'
+  })), tab === 'support' && /*#__PURE__*/React.createElement(TicketList, {
+    rows: tks,
+    notify: notify
+  }), tab === 'sections' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DataTable, {
     onRowClick: r => go('section', r.sec.id),
     columns: [{
       key: 'no',
@@ -6950,7 +7167,7 @@ function InitiativeDetailScreen({
     }],
     rows: rows,
     empty: en ? 'No sections assigned yet' : 'لم تُسند لأي شعبة بعد'
-  })), edit && /*#__PURE__*/React.createElement(InitiativeDialog, {
+  })))), edit && /*#__PURE__*/React.createElement(InitiativeDialog, {
     ini: ini,
     onClose: () => setEdit(false),
     notify: notify
@@ -6964,6 +7181,912 @@ Object.assign(window, {
   InitiativeDetailScreen
 });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/web-app/InitiativesScreen.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/web-app/SectionApproval.jsx
+try { (() => {
+const SEC_ST = {
+  pending: ['pending', 'بانتظار الاعتماد', 'Pending approval'],
+  returned: ['warning', 'معادة للتعديل', 'Returned'],
+  rejected: ['error', 'مرفوضة', 'Rejected'],
+  active: ['active', 'معتمدة', 'Approved']
+};
+function SecStatus({
+  s
+}) {
+  const {
+    StatusBadge
+  } = window.DS;
+  const {
+    lang
+  } = useApp();
+  const x = SEC_ST[s || 'active'];
+  return /*#__PURE__*/React.createElement(StatusBadge, {
+    status: x[0]
+  }, lang === 'en' ? x[2] : x[1]);
+}
+const secDup = (st, f, selfId) => st.S.sections.find(s => s.id !== selfId && s.status !== 'rejected' && s.term === +f.term && s.branch === +f.branch && s.course === +f.course && s.no === String(f.no).trim());
+function SectionRequestDialog({
+  sec,
+  onClose,
+  notify
+}) {
+  const {
+    Dialog,
+    Button,
+    Input,
+    Select,
+    Alert,
+    Checkbox
+  } = window.DS;
+  const {
+    t,
+    me,
+    lang,
+    go
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const isNew = !sec;
+  const [f, setF] = React.useState(sec ? {
+    term: sec.term,
+    branch: sec.branch,
+    course: sec.course,
+    no: sec.no,
+    program: String(sec.program),
+    suggested: sec.suggested || [],
+    note: sec.note || ''
+  } : {
+    term: st.currentTerm().id,
+    branch: '',
+    course: '',
+    no: '',
+    program: '',
+    suggested: [],
+    note: ''
+  });
+  const [err, setErr] = React.useState(null);
+  const [busy, setBusy] = React.useState(false);
+  const fref = React.useRef(null);
+  const [file, setFile] = React.useState(null);
+  const [fErr, setFErr] = React.useState(null);
+  const readRoster = p => {
+    const m = p.meta || {};
+    const H = p.headers.map(h => String(h || '').trim());
+    const col = re => H.findIndex(h => re.test(h));
+    const c = {
+      seq: col(/تسلسل|seq/i),
+      uid: col(/رقم الطالب|الرقم الجامعي|university id/i),
+      ar: col(/اسم الطالب|name/i),
+      acad: col(/^الحالة$|status/i)
+    };
+    if (c.uid < 0 || c.ar < 0) throw new Error('cols');
+    const g = /طالبات|بنات/.test(m.campus || '') ? 'female' : /طلاب|بنين/.test(m.campus || '') ? 'male' : null;
+    const b = st.S.branches.find(x => x.active && (m.campus || '').includes(x.ar) && (!g || x.gender === g));
+    const co = st.S.courses.find(x => x.ar === (m.course || '').trim() || x.code.toLowerCase() === (m.course || '').trim().toLowerCase() || x.en.toLowerCase() === (m.course || '').trim().toLowerCase());
+    const seen = {};
+    const rows = p.rows.map((r, k) => {
+      const v = i => i >= 0 ? String(r[i] || '').trim() : '';
+      const x = {
+        seq: +v(c.seq) || k + 1,
+        uid: v(c.uid).replace(/\D/g, ''),
+        ar: v(c.ar),
+        acad: v(c.acad) || 'منتظم'
+      };
+      x.ok = /^\d{9}$/.test(x.uid) && !!x.ar && !seen[x.uid];
+      if (x.ok) seen[x.uid] = 1;
+      x.exists = !!st.S.students.find(s => s.uid === x.uid);
+      return x;
+    });
+    return {
+      name: p.name,
+      meta: m,
+      branch: b,
+      course: co,
+      rows
+    };
+  };
+  const applyFile = r => {
+    setFile(r);
+    setErr(null);
+    const n = {
+      ...f
+    };
+    if (r.branch) n.branch = r.branch.id;
+    if (r.course) n.course = r.course.id;
+    if (r.meta.section) n.no = r.meta.section;
+    setF(n);
+    const miss = [!r.branch && (en ? 'campus' : 'المقر'), !r.course && (en ? 'course' : 'المقرر'), !r.meta.section && (en ? 'section number' : 'رقم الشعبة')].filter(Boolean);
+    setFErr(miss.length ? (en ? 'Could not match from the file: ' : 'تعذّر تحديد من الملف: ') + miss.join('، ') + (en ? '. Select it manually.' : '. اختره يدويًا.') : null);
+  };
+  const onFile = async ev => {
+    const x = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!x) return;
+    try {
+      applyFile(readRoster(await window.parseRosterFile(x)));
+    } catch (e) {
+      setFile(null);
+      setFErr(e.message === 'cols' ? en ? 'The file must contain “Student no.” and “Student name” columns. Download the guide template.' : 'يجب أن يحتوي الملف على عمودي «رقم الطالب» و«اسم الطالب». حمّل النموذج الاسترشادي.' : en ? 'Unsupported file. Use the xlsx exported from the academic system.' : 'نوع الملف غير مدعوم. استخدم ملف xlsx المصدّر من النظام الأكاديمي.');
+    }
+  };
+  const sampleFile = () => {
+    const R = st.REAL_FILE;
+    applyFile(readRoster({
+      name: 'filedownloadservlet(22).xlsx',
+      meta: {
+        ...R.meta,
+        section: '2305'
+      },
+      headers: R.headers,
+      rows: R.rows
+    }));
+  };
+  const guide = () => downloadTemplate('نموذج_ملف_الشعبة.csv', [['المقر', 'المجمعة (طلاب)'], ['الدرجة', 'الدبلوم المتوسط'], ['اسم المقرر', 'برمجة 2'], ['النشاط', 'محاضرة'], ['الشعبة', '2298'], [''], ['تسلسل', 'رقم الطالب', 'اسم الطالب', 'الحالة'], ['1', '999000001', 'باسل أنور لطفي راشد جابر اليامي', 'منتظم'], ['2', '999000002', 'فارس نصار نصار هلال هلال القرني', 'منتظم'], ['3', '999000003', 'مازن راشد مراد نصار فهمي البارقي', 'منتظم']]);
+  const set = (k, v) => {
+    setF({
+      ...f,
+      [k]: v
+    });
+    setErr(null);
+  };
+  const save = () => {
+    if (!f.branch || !f.course || !String(f.no).trim() || !f.program) {
+      setErr(en ? 'Branch, course, section number and program are required.' : 'الفرع والمقرر ورقم الشعبة والبرنامج حقول مطلوبة.');
+      return;
+    }
+    const d = secDup(st, f, sec && sec.id);
+    if (d) {
+      setErr(t('dup_section', {
+        k: st.course(d.course).code + ' / ' + d.no + ' / ' + st.branchLabel(d.branch, lang)
+      }));
+      return;
+    }
+    setBusy(true);
+    setTimeout(() => {
+      const data = {
+        term: +f.term,
+        branch: +f.branch,
+        course: +f.course,
+        no: String(f.no).trim(),
+        program: +f.program,
+        suggested: f.suggested,
+        note: f.note.trim()
+      };
+      if (isNew) {
+        const s = {
+          id: Date.now(),
+          ...data,
+          instructor: me.id,
+          status: 'pending',
+          req: {
+            by: me.id,
+            at: st.now().slice(0, 19),
+            file: file && file.name
+          },
+          degree: file && file.meta.degree || 'البكالوريوس',
+          activity: file && file.meta.activity || 'محاضرة'
+        };
+        st.S.sections.push(s);
+        st.S.history.push({
+          section: s.id,
+          instructor: me.id,
+          from: st.now().slice(0, 10),
+          to: null,
+          by: me.id
+        });
+        let nNew = 0,
+          nEnr = 0;
+        if (file) file.rows.filter(r => r.ok).forEach((r, i) => {
+          let stu = st.S.students.find(x => x.uid === r.uid);
+          if (!stu) {
+            stu = {
+              id: Date.now() + 10 + i,
+              uid: r.uid,
+              ar: r.ar,
+              en: '',
+              email: r.uid + '@s.mu.edu.sa',
+              phone: '',
+              program: s.program,
+              pw: r.uid,
+              mustChange: true,
+              active: true,
+              firstLogin: null,
+              lastLogin: null,
+              role: 'STUDENT',
+              branches: []
+            };
+            st.S.students.push(stu);
+            nNew++;
+          }
+          st.S.enrollments.push({
+            id: Date.now() + 500 + i,
+            student: stu.id,
+            section: s.id,
+            status: 'active',
+            enrolled: st.now().slice(0, 10),
+            acad: r.acad,
+            seq: r.seq
+          });
+          nEnr++;
+        });
+        if (file) st.S.imports.unshift({
+          id: Date.now() + 3,
+          mode: 'section',
+          term: s.term,
+          section: s.id,
+          file: file.name,
+          hash: '',
+          by: me.id,
+          at: st.now().slice(0, 19),
+          status: 'completed',
+          total: file.rows.length,
+          processed: file.rows.length,
+          imported: nEnr,
+          duplicates: 0,
+          errors: file.rows.length - nEnr
+        });
+        st.audit(me.id, 'section.requested', 'section', s.id, null, {
+          course: st.course(s.course).code,
+          no: s.no,
+          branch: st.branchLabel(s.branch, 'ar')
+        });
+        st.emit();
+        setBusy(false);
+        onClose();
+        notify(en ? 'Sent for approval' : 'أُرسلت للاعتماد', en ? 'The branch coordinator or Super Admin will link it to an initiative.' : 'سيربطها منسق الفرع أو السوبر أدمن بالمبادرة.');
+        go('section', s.id);
+      } else {
+        Object.assign(sec, data, {
+          status: 'pending',
+          req: {
+            by: me.id,
+            at: st.now().slice(0, 19)
+          }
+        });
+        st.audit(me.id, 'section.resubmitted', 'section', sec.id, null, {
+          no: sec.no
+        });
+        st.emit();
+        setBusy(false);
+        onClose();
+        notify(en ? 'Resubmitted' : 'أُعيد الإرسال');
+      }
+    }, 500);
+  };
+  return /*#__PURE__*/React.createElement(Dialog, {
+    title: isNew ? en ? 'Add a section' : 'إضافة شعبة' : en ? 'Edit and resubmit' : 'تعديل وإعادة الإرسال',
+    onClose: onClose,
+    width: 680,
+    footer: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      onClick: onClose
+    }, t('cancel')), /*#__PURE__*/React.createElement(Button, {
+      icon: "send",
+      loading: busy,
+      onClick: save
+    }, en ? 'Send for approval' : 'إرسال للاعتماد'))
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 14
+    }
+  }, isNew && /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '1 / -1',
+      border: '2px dashed var(--border-strong)',
+      borderRadius: 'var(--radius-lg)',
+      padding: '16px',
+      background: 'var(--gray-50)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement(window.DS.Icon, {
+    name: "file-spreadsheet",
+    size: 28,
+    color: "var(--track-green)"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '700 14px var(--font-sans)'
+    }
+  }, en ? 'Section file from the academic system' : 'ملف الشعبة من النظام الأكاديمي'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '400 12px/1.6 var(--font-sans)',
+      color: 'var(--text-secondary)',
+      marginTop: 2
+    }
+  }, en ? 'Upload the section list exported from the academic system. Campus, course and section number fill in automatically, and the students are added to the section.' : 'ارفع كشف الشعبة المصدّر من النظام الأكاديمي، وستُعبأ بيانات المقر والمقرر ورقم الشعبة تلقائيًا ويُضاف الطلبة للشعبة.'), /*#__PURE__*/React.createElement("input", {
+    ref: fref,
+    type: "file",
+    accept: ".xlsx,.csv",
+    onChange: onFile,
+    style: {
+      display: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginTop: 10,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement(Button, {
+    size: "sm",
+    icon: "upload",
+    onClick: () => fref.current && fref.current.click()
+  }, file ? en ? 'Replace file' : 'استبدال الملف' : en ? 'Upload section file' : 'رفع ملف الشعبة'), /*#__PURE__*/React.createElement(Button, {
+    size: "sm",
+    variant: "secondary",
+    icon: "download",
+    onClick: guide
+  }, en ? 'Guide template' : 'النموذج الاسترشادي'), /*#__PURE__*/React.createElement(Button, {
+    size: "sm",
+    variant: "ghost",
+    onClick: sampleFile
+  }, en ? 'Use sample file' : 'استخدام ملف تجريبي')))), file && (() => {
+    const ok = file.rows.filter(r => r.ok);
+    const nw = ok.filter(r => !r.exists).length;
+    const bad = file.rows.length - ok.length;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 12,
+        paddingTop: 12,
+        borderTop: '1px solid var(--border-default)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '4px 14px',
+        font: '600 12px var(--font-sans)'
+      }
+    }, /*#__PURE__*/React.createElement("span", null, file.name), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--text-secondary)'
+      }
+    }, [file.meta.campus, file.meta.degree, file.meta.course, file.meta.activity, (en ? 'Section ' : 'شعبة ') + (file.meta.section || '—')].filter(Boolean).join(' · '))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 14,
+        marginTop: 6,
+        font: '500 12px var(--font-sans)'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--green-700)'
+      }
+    }, ok.length, " ", en ? 'students to enroll' : 'طالب سيُسجّل'), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--text-secondary)'
+      }
+    }, nw, " ", en ? 'new accounts' : 'حساب جديد'), bad > 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--red-600)'
+      }
+    }, bad, " ", en ? 'rows skipped (invalid or duplicate ID)' : 'صف متجاهَل (رقم غير صالح أو مكرر)')), /*#__PURE__*/React.createElement("div", {
+      style: {
+        maxHeight: 150,
+        overflow: 'auto',
+        marginTop: 8,
+        border: '1px solid var(--border-default)',
+        borderRadius: 8,
+        background: '#fff'
+      }
+    }, file.rows.map((r, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '36px 96px 1fr auto',
+        gap: 8,
+        padding: '5px 10px',
+        borderBottom: '1px solid var(--gray-100)',
+        font: '400 12px var(--font-sans)',
+        color: r.ok ? 'var(--text-primary)' : 'var(--red-600)'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--text-secondary)'
+      }
+    }, r.seq), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: 'var(--font-latin)'
+      }
+    }, r.uid || '—'), /*#__PURE__*/React.createElement("span", {
+      style: {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }
+    }, r.ar), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--text-secondary)'
+      }
+    }, r.acad)))));
+  })(), fErr && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement(Alert, {
+    tone: "warning"
+  }, fErr))), /*#__PURE__*/React.createElement(Select, {
+    label: t('f_term'),
+    value: f.term,
+    onChange: e => set('term', e.target.value),
+    options: st.S.terms.filter(x => x.status !== 'closed').map(x => ({
+      value: x.id,
+      label: en ? x.en : x.ar
+    }))
+  }), /*#__PURE__*/React.createElement(Select, {
+    label: t('branch'),
+    required: true,
+    value: f.branch,
+    onChange: e => set('branch', e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'Select…' : 'اختر…'
+    }, ...st.S.branches.filter(b => b.active).map(b => ({
+      value: b.id,
+      label: st.branchLabel(b.id, lang)
+    }))]
+  }), /*#__PURE__*/React.createElement(Select, {
+    label: t('course'),
+    required: true,
+    value: f.course,
+    onChange: e => set('course', e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'Select…' : 'اختر…'
+    }, ...st.S.courses.map(c => ({
+      value: c.id,
+      label: c.code + ' · ' + (en ? c.en : c.ar)
+    }))]
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: t('section_no'),
+    required: true,
+    dir: "ltr",
+    value: f.no,
+    onChange: e => set('no', e.target.value)
+  }), /*#__PURE__*/React.createElement(Select, {
+    label: en ? 'Academic program' : 'البرنامج الأكاديمي',
+    required: true,
+    value: f.program,
+    onChange: e => set('program', e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'Select program…' : 'اختر البرنامج…'
+    }, ...st.S.programs.filter(p => p.active).map(p => ({
+      value: p.id,
+      label: p.code + ' · ' + (en ? p.en : p.ar)
+    }))],
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '600 13px var(--font-sans)',
+      marginBottom: 4
+    }
+  }, en ? 'Suggested initiative (optional)' : 'المبادرة المقترحة (اختياري)'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '400 12px var(--font-sans)',
+      color: 'var(--text-secondary)',
+      marginBottom: 8
+    }
+  }, en ? 'A suggestion only. The coordinator or Super Admin decides the final link.' : 'اقتراح فقط، ويحدد منسق الفرع أو السوبر أدمن الربط النهائي.'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 16
+    }
+  }, st.initiatives.filter(i => i.status !== 'closed').map(i => /*#__PURE__*/React.createElement(Checkbox, {
+    key: i.id,
+    label: en ? i.en : i.ar,
+    checked: f.suggested.includes(i.id),
+    onChange: v => set('suggested', v ? [...f.suggested, i.id] : f.suggested.filter(x => x !== i.id))
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: en ? 'Note to approver' : 'ملاحظة لجهة الاعتماد'
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: f.note,
+    onChange: e => set('note', e.target.value),
+    style: {
+      ...nativeStyle,
+      height: 70,
+      padding: '8px 12px',
+      resize: 'vertical'
+    }
+  }))), err && /*#__PURE__*/React.createElement(Alert, {
+    tone: "danger",
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }, err)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: '12px 0 0',
+      font: '400 12px/1.6 var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, en ? 'You are set as the instructor. You can upload the student list now; stage tracking opens after approval.' : 'ستُسجَّل مدرسًا للشعبة. يمكنك رفع قائمة الطلبة الآن، ويُفتح تسجيل المراحل بعد الاعتماد.'));
+}
+function ApprovalDialog({
+  sec,
+  onClose,
+  notify
+}) {
+  const {
+    Dialog,
+    Button,
+    Alert,
+    Checkbox,
+    Tabs
+  } = window.DS;
+  const {
+    t,
+    me,
+    lang
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const [pick, setPick] = React.useState((sec.suggested || []).slice());
+  const [mode, setMode] = React.useState('approve');
+  const [reason, setReason] = React.useState('');
+  const [err, setErr] = React.useState(null);
+  const [busy, setBusy] = React.useState(false);
+  const c = st.course(sec.course);
+  const n = st.S.enrollments.filter(e => e.section === sec.id && e.status === 'active').length;
+  const dup = secDup(st, sec, sec.id);
+  const open = sec.status === 'pending';
+  const go_ = () => {
+    if (mode === 'approve' && !pick.length) {
+      setErr(en ? 'Select at least one initiative.' : 'اختر مبادرة واحدة على الأقل.');
+      return;
+    }
+    if (mode !== 'approve' && !reason.trim()) {
+      setErr(en ? 'A reason is required.' : 'السبب مطلوب.');
+      return;
+    }
+    setBusy(true);
+    setTimeout(() => {
+      const at = st.now().slice(0, 19);
+      if (mode === 'approve') {
+        sec.status = 'active';
+        pick.forEach((ini, i) => {
+          if (!st.S.assignments.some(a => a.section === sec.id && a.ini === ini)) st.S.assignments.push({
+            id: Date.now() + i,
+            section: sec.id,
+            ini,
+            stages: (st.TPL[ini] || ['تسجيل الطالب', 'التوثيق', 'الانتهاء']).slice()
+          });
+        });
+        sec.decision = {
+          kind: 'approved',
+          by: me.id,
+          at,
+          inis: pick
+        };
+        st.audit(me.id, 'section.approved', 'section', sec.id, {
+          status: 'pending'
+        }, {
+          status: 'active',
+          initiatives: pick.map(i => st.iniName({
+            id: i
+          }, 'ar'))
+        });
+        notify(en ? 'Section approved' : 'تم اعتماد الشعبة', pick.map(i => st.iniName({
+          id: i
+        }, lang)).join('، '));
+      } else {
+        sec.status = mode === 'return' ? 'returned' : 'rejected';
+        sec.decision = {
+          kind: sec.status,
+          by: me.id,
+          at,
+          reason: reason.trim()
+        };
+        st.audit(me.id, mode === 'return' ? 'section.returned' : 'section.rejected', 'section', sec.id, {
+          status: 'pending'
+        }, {
+          status: sec.status,
+          reason: reason.trim()
+        });
+        notify(mode === 'return' ? en ? 'Returned to instructor' : 'أُعيدت للمدرس' : en ? 'Request rejected' : 'تم رفض الطلب');
+      }
+      st.emit();
+      setBusy(false);
+      onClose();
+    }, 500);
+  };
+  const facts = [[t('course'), c.code + ' · ' + (en ? c.en : c.ar)], [t('section_no'), sec.no], [t('branch'), st.branchLabel(sec.branch, lang)], [en ? 'Program' : 'البرنامج', st.programName(sec.program, lang)], [t('instructor'), st.uname(sec.instructor, lang)], [en ? 'Students uploaded' : 'الطلبة المرفوعون', n], [en ? 'Submitted' : 'تاريخ الطلب', fmtDateTime(sec.req.at)]];
+  return /*#__PURE__*/React.createElement(Dialog, {
+    title: en ? 'Review section request' : 'مراجعة طلب إضافة شعبة',
+    onClose: onClose,
+    width: 680,
+    footer: open ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      onClick: onClose
+    }, t('cancel')), /*#__PURE__*/React.createElement(Button, {
+      variant: mode === 'reject' ? 'danger' : 'primary',
+      icon: mode === 'approve' ? 'circle-check' : mode === 'return' ? 'undo-2' : 'circle-x',
+      loading: busy,
+      onClick: go_
+    }, mode === 'approve' ? en ? 'Approve and link' : 'اعتماد وربط' : mode === 'return' ? en ? 'Return to instructor' : 'إعادة للمدرس' : en ? 'Reject' : 'رفض الطلب')) : /*#__PURE__*/React.createElement(Button, {
+      onClick: onClose
+    }, t('close'))
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))',
+      border: '1px solid var(--border-default)',
+      borderRadius: 'var(--radius-md)',
+      overflow: 'hidden'
+    }
+  }, facts.map(([l, v]) => /*#__PURE__*/React.createElement("div", {
+    key: l,
+    style: {
+      padding: '10px 14px',
+      borderBottom: '1px solid var(--gray-100)',
+      borderInlineEnd: '1px solid var(--gray-100)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '500 12px var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, l), /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '700 14px var(--font-sans)',
+      marginTop: 2
+    }
+  }, v)))), sec.note && /*#__PURE__*/React.createElement(Alert, {
+    tone: "info",
+    title: en ? 'Instructor note' : 'ملاحظة المدرس'
+  }, sec.note), dup && /*#__PURE__*/React.createElement(Alert, {
+    tone: "warning"
+  }, en ? 'A matching section already exists: ' : 'توجد شعبة مطابقة مسبقًا: ', st.course(dup.course).code + ' / ' + dup.no + ' / ' + st.branchLabel(dup.branch, lang)), !open && sec.decision && /*#__PURE__*/React.createElement(Alert, {
+    tone: sec.status === 'rejected' ? 'danger' : 'warning',
+    title: SEC_ST[sec.status][en ? 2 : 1] + ' · ' + st.uname(sec.decision.by, lang) + ' · ' + fmtDateTime(sec.decision.at)
+  }, sec.decision.reason), open && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Tabs, {
+    variant: "segmented",
+    value: mode,
+    onChange: v => {
+      setMode(v);
+      setErr(null);
+    },
+    tabs: [{
+      id: 'approve',
+      label: en ? 'Approve' : 'اعتماد'
+    }, {
+      id: 'return',
+      label: en ? 'Return for edits' : 'إعادة للتعديل'
+    }, {
+      id: 'reject',
+      label: en ? 'Reject' : 'رفض'
+    }]
+  }), mode === 'approve' ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '600 13px var(--font-sans)',
+      marginBottom: 8
+    }
+  }, en ? 'Link to initiatives' : 'ربط الشعبة بالمبادرات', /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--red-600)'
+    }
+  }, " *")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, st.initiatives.filter(i => i.status !== 'closed').map(i => /*#__PURE__*/React.createElement("div", {
+    key: i.id,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+      padding: '10px 12px',
+      border: '1px solid ' + (pick.includes(i.id) ? 'var(--green-200)' : 'var(--border-default)'),
+      borderRadius: 'var(--radius-md)',
+      background: pick.includes(i.id) ? 'var(--green-50)' : '#fff'
+    }
+  }, /*#__PURE__*/React.createElement(Checkbox, {
+    label: en ? i.en : i.ar,
+    checked: pick.includes(i.id),
+    onChange: v => {
+      setPick(v ? [...pick, i.id] : pick.filter(x => x !== i.id));
+      setErr(null);
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      font: '400 12px var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, (sec.suggested || []).includes(i.id) && /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: 'var(--track-blue)',
+      marginInlineEnd: 8
+    }
+  }, en ? 'Suggested' : 'مقترحة من المدرس'), (st.TPL[i.id] || []).join(' ← '))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '400 12px var(--font-sans)',
+      color: 'var(--text-secondary)',
+      marginTop: 8
+    }
+  }, en ? 'Default stages are applied; you can edit them later from the section page.' : 'تُطبَّق المراحل الافتراضية، ويمكن تعديلها لاحقًا من صفحة الشعبة.')) : /*#__PURE__*/React.createElement(Field, {
+    label: en ? 'Reason (shown to the instructor)' : 'السبب (يظهر للمدرس)',
+    required: true
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: reason,
+    onChange: e => {
+      setReason(e.target.value);
+      setErr(null);
+    },
+    style: {
+      ...nativeStyle,
+      height: 80,
+      padding: '8px 12px',
+      resize: 'vertical'
+    }
+  })), err && /*#__PURE__*/React.createElement(Alert, {
+    tone: "danger"
+  }, err))));
+}
+function ApprovalsScreen({
+  notify
+}) {
+  const {
+    DataTable,
+    Tabs,
+    Input
+  } = window.DS;
+  const {
+    t,
+    me,
+    lang
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const [tab, setTab] = React.useState('pending');
+  const [q, setQ] = React.useState('');
+  const [open, setOpen] = React.useState(null);
+  const all = st.approvalScope(me).slice().sort((a, b) => b.req.at.localeCompare(a.req.at));
+  const rows = all.filter(s => (tab === 'all' || s.status === tab) && (st.course(s.course).code + s.no + st.uname(s.instructor, lang)).toLowerCase().includes(q.toLowerCase()));
+  const cnt = k => all.filter(s => s.status === k).length;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PageHeader, {
+    title: t('nav_approvals'),
+    subtitle: me.role === 'SUPER_ADMIN' ? en ? 'All section requests from instructors across every branch. Approve and link to initiatives, return for edits, or reject.' : 'جميع طلبات إضافة الشعب من المدرسين في كل الفروع. اعتمد واربط بالمبادرات، أو أعد للتعديل، أو ارفض.' : en ? 'Section requests from instructors in your branches.' : 'طلبات إضافة الشعب من المدرسين في فروعك.'
+  }), /*#__PURE__*/React.createElement(Panel, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 16,
+      padding: '8px 20px 0',
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement(Tabs, {
+    value: tab,
+    onChange: setTab,
+    tabs: [...['pending', 'returned', 'rejected', 'active'].map(k => ({
+      id: k,
+      label: SEC_ST[k][en ? 2 : 1],
+      count: cnt(k)
+    })), {
+      id: 'all',
+      label: t('all'),
+      count: all.length
+    }]
+  }), /*#__PURE__*/React.createElement(Input, {
+    size: "sm",
+    icon: "search",
+    placeholder: en ? 'Course, section, instructor' : 'المقرر، الشعبة، المدرس',
+    value: q,
+    onChange: e => setQ(e.target.value),
+    style: {
+      width: 240
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement(DataTable, {
+    onRowClick: setOpen,
+    columns: [{
+      key: 'c',
+      label: t('course'),
+      render: r => {
+        const c = st.course(r.course);
+        return /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
+          style: {
+            fontFamily: 'var(--font-latin)',
+            fontWeight: 700
+          }
+        }, c.code), " ", /*#__PURE__*/React.createElement("span", {
+          style: {
+            color: 'var(--text-secondary)'
+          }
+        }, "\xB7 ", en ? c.en : c.ar));
+      }
+    }, {
+      key: 'no',
+      label: t('section_no'),
+      numeric: true,
+      render: r => /*#__PURE__*/React.createElement("b", null, r.no)
+    }, {
+      key: 'b',
+      label: t('branch'),
+      render: r => st.branchLabel(r.branch, lang)
+    }, {
+      key: 'i',
+      label: t('instructor'),
+      render: r => st.uname(r.instructor, lang)
+    }, {
+      key: 'sg',
+      label: en ? 'Initiative' : 'المبادرة',
+      wrap: true,
+      render: r => r.status === 'active' ? st.S.assignments.filter(a => a.section === r.id).map(a => st.iniName(a, lang)).join('، ') : (r.suggested || []).length ? /*#__PURE__*/React.createElement("span", {
+        style: {
+          color: 'var(--text-secondary)'
+        }
+      }, (en ? 'Suggested: ' : 'مقترحة: ') + r.suggested.map(i => st.iniName({
+        id: i
+      }, lang)).join('، ')) : '—'
+    }, {
+      key: 'n',
+      label: t('students_n'),
+      numeric: true,
+      render: r => st.S.enrollments.filter(e => e.section === r.id && e.status === 'active').length
+    }, {
+      key: 'at',
+      label: en ? 'Submitted' : 'تاريخ الطلب',
+      numeric: true,
+      render: r => fmtDateTime(r.req.at)
+    }, {
+      key: 's',
+      label: t('status'),
+      render: r => /*#__PURE__*/React.createElement(SecStatus, {
+        s: r.status
+      })
+    }],
+    rows: rows,
+    empty: en ? 'No requests in this tab' : 'لا توجد طلبات في هذا التبويب'
+  }))), open && /*#__PURE__*/React.createElement(ApprovalDialog, {
+    sec: open,
+    onClose: () => setOpen(null),
+    notify: notify
+  }));
+}
+Object.assign(window, {
+  SEC_ST,
+  SecStatus,
+  SectionRequestDialog,
+  ApprovalDialog,
+  ApprovalsScreen
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/web-app/SectionApproval.jsx", error: String((e && e.message) || e) }); }
 
 // ui_kits/web-app/SectionsScreens.jsx
 try { (() => {
@@ -6991,20 +8114,32 @@ function SectionsScreen({
   const [br, setBr] = React.useState('all');
   const [q, setQ] = React.useState('');
   const [create, setCreate] = React.useState(false);
+  const [req, setReq] = React.useState(false);
   const [pg, setPg] = React.useState('all');
-  const loading = useFakeLoad(term + br + pg);
+  const [fi, setFi] = React.useState('all');
+  const loading = useFakeLoad(term + br + pg + fi);
   const scope = st.sectionScope(me);
-  const rows = scope.filter(s => s.term === term && (br === 'all' || s.branch === +br) && (pg === 'all' || s.program === +pg) && (st.course(s.course).code + s.no).toLowerCase().includes(q.toLowerCase()));
+  const inisOf = id => st.S.assignments.filter(a => a.section === id);
+  const rows = scope.filter(s => s.term === term && (br === 'all' || s.branch === +br) && (pg === 'all' || s.program === +pg) && (fi === 'all' || (fi === 'none' ? inisOf(s.id).length === 0 : inisOf(s.id).some(a => a.ini === +fi))) && (st.course(s.course).code + s.no).toLowerCase().includes(q.toLowerCase()));
   const visBranches = me.role === 'SUPER_ADMIN' ? st.S.branches : st.S.branches.filter(b => me.branches.includes(b.id));
   const sub = me.role === 'SUPER_ADMIN' ? t('sections_sub_admin') : me.role === 'BRANCH_COORDINATOR' ? t('sections_sub_coord') : t('sections_sub_inst');
   const count = id => st.S.enrollments.filter(e => e.section === id && e.status === 'active').length;
+  const reqBtn = st.can(me, 'section.request') && /*#__PURE__*/React.createElement(Button, {
+    icon: "plus",
+    onClick: () => setReq(true)
+  }, lang === 'en' ? 'Add a section' : 'إضافة شعبة');
   if (me.role === 'INSTRUCTOR' && scope.length === 0) return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PageHeader, {
-    title: t('nav_mysections')
+    title: t('nav_mysections'),
+    actions: reqBtn
   }), /*#__PURE__*/React.createElement(Panel, null, /*#__PURE__*/React.createElement(EmptyState, {
     icon: "users",
     title: t('no_sections_inst'),
-    message: t('no_sections_inst_msg')
-  })));
+    message: t('no_sections_inst_msg'),
+    action: reqBtn
+  })), req && /*#__PURE__*/React.createElement(SectionRequestDialog, {
+    onClose: () => setReq(false),
+    notify: notify
+  }));
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PageHeader, {
     title: me.role === 'INSTRUCTOR' ? t('nav_mysections') : t('nav_sections'),
     subtitle: sub,
@@ -7013,7 +8148,7 @@ function SectionsScreen({
       size: "sm",
       icon: "flask-conical",
       onClick: () => go('section', 13)
-    }, t('demo_scope')), st.can(me, 'section.create') && /*#__PURE__*/React.createElement(Button, {
+    }, t('demo_scope')), reqBtn, st.can(me, 'section.create') && /*#__PURE__*/React.createElement(Button, {
       icon: "plus",
       onClick: () => setCreate(true)
     }, t('new_section')))
@@ -7080,6 +8215,24 @@ function SectionsScreen({
     style: {
       width: 220
     }
+  }), /*#__PURE__*/React.createElement(Select, {
+    size: "sm",
+    icon: "lightbulb",
+    value: fi,
+    onChange: e => setFi(e.target.value),
+    options: [{
+      value: 'all',
+      label: lang === 'en' ? 'All initiatives' : 'جميع المبادرات'
+    }, ...st.initiatives.map(i => ({
+      value: String(i.id),
+      label: lang === 'en' ? i.en : i.ar
+    })), {
+      value: 'none',
+      label: lang === 'en' ? 'Not linked' : 'غير مرتبطة بمبادرة'
+    }],
+    style: {
+      width: 220
+    }
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1
@@ -7130,6 +8283,39 @@ function SectionsScreen({
       label: lang === 'en' ? 'Program' : 'البرنامج',
       render: r => st.programName(r.program, lang)
     }, {
+      key: 'ini',
+      label: lang === 'en' ? 'Initiative' : 'المبادرة',
+      wrap: true,
+      render: r => {
+        if (r.status && r.status !== 'active') return /*#__PURE__*/React.createElement(SecStatus, {
+          s: r.status
+        });
+        const l = inisOf(r.id);
+        return l.length ? /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 4
+          }
+        }, l.map(a => /*#__PURE__*/React.createElement("span", {
+          key: a.id,
+          style: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: 24,
+            padding: '0 9px',
+            borderRadius: 12,
+            background: 'var(--green-50)',
+            border: '1px solid var(--green-200)',
+            font: '600 12px var(--font-sans)',
+            color: 'var(--green-700)',
+            whiteSpace: 'nowrap'
+          }
+        }, st.iniName(a, lang)))) : /*#__PURE__*/React.createElement(StatusBadge, {
+          status: "warning"
+        }, lang === 'en' ? 'Not linked' : 'غير مرتبطة');
+      }
+    }, {
       key: 'b',
       label: t('branch'),
       render: r => st.branchLabel(r.branch, lang)
@@ -7161,6 +8347,9 @@ function SectionsScreen({
     onClose: () => setCreate(false),
     notify: notify,
     term: term
+  }), req && /*#__PURE__*/React.createElement(SectionRequestDialog, {
+    onClose: () => setReq(false),
+    notify: notify
   }));
 }
 function SectionDialog({
@@ -7188,7 +8377,8 @@ function SectionDialog({
     course: 2,
     program: '',
     no: '214',
-    instructor: ''
+    instructor: '',
+    ini: ''
   });
   const [err, setErr] = React.useState(null);
   const [busy, setBusy] = React.useState(false);
@@ -7199,6 +8389,10 @@ function SectionDialog({
     }
     if (!f.program) {
       setErr(lang === 'en' ? 'Select the academic program for this section.' : 'اختر البرنامج الأكاديمي للشعبة.');
+      return;
+    }
+    if (!f.ini) {
+      setErr(lang === 'en' ? 'Select the initiative this section belongs to.' : 'اختر المبادرة التي تتبعها الشعبة.');
       return;
     }
     const dup = st.S.sections.find(s => s.term === +f.term && s.branch === +f.branch && s.course === +f.course && s.no === f.no.trim());
@@ -7227,11 +8421,20 @@ function SectionDialog({
         to: null,
         by: me.id
       });
+      st.S.assignments.push({
+        id: Date.now() + 2,
+        section: s.id,
+        ini: +f.ini,
+        stages: (st.TPL[+f.ini] || ['تسجيل الطالب', 'التوثيق', 'الانتهاء']).slice()
+      });
       st.audit(me.id, 'section.created', 'section', s.id, null, {
         course: st.course(s.course).code,
         no: s.no,
         branch: st.branchLabel(s.branch, 'ar'),
-        program: st.programName(s.program, 'ar')
+        program: st.programName(s.program, 'ar'),
+        initiative: st.iniName({
+          id: +f.ini
+        }, 'ar')
       });
       st.emit();
       setBusy(false);
@@ -7315,6 +8518,21 @@ function SectionDialog({
       gridColumn: '1 / -1'
     }
   }), /*#__PURE__*/React.createElement(Select, {
+    label: lang === 'en' ? 'Initiative' : 'المبادرة',
+    required: true,
+    value: f.ini,
+    onChange: e => set('ini', e.target.value),
+    options: [{
+      value: '',
+      label: lang === 'en' ? 'Select initiative…' : 'اختر المبادرة…'
+    }, ...st.initiatives.filter(i => i.status !== 'closed').map(i => ({
+      value: String(i.id),
+      label: lang === 'en' ? i.en : i.ar
+    }))],
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }), /*#__PURE__*/React.createElement(Select, {
     label: t('instructor'),
     value: f.instructor,
     onChange: e => set('instructor', e.target.value),
@@ -7373,6 +8591,8 @@ function SectionDetail({
   const [newI, setNewI] = React.useState('');
   const [grant, setGrant] = React.useState(false);
   const [gUser, setGUser] = React.useState('');
+  const [review, setReview] = React.useState(false);
+  const [resub, setResub] = React.useState(false);
   const denied = React.useRef(false);
   if (!sec || !st.canSee(me, sec)) {
     if (!denied.current) {
@@ -7523,6 +8743,11 @@ function SectionDetail({
     count: grants.length
   });
   tabs.push({
+    id: 'support',
+    label: lang === 'en' ? 'Support requests' : 'طلبات الدعم الفني',
+    count: st.S.tickets.filter(x => x.section === id).length
+  });
+  tabs.push({
     id: 'activity',
     label: t('tab_activity'),
     count: acts.length
@@ -7576,6 +8801,43 @@ function SectionDetail({
     }, t('change_instr')))
   }), /*#__PURE__*/React.createElement(SectionMeta, {
     sec: sec
+  }), sec.status && sec.status !== 'active' && (() => {
+    const {
+      Alert
+    } = window.DS;
+    const en = lang === 'en';
+    const canApprove = st.approvalScope(me).some(x => x.id === sec.id);
+    const d = sec.decision;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 16
+      }
+    }, /*#__PURE__*/React.createElement(Alert, {
+      tone: sec.status === 'rejected' ? 'danger' : sec.status === 'returned' ? 'warning' : 'info',
+      title: SEC_ST[sec.status][en ? 2 : 1]
+    }, /*#__PURE__*/React.createElement("div", null, sec.status === 'pending' ? (en ? 'Sent by ' : 'أرسلها ') + st.uname(sec.req.by, lang) + ' · ' + fmtDateTime(sec.req.at) + (en ? '. Stage tracking opens after the coordinator or Super Admin links it to an initiative.' : '. يُفتح تسجيل المراحل بعد أن يربطها المنسق أو السوبر أدمن بمبادرة.') : d && st.uname(d.by, lang) + ' · ' + fmtDateTime(d.at) + ': ' + d.reason), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 8,
+        marginTop: 10
+      }
+    }, canApprove && sec.status === 'pending' && /*#__PURE__*/React.createElement(Button, {
+      size: "sm",
+      icon: "clipboard-check",
+      onClick: () => setReview(true)
+    }, en ? 'Review request' : 'مراجعة الطلب'), sec.status === 'returned' && sec.instructor === me.id && /*#__PURE__*/React.createElement(Button, {
+      size: "sm",
+      icon: "pencil",
+      onClick: () => setResub(true)
+    }, en ? 'Edit and resubmit' : 'تعديل وإعادة الإرسال'))));
+  })(), review && /*#__PURE__*/React.createElement(ApprovalDialog, {
+    sec: sec,
+    onClose: () => setReview(false),
+    notify: notify
+  }), resub && /*#__PURE__*/React.createElement(SectionRequestDialog, {
+    sec: sec,
+    onClose: () => setResub(false),
+    notify: notify
   }), asg !== undefined && /*#__PURE__*/React.createElement(AssignDialog, {
     sec: sec,
     assign: asg,
@@ -7654,7 +8916,11 @@ function SectionDetail({
       render: r => fmtDateTime(r.at)
     }],
     rows: grants
-  })), tab === 'activity' && /*#__PURE__*/React.createElement(AuditTable, {
+  })), tab === 'support' && /*#__PURE__*/React.createElement(TicketList, {
+    rows: st.S.tickets.filter(x => x.section === id),
+    notify: notify,
+    showSection: false
+  }), tab === 'activity' && /*#__PURE__*/React.createElement(AuditTable, {
     rows: acts
   }))), /*#__PURE__*/React.createElement(ConfirmDialog, {
     open: !!wd,
@@ -7889,13 +9155,15 @@ function StudentsScreen() {
   })));
 }
 function StudentDetail({
-  id
+  id,
+  notify
 }) {
   const {
     DataTable,
     StatusBadge,
     Card,
-    Tabs
+    Tabs,
+    Button
   } = window.DS;
   const {
     t,
@@ -7904,33 +9172,144 @@ function StudentDetail({
     go
   } = useApp();
   const st = useStore();
+  const en = lang === 'en';
   const s = st.student(id);
-  const vis = st.studentScope(me).some(x => x.id === id);
+  const vis = s && st.studentScope(me).some(x => x.id === id);
+  const [tab, setTab] = React.useState('ini');
   if (!s || !vis) return /*#__PURE__*/React.createElement(RefusalScreen, {
     kind: "404"
   });
   const scope = new Set(st.sectionScope(me).map(x => x.id));
   const enr = st.S.enrollments.filter(e => e.student === id && scope.has(e.section));
+  const act = enr.filter(e => e.status === 'active').map(e => st.S.sections.find(y => y.id === e.section));
+  const asg = act.flatMap(sec => st.S.assignments.filter(a => a.section === sec.id).map(a => ({
+    id: a.id,
+    a,
+    sec,
+    m: st.marks(a, id)
+  })));
+  const tks = st.S.tickets.filter(x => x.student === id && (me.role === 'SUPER_ADMIN' || (x.section ? scope.has(x.section) : true)));
   const acts = st.S.audit.filter(a => a.type === 'student' && a.eid === id || a.type === 'enrollment' && enr.some(e => e.id === a.eid));
+  const facts = [[en ? 'University ID' : 'الرقم الجامعي', s.uid, 1], [en ? 'University email' : 'البريد الجامعي', s.email || '—', 1], [en ? 'Phone' : 'الجوال', s.phone || '—', 1], [en ? 'Program' : 'البرنامج', s.program ? st.programName(s.program, lang) : '—'], [en ? 'Last sign-in' : 'آخر دخول', s.lastLogin ? fmtDateTime(s.lastLogin) : t('never')]];
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PageHeader, {
     crumbs: [{
-      label: me.role === 'INSTRUCTOR' ? t('nav_mysections') : t('nav_sections'),
-      onClick: () => go(me.role === 'INSTRUCTOR' ? 'mysections' : 'sections')
+      label: t('nav_studentsadmin'),
+      onClick: () => go('studentsadmin')
     }, {
       label: s.uid
     }],
-    title: lang === 'en' ? s.en : s.ar,
-    subtitle: t('uid') + ': ' + s.uid + ' · ' + (lang === 'en' ? s.ar : s.en)
+    title: /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 10
+      }
+    }, s.ar, /*#__PURE__*/React.createElement(StatusBadge, {
+      status: s.active ? 'active' : 'inactive'
+    }))
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit,minmax(420px,1fr))',
-      gap: 14
+      gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))',
+      background: '#fff',
+      border: '1px solid var(--border-default)',
+      borderRadius: 'var(--radius-lg)',
+      marginBottom: 16,
+      overflow: 'hidden'
     }
-  }, /*#__PURE__*/React.createElement(Card, {
-    title: t('enrollments')
-  }, /*#__PURE__*/React.createElement(DataTable, {
-    dense: true,
+  }, facts.map(([l, v, lat], i) => /*#__PURE__*/React.createElement("div", {
+    key: l,
+    style: {
+      padding: '12px 16px',
+      borderInlineStart: i ? '1px solid var(--gray-100)' : 'none',
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '500 12px var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, l), /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '700 14px var(--font-sans)',
+      fontFamily: lat ? 'var(--font-latin)' : undefined,
+      marginTop: 2,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
+    }
+  }, v)))), /*#__PURE__*/React.createElement(Panel, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '8px 20px 0'
+    }
+  }, /*#__PURE__*/React.createElement(Tabs, {
+    value: tab,
+    onChange: setTab,
+    tabs: [{
+      id: 'ini',
+      label: en ? 'Initiatives' : 'المبادرات',
+      count: asg.length
+    }, {
+      id: 'sec',
+      label: t('enrollments'),
+      count: enr.length
+    }, {
+      id: 'support',
+      label: en ? 'Support requests' : 'طلبات الدعم الفني',
+      count: tks.length
+    }, {
+      id: 'activity',
+      label: t('tab_activity'),
+      count: acts.length
+    }]
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, tab === 'ini' && /*#__PURE__*/React.createElement(DataTable, {
+    columns: [{
+      key: 'i',
+      label: en ? 'Initiative' : 'المبادرة',
+      render: r => /*#__PURE__*/React.createElement("a", {
+        href: "#",
+        onClick: e => {
+          e.preventDefault();
+          go('initiative', r.a.ini);
+        },
+        style: {
+          fontWeight: 700,
+          color: 'var(--text-primary)'
+        }
+      }, st.iniName(r.a, lang))
+    }, {
+      key: 's',
+      label: t('course'),
+      render: r => /*#__PURE__*/React.createElement("a", {
+        href: "#",
+        onClick: e => {
+          e.preventDefault();
+          go('section', r.sec.id);
+        },
+        style: {
+          color: 'var(--track-blue)'
+        }
+      }, st.course(r.sec.course).code + ' / ' + r.sec.no)
+    }, {
+      key: 'st',
+      label: en ? 'Stages' : 'المراحل',
+      wrap: true,
+      render: r => /*#__PURE__*/React.createElement(StageTrack, {
+        stages: r.a.stages,
+        marks: r.m
+      })
+    }, {
+      key: 'p',
+      label: en ? 'Done' : 'المنجز',
+      numeric: true,
+      render: r => r.m.filter(Boolean).length + '/' + r.a.stages.length
+    }],
+    rows: asg,
+    empty: en ? 'Not in any initiative' : 'غير مسجل في أي مبادرة'
+  }), tab === 'sec' && /*#__PURE__*/React.createElement(DataTable, {
     onRowClick: r => go('section', r.section),
     columns: [{
       key: 's',
@@ -7944,6 +9323,13 @@ function StudentDetail({
       label: t('branch'),
       render: r => st.branchLabel(st.S.sections.find(y => y.id === r.section).branch, lang)
     }, {
+      key: 'i',
+      label: t('instructor'),
+      render: r => {
+        const x = st.S.sections.find(y => y.id === r.section);
+        return x.instructor ? st.uname(x.instructor, lang) : '—';
+      }
+    }, {
       key: 'd',
       label: t('enrolled_on'),
       numeric: true,
@@ -7956,9 +9342,10 @@ function StudentDetail({
       })
     }],
     rows: enr
-  })), /*#__PURE__*/React.createElement(Card, {
-    title: t('tab_activity')
-  }, /*#__PURE__*/React.createElement(AuditTable, {
+  }), tab === 'support' && /*#__PURE__*/React.createElement(TicketList, {
+    rows: tks,
+    notify: notify
+  }), tab === 'activity' && /*#__PURE__*/React.createElement(AuditTable, {
     rows: acts,
     dense: true
   }))));
@@ -8730,6 +10117,7 @@ function InitiativeRoster({
   }));
 }
 Object.assign(window, {
+  stageFlag,
   SectionsScreen,
   SectionDetail,
   StudentsScreen,
@@ -8918,9 +10306,10 @@ function useFakeLoad(dep) {
   return l;
 }
 const NAV = {
-  SUPER_ADMIN: [['home', 'house'], ['dashboard', 'layout-dashboard'], ['initiatives', 'lightbulb'], ['users', 'user-cog'], ['terms', 'calendar-range'], ['branches', 'building-2'], ['programs', 'graduation-cap'], ['courses', 'book-open'], ['sections', 'users'], ['imports', 'file-up'], ['audit', 'shield-check']],
-  BRANCH_COORDINATOR: [['home', 'house'], ['initiatives', 'lightbulb'], ['sections', 'users'], ['imports', 'file-up'], ['audit', 'shield-check']],
-  INSTRUCTOR: [['home', 'house'], ['mysections', 'users'], ['imports', 'file-up']]
+  SUPER_ADMIN: [['home', 'house'], ['dashboard', 'layout-dashboard'], ['initiatives', 'lightbulb'], ['users', 'user-cog'], ['studentsadmin', 'graduation-cap'], ['terms', 'calendar-range'], ['branches', 'building-2'], ['programs', 'library'], ['courses', 'book-open'], ['sections', 'users'], ['approvals', 'clipboard-check'], ['imports', 'file-up'], ['support', 'life-buoy'], ['audit', 'shield-check']],
+  BRANCH_COORDINATOR: [['home', 'house'], ['initiatives', 'lightbulb'], ['sections', 'users'], ['approvals', 'clipboard-check'], ['studentsadmin', 'graduation-cap'], ['imports', 'file-up'], ['support', 'life-buoy'], ['audit', 'shield-check']],
+  INSTRUCTOR: [['home', 'house'], ['mysections', 'users'], ['studentsadmin', 'graduation-cap'], ['imports', 'file-up'], ['support', 'life-buoy']],
+  STUDENT: [['myinitiatives', 'lightbulb'], ['support', 'life-buoy']]
 };
 function LangSwitch() {
   const {
@@ -8975,7 +10364,7 @@ function Shell({
     icon,
     label: t('nav_' + id)
   }));
-  const base = route.name === 'initiative' ? 'initiatives' : route.name === 'students' || route.name === 'section' || route.name === 'student' ? me.role === 'INSTRUCTOR' ? 'mysections' : 'sections' : route.name === 'wizard' ? 'imports' : route.name;
+  const base = route.name === 'initiative' ? 'initiatives' : route.name === 'students' || route.name === 'section' ? me.role === 'INSTRUCTOR' ? 'mysections' : 'sections' : route.name === 'student' ? 'studentsadmin' : route.name === 'wizard' ? 'imports' : route.name;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -9920,6 +11309,1798 @@ Object.assign(window, {
   ProgramsScreen
 });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/web-app/StructureScreens.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/web-app/StudentScreens.jsx
+try { (() => {
+function ForcePasswordScreen() {
+  const {
+    Input,
+    Button,
+    Logo,
+    Alert
+  } = window.DS;
+  const {
+    me,
+    lang,
+    t,
+    logout
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const [f, setF] = React.useState({
+    nw: '',
+    cf: ''
+  });
+  const [e, setE] = React.useState({});
+  const [busy, setBusy] = React.useState(false);
+  const policy = v => v.length >= 8 && /[A-Za-z\u0600-\u06FF]/.test(v) && /\d/.test(v);
+  const submit = ev => {
+    ev.preventDefault();
+    const n = {
+      nw: !f.nw ? t('required') : !policy(f.nw) ? t('pw_policy') : f.nw === me.uid ? en ? 'Must differ from your university ID.' : 'يجب أن تختلف عن رقمك الجامعي.' : null,
+      cf: !f.cf ? t('required') : f.cf !== f.nw ? t('pw_mismatch') : null
+    };
+    setE(n);
+    if (n.nw || n.cf) return;
+    setBusy(true);
+    setTimeout(() => {
+      me.pw = f.nw;
+      me.mustChange = false;
+      st.audit(null, 'student.password_set', 'student', me.id, null, {
+        uid: me.uid
+      });
+      st.emit();
+    }, 600);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'var(--surface-page)',
+      padding: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100%',
+      maxWidth: 460,
+      background: '#fff',
+      borderRadius: 'var(--radius-xl)',
+      boxShadow: 'var(--shadow-overlay)',
+      padding: '36px 40px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement(Logo, {
+    variant: "lockup",
+    height: 64,
+    assetBase: "../../assets/"
+  }), /*#__PURE__*/React.createElement(LangSwitch, null)), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      margin: 0,
+      font: 'var(--text-h2)'
+    }
+  }, en ? 'Set a new password' : 'تعيين كلمة مرور جديدة'), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: '6px 0 20px',
+      color: 'var(--text-secondary)',
+      font: '400 14px/1.7 var(--font-sans)'
+    }
+  }, en ? 'Welcome, ' + (me.en || me.ar) + '. This is your first sign-in, so replace the temporary password (your university ID) before continuing.' : 'مرحبًا ' + me.ar + '. هذا أول دخول لك، لذا استبدل كلمة المرور المؤقتة (رقمك الجامعي) قبل المتابعة.'), /*#__PURE__*/React.createElement("form", {
+    onSubmit: submit,
+    noValidate: true,
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement(Input, {
+    label: t('new_pw'),
+    type: "password",
+    icon: "lock",
+    value: f.nw,
+    error: e.nw,
+    hint: t('pw_rule'),
+    onChange: x => setF({
+      ...f,
+      nw: x.target.value
+    })
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: t('confirm_pw'),
+    type: "password",
+    icon: "lock",
+    value: f.cf,
+    error: e.cf,
+    onChange: x => setF({
+      ...f,
+      cf: x.target.value
+    })
+  }), /*#__PURE__*/React.createElement(Button, {
+    type: "submit",
+    size: "lg",
+    fullWidth: true,
+    loading: busy,
+    icon: "key-round"
+  }, en ? 'Save and continue' : 'حفظ والمتابعة')), /*#__PURE__*/React.createElement("button", {
+    onClick: logout,
+    style: {
+      marginTop: 14,
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      font: '500 13px var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, t('logout'))));
+}
+function StageTrack({
+  stages,
+  marks
+}) {
+  const {
+    Icon
+  } = window.DS;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      gap: 6
+    }
+  }, stages.map((s, i) => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: i
+  }, i > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 14,
+      height: 2,
+      background: marks[i] ? 'var(--track-green)' : 'var(--gray-200)'
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      height: 28,
+      padding: '0 10px',
+      borderRadius: 14,
+      background: marks[i] ? 'var(--green-50)' : 'var(--gray-50)',
+      border: '1px solid ' + (marks[i] ? 'var(--green-200)' : 'var(--border-default)'),
+      font: '600 12px var(--font-sans)',
+      color: marks[i] ? 'var(--green-700)' : 'var(--text-secondary)'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: marks[i] ? 'circle-check' : 'circle-dashed',
+    size: 14
+  }), s))));
+}
+function StudentHome() {
+  const {
+    Button,
+    DataTable,
+    StatusBadge,
+    EmptyState,
+    Icon
+  } = window.DS;
+  const {
+    me,
+    lang,
+    go
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const secs = st.studentEnrollments(me.id).map(e => st.S.sections.find(s => s.id === e.section)).filter(Boolean);
+  const groups = st.initiatives.map(ini => ({
+    ini,
+    items: secs.flatMap(s => st.S.assignments.filter(a => a.section === s.id && a.ini === ini.id).map(a => ({
+      s,
+      a,
+      m: st.marks(a, me.id)
+    })))
+  })).filter(g => g.items.length);
+  const cn = c => c ? en ? c.en : c.ar : '—';
+  const meta = [me.uid, st.programName(me.program, lang), st.currentTerm() && (en ? st.currentTerm().en : st.currentTerm().ar)].filter(Boolean).join(' · ');
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 1080
+    }
+  }, /*#__PURE__*/React.createElement(PageHeader, {
+    title: en ? 'Welcome, ' + (me.en || me.ar) : 'مرحبًا، ' + me.ar,
+    subtitle: meta,
+    actions: /*#__PURE__*/React.createElement(Button, {
+      variant: "secondary",
+      icon: "life-buoy",
+      onClick: () => go('support', {
+        new: true
+      })
+    }, en ? 'New support request' : 'طلب دعم فني')
+  }), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: '8px 0 12px',
+      font: '700 17px var(--font-sans)'
+    }
+  }, en ? 'My initiatives' : 'المبادرات المسجّل فيها'), groups.length === 0 ? /*#__PURE__*/React.createElement(Panel, null, /*#__PURE__*/React.createElement(EmptyState, {
+    icon: "lightbulb",
+    title: en ? 'No initiatives yet' : 'لا توجد مبادرات بعد',
+    message: en ? 'When your sections join an initiative it will appear here.' : 'عند ربط شعبك بمبادرة ستظهر هنا.'
+  })) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, groups.map(({
+    ini,
+    items
+  }) => {
+    const done = items.reduce((a, x) => a + x.m.filter(Boolean).length, 0),
+      tot = items.reduce((a, x) => a + x.a.stages.length, 0);
+    return /*#__PURE__*/React.createElement(Panel, {
+      key: ini.id
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 16,
+        padding: '18px 20px',
+        borderBottom: '1px solid var(--border-default)',
+        flexWrap: 'wrap'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        font: '800 17px var(--font-sans)'
+      }
+    }, en ? ini.en : ini.ar), /*#__PURE__*/React.createElement(StatusBadge, {
+      status: ini.status
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        font: '400 13px var(--font-sans)',
+        color: 'var(--text-secondary)',
+        marginTop: 4
+      }
+    }, ini.owner, " \xB7 ", fmtDate(ini.start), " \u2013 ", fmtDate(ini.end))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'end'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        font: '800 22px var(--font-numeric)',
+        color: 'var(--track-blue)'
+      }
+    }, Math.round(done / (tot || 1) * 100), "%"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        font: '400 12px var(--font-sans)',
+        color: 'var(--text-secondary)'
+      }
+    }, done, "/", tot, " ", en ? 'stages done' : 'مراحل مكتملة'))), items.map(({
+      s,
+      a,
+      m
+    }) => {
+      const c = st.course(s.course);
+      return /*#__PURE__*/React.createElement("div", {
+        key: a.id,
+        style: {
+          display: 'grid',
+          gridTemplateColumns: 'minmax(220px,1fr) minmax(0,2fr)',
+          gap: 16,
+          alignItems: 'center',
+          padding: '14px 20px',
+          borderBottom: '1px solid var(--gray-100)'
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          minWidth: 0
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          font: '700 14px var(--font-sans)'
+        }
+      }, cn(c), " ", /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontFamily: 'var(--font-latin)',
+          color: 'var(--text-secondary)',
+          fontWeight: 500
+        }
+      }, c && c.code)), /*#__PURE__*/React.createElement("div", {
+        style: {
+          font: '400 12px/1.7 var(--font-sans)',
+          color: 'var(--text-secondary)'
+        }
+      }, (en ? 'Section ' : 'شعبة ') + s.no, " \xB7 ", st.branchLabel(s.branch, lang), " \xB7 ", s.instructor ? st.uname(s.instructor, lang) : en ? 'No instructor' : 'بدون مدرس')), /*#__PURE__*/React.createElement(StageTrack, {
+        stages: a.stages,
+        marks: m
+      }));
+    }));
+  })), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: '28px 0 12px',
+      font: '700 17px var(--font-sans)'
+    }
+  }, en ? 'My sections' : 'شعبي الدراسية'), /*#__PURE__*/React.createElement(Panel, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement(DataTable, {
+    columns: [{
+      key: 'c',
+      label: en ? 'Course' : 'المقرر',
+      render: r => /*#__PURE__*/React.createElement("b", null, cn(st.course(r.course)))
+    }, {
+      key: 'code',
+      label: en ? 'Code' : 'الرمز',
+      numeric: true,
+      render: r => st.course(r.course).code
+    }, {
+      key: 'no',
+      label: en ? 'Section' : 'الشعبة',
+      numeric: true
+    }, {
+      key: 'b',
+      label: en ? 'Branch' : 'الفرع',
+      render: r => st.branchLabel(r.branch, lang)
+    }, {
+      key: 'i',
+      label: en ? 'Instructor' : 'المدرس',
+      render: r => r.instructor ? st.uname(r.instructor, lang) : '—'
+    }, {
+      key: 'n',
+      label: en ? 'Initiatives' : 'المبادرات',
+      wrap: true,
+      render: r => st.S.assignments.filter(a => a.section === r.id).map(a => st.iniName(a, lang)).join('، ') || '—'
+    }],
+    rows: secs
+  }))));
+}
+Object.assign(window, {
+  ForcePasswordScreen,
+  StudentHome,
+  StageTrack
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/web-app/StudentScreens.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/web-app/StudentsAdmin.jsx
+try { (() => {
+const STU_HDR = ['اسم الطالب', 'الرقم الجامعي', 'البريد الإلكتروني الجامعي', 'رقم الجوال', 'البرنامج'];
+const stuEmailOk = v => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
+const stuPhoneNorm = v => {
+  v = String(v || '').replace(/[\s-]/g, '').replace(/^\+?966/, '0');
+  if (/^5\d{8}$/.test(v)) v = '0' + v;
+  return v;
+};
+const stuPhoneOk = v => /^05\d{8}$/.test(v);
+function stuProgramOf(st, v) {
+  v = String(v || '').trim();
+  if (!v) return null;
+  const l = v.toLowerCase();
+  const p = st.S.programs.find(p => p.code.toLowerCase() === l || p.ar === v || p.en.toLowerCase() === l) || st.S.programs.find(p => v.includes(p.ar) || p.ar.includes(v));
+  return p ? p.id : 'bad';
+}
+function StudentsAdminScreen({
+  notify
+}) {
+  const {
+    Button,
+    DataTable,
+    StatusBadge,
+    Input,
+    IconButton,
+    Tooltip,
+    Select
+  } = window.DS;
+  const {
+    t,
+    me,
+    lang,
+    go
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const admin = me.role === 'SUPER_ADMIN';
+  const [q, setQ] = React.useState('');
+  const [prog, setProg] = React.useState('');
+  const [ini, setIni] = React.useState('');
+  const [sec, setSec] = React.useState('');
+  const [br, setBr] = React.useState('');
+  const [edit, setEdit] = React.useState(null);
+  const [imp, setImp] = React.useState(false);
+  const [conf, setConf] = React.useState(null);
+  const [busy, setBusy] = React.useState(false);
+  const scopeSecs = st.sectionScope(me).filter(s => s.term === st.currentTerm().id);
+  const scopeIds = new Set(scopeSecs.map(s => s.id));
+  const info = s => {
+    const secs = st.studentEnrollments(s.id).filter(e => scopeIds.has(e.section)).map(e => e.section);
+    const inis = [...new Set(st.S.assignments.filter(a => secs.includes(a.section)).map(a => a.ini))];
+    const tk = st.S.tickets.filter(x => x.student === s.id && x.status !== 'resolved').length;
+    return {
+      secs,
+      inis,
+      tk
+    };
+  };
+  const base = st.studentScope(me);
+  const rows = base.map(s => ({
+    ...s,
+    _o: s,
+    _x: info(s)
+  })).filter(s => (!prog || String(s.program) === prog) && (!ini || s._x.inis.includes(+ini)) && (!sec || s._x.secs.includes(+sec)) && (!br || s._x.secs.some(id => st.S.sections.find(x => x.id === id).branch === +br)) && (s.ar + s.uid + (s.email || '') + (s.phone || '')).toLowerCase().includes(q.toLowerCase()));
+  const visBr = admin ? st.S.branches : st.S.branches.filter(b => scopeSecs.some(s => s.branch === b.id));
+  const doConf = () => {
+    setBusy(true);
+    setTimeout(() => {
+      const s = conf.s._o || conf.s;
+      if (conf.kind === 'deact') {
+        s.active = !s.active;
+        st.audit(me.id, s.active ? 'student.reactivated' : 'student.deactivated', 'student', s.id, {
+          is_active: !s.active
+        }, {
+          is_active: s.active
+        });
+        notify(t('user_saved'));
+      } else {
+        s.pw = s.uid;
+        s.mustChange = true;
+        st.audit(me.id, 'student.password_reset', 'student', s.id, null, {
+          to: 'university_id'
+        });
+        notify(t('reset_done'), en ? 'Password is now the university ID' : 'كلمة المرور الآن هي الرقم الجامعي');
+      }
+      st.emit();
+      setBusy(false);
+      setConf(null);
+    }, 500);
+  };
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PageHeader, {
+    title: t('nav_studentsadmin'),
+    subtitle: admin ? en ? 'All students. Accounts sign in with the university email; the first password is the university ID.' : 'جميع الطلبة. يدخل الطالب ببريده الجامعي، وكلمة المرور الأولى هي رقمه الجامعي.' : en ? 'Students in the sections within your scope this term.' : 'الطلبة المسجلون في الشعب ضمن نطاق صلاحيتك للفصل الحالي.',
+    actions: admin && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Button, {
+      variant: "secondary",
+      icon: "file-spreadsheet",
+      onClick: () => setImp(true)
+    }, en ? 'Import from Excel' : 'استيراد من Excel'), /*#__PURE__*/React.createElement(Button, {
+      icon: "user-plus",
+      onClick: () => setEdit({})
+    }, en ? 'New student' : 'طالب جديد'))
+  }), /*#__PURE__*/React.createElement(Panel, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      padding: '16px 20px 0',
+      flexWrap: 'wrap',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Input, {
+    size: "sm",
+    icon: "search",
+    placeholder: en ? 'Name, ID, email, phone' : 'الاسم، الرقم الجامعي، البريد، الجوال',
+    value: q,
+    onChange: e => setQ(e.target.value),
+    style: {
+      width: 240
+    }
+  }), /*#__PURE__*/React.createElement(Select, {
+    size: "sm",
+    icon: "lightbulb",
+    value: ini,
+    onChange: e => setIni(e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'All initiatives' : 'كل المبادرات'
+    }, ...st.initiatives.map(i => ({
+      value: String(i.id),
+      label: en ? i.en : i.ar
+    }))],
+    style: {
+      width: 200
+    }
+  }), /*#__PURE__*/React.createElement(Select, {
+    size: "sm",
+    icon: "users",
+    value: sec,
+    onChange: e => setSec(e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'All sections' : 'كل الشعب'
+    }, ...scopeSecs.map(s => ({
+      value: String(s.id),
+      label: st.course(s.course).code + ' · ' + s.no
+    }))],
+    style: {
+      width: 180
+    }
+  }), visBr.length > 1 && /*#__PURE__*/React.createElement(Select, {
+    size: "sm",
+    icon: "building-2",
+    value: br,
+    onChange: e => setBr(e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'All branches' : 'كل الفروع'
+    }, ...visBr.map(b => ({
+      value: String(b.id),
+      label: st.branchLabel(b.id, lang)
+    }))],
+    style: {
+      width: 190
+    }
+  }), /*#__PURE__*/React.createElement(Select, {
+    size: "sm",
+    icon: "graduation-cap",
+    value: prog,
+    onChange: e => setProg(e.target.value),
+    options: [{
+      value: '',
+      label: en ? 'All programs' : 'كل البرامج'
+    }, ...st.S.programs.map(p => ({
+      value: String(p.id),
+      label: en ? p.en : p.ar
+    }))],
+    style: {
+      width: 200
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginInlineStart: 'auto',
+      font: '600 13px var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, rows.length, " ", en ? 'students' : 'طالب')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement(DataTable, {
+    onRowClick: r => go('student', r.id),
+    columns: [{
+      key: 'ar',
+      label: en ? 'Student' : 'اسم الطالب',
+      wrap: true,
+      render: r => /*#__PURE__*/React.createElement("b", null, r.ar)
+    }, {
+      key: 'uid',
+      label: en ? 'University ID' : 'الرقم الجامعي',
+      numeric: true
+    }, {
+      key: 'email',
+      label: en ? 'University email' : 'البريد الجامعي',
+      numeric: true,
+      render: r => r.email || '—'
+    }, {
+      key: 'phone',
+      label: en ? 'Phone' : 'الجوال',
+      numeric: true,
+      render: r => r.phone || '—'
+    }, {
+      key: 'p',
+      label: en ? 'Program' : 'البرنامج',
+      render: r => r.program ? st.programName(r.program, lang) : '—'
+    }, {
+      key: 'sn',
+      label: en ? 'Sections' : 'الشعب',
+      numeric: true,
+      render: r => r._x.secs.length
+    }, {
+      key: 'in',
+      label: en ? 'Initiatives' : 'المبادرات',
+      wrap: true,
+      render: r => r._x.inis.map(i => st.iniName({
+        id: i
+      }, lang)).join('، ') || '—'
+    }, {
+      key: 'tk',
+      label: en ? 'Open requests' : 'طلبات مفتوحة',
+      numeric: true,
+      render: r => r._x.tk ? /*#__PURE__*/React.createElement("span", {
+        style: {
+          font: '700 12px var(--font-numeric)',
+          color: 'var(--amber-600)'
+        }
+      }, r._x.tk) : '—'
+    }, ...(admin ? [{
+      key: 'fl',
+      label: en ? 'Password' : 'كلمة المرور',
+      render: r => r.mustChange ? /*#__PURE__*/React.createElement("span", {
+        style: {
+          font: '500 12px var(--font-sans)',
+          color: 'var(--amber-600)'
+        }
+      }, en ? 'Temporary (ID)' : 'مؤقتة (الرقم الجامعي)') : /*#__PURE__*/React.createElement("span", {
+        style: {
+          font: '500 12px var(--font-sans)',
+          color: 'var(--green-700)'
+        }
+      }, en ? 'Changed' : 'تم تغييرها')
+    }] : []), {
+      key: 's',
+      label: t('status'),
+      render: r => /*#__PURE__*/React.createElement(StatusBadge, {
+        status: r.active ? 'active' : 'inactive'
+      })
+    }, ...(admin ? [{
+      key: 'x',
+      label: '',
+      render: r => /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          gap: 4
+        },
+        onClick: e => e.stopPropagation()
+      }, /*#__PURE__*/React.createElement(Tooltip, {
+        content: t('edit')
+      }, /*#__PURE__*/React.createElement(IconButton, {
+        icon: "pencil",
+        label: t('edit'),
+        size: 32,
+        onClick: () => setEdit(r._o)
+      })), /*#__PURE__*/React.createElement(Tooltip, {
+        content: t('reset_pw')
+      }, /*#__PURE__*/React.createElement(IconButton, {
+        icon: "key-round",
+        label: t('reset_pw'),
+        size: 32,
+        onClick: () => setConf({
+          kind: 'reset',
+          s: r
+        })
+      })), /*#__PURE__*/React.createElement(Tooltip, {
+        content: r.active ? t('deactivate') : t('reactivate')
+      }, /*#__PURE__*/React.createElement(IconButton, {
+        icon: r.active ? 'user-x' : 'user-check',
+        label: r.active ? t('deactivate') : t('reactivate'),
+        size: 32,
+        onClick: () => setConf({
+          kind: 'deact',
+          s: r
+        })
+      })))
+    }] : [])],
+    rows: rows
+  }))), edit && /*#__PURE__*/React.createElement(StudentDialog, {
+    stu: edit,
+    onClose: () => setEdit(null),
+    notify: notify
+  }), imp && /*#__PURE__*/React.createElement(StudentImportDialog, {
+    onClose: () => setImp(false),
+    notify: notify
+  }), /*#__PURE__*/React.createElement(ConfirmDialog, {
+    open: !!conf,
+    busy: busy,
+    onClose: () => setConf(null),
+    onConfirm: doConf,
+    title: conf && (conf.kind === 'deact' ? conf.s.active ? t('deact_q', {
+      n: conf.s.ar
+    }) : t('reactivate') : t('reset_q', {
+      n: conf.s.ar
+    })),
+    impact: conf && (conf.kind === 'deact' ? t('deact_impact') : en ? 'The password returns to the university ID and the student must change it at next sign-in.' : 'تعود كلمة المرور إلى الرقم الجامعي، ويُطلب من الطالب تغييرها عند الدخول التالي.'),
+    confirmLabel: conf && (conf.kind === 'deact' ? conf.s.active ? t('deactivate') : t('reactivate') : t('reset_pw')),
+    tone: conf && conf.kind === 'deact' && conf.s.active ? 'danger' : 'info'
+  }));
+}
+function StudentDialog({
+  stu,
+  onClose,
+  notify
+}) {
+  const {
+    Dialog,
+    Button,
+    Input,
+    Select,
+    Alert
+  } = window.DS;
+  const {
+    t,
+    me,
+    lang
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const isNew = !stu.id;
+  const [f, setF] = React.useState({
+    ar: stu.ar || '',
+    uid: stu.uid || '',
+    email: stu.email || '',
+    phone: stu.phone || '',
+    program: stu.program ? String(stu.program) : ''
+  });
+  const [e, setE] = React.useState({});
+  const [busy, setBusy] = React.useState(false);
+  const set = (k, v) => {
+    const n = {
+      ...f,
+      [k]: v
+    };
+    if (k === 'uid' && isNew && (!f.email || f.email === f.uid + '@s.mu.edu.sa')) n.email = v ? v + '@s.mu.edu.sa' : '';
+    setF(n);
+  };
+  const check = () => {
+    const n = {};
+    const ph = stuPhoneNorm(f.phone);
+    n.ar = f.ar.trim() ? null : t('required');
+    n.uid = !f.uid ? t('required') : !/^\d{9}$/.test(f.uid) ? en ? 'University ID is 9 digits.' : 'الرقم الجامعي 9 أرقام.' : st.S.students.some(s => s.uid === f.uid && s.id !== stu.id) ? en ? 'ID already registered.' : 'الرقم الجامعي مسجل مسبقًا.' : null;
+    n.email = !f.email ? t('required') : !stuEmailOk(f.email) ? t('email_bad') : st.S.students.some(s => (s.email || '').toLowerCase() === f.email.toLowerCase() && s.id !== stu.id) ? t('email_taken') : null;
+    n.phone = !f.phone ? t('required') : !stuPhoneOk(ph) ? en ? 'Use 05XXXXXXXX.' : 'استخدم الصيغة 05XXXXXXXX.' : null;
+    n.program = f.program ? null : t('required');
+    setE(n);
+    return n;
+  };
+  const save = () => {
+    const n = check();
+    if (Object.values(n).some(Boolean)) return;
+    setBusy(true);
+    setTimeout(() => {
+      const d = {
+        ar: f.ar.trim(),
+        uid: f.uid,
+        email: f.email.toLowerCase(),
+        phone: stuPhoneNorm(f.phone),
+        program: +f.program
+      };
+      if (isNew) {
+        const s = {
+          id: Date.now(),
+          en: '',
+          ...d,
+          pw: d.uid,
+          mustChange: true,
+          active: true,
+          firstLogin: null,
+          lastLogin: null,
+          role: 'STUDENT',
+          branches: []
+        };
+        st.S.students.push(s);
+        st.audit(me.id, 'student.created', 'student', s.id, null, {
+          name: s.ar,
+          uid: s.uid,
+          email: s.email
+        });
+        notify(en ? 'Student added' : 'تمت إضافة الطالب', s.email);
+      } else {
+        const old = {
+          email: stu.email,
+          phone: stu.phone,
+          program: stu.program
+        };
+        Object.assign(stu, d);
+        st.audit(me.id, 'student.updated', 'student', stu.id, old, {
+          email: d.email,
+          phone: d.phone,
+          program: d.program
+        });
+        notify(t('user_saved'));
+      }
+      st.emit();
+      setBusy(false);
+      onClose();
+    }, 500);
+  };
+  return /*#__PURE__*/React.createElement(Dialog, {
+    title: isNew ? en ? 'New student' : 'إضافة طالب' : en ? 'Edit student' : 'تعديل بيانات الطالب',
+    onClose: onClose,
+    width: 600,
+    footer: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      onClick: onClose
+    }, t('cancel')), /*#__PURE__*/React.createElement(Button, {
+      loading: busy,
+      onClick: save
+    }, isNew ? t('create') : t('save')))
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement(Input, {
+    label: en ? 'Student name' : 'اسم الطالب',
+    required: true,
+    value: f.ar,
+    error: e.ar,
+    onChange: x => set('ar', x.target.value),
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: en ? 'University ID' : 'الرقم الجامعي',
+    required: true,
+    dir: "ltr",
+    icon: "id-card",
+    value: f.uid,
+    error: e.uid,
+    onChange: x => set('uid', x.target.value.replace(/\D/g, '').slice(0, 9))
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: en ? 'Phone' : 'رقم الجوال',
+    required: true,
+    dir: "ltr",
+    icon: "phone",
+    placeholder: "05XXXXXXXX",
+    value: f.phone,
+    error: e.phone,
+    onChange: x => set('phone', x.target.value)
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: en ? 'University email' : 'البريد الإلكتروني الجامعي',
+    required: true,
+    dir: "ltr",
+    icon: "mail",
+    value: f.email,
+    error: e.email,
+    onChange: x => set('email', x.target.value),
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }), /*#__PURE__*/React.createElement(Select, {
+    label: en ? 'Program' : 'البرنامج',
+    required: true,
+    value: f.program,
+    error: e.program,
+    onChange: x => set('program', x.target.value),
+    options: [{
+      value: '',
+      label: en ? 'Select a program' : 'اختر البرنامج'
+    }, ...st.S.programs.filter(p => p.active || String(p.id) === f.program).map(p => ({
+      value: String(p.id),
+      label: (en ? p.en : p.ar) + ' (' + p.code + ')'
+    }))],
+    style: {
+      gridColumn: '1 / -1'
+    }
+  })), isNew && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement(Alert, {
+    tone: "info"
+  }, en ? 'The initial password is the university ID. The student is asked to change it at first sign-in.' : 'كلمة المرور الأولية هي الرقم الجامعي، ويُطلب من الطالب تغييرها عند أول دخول.')));
+}
+function StudentImportDialog({
+  onClose,
+  notify
+}) {
+  const {
+    Dialog,
+    Button,
+    Alert,
+    DataTable,
+    StatusBadge,
+    Icon,
+    Checkbox
+  } = window.DS;
+  const {
+    t,
+    me,
+    lang
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const ref = React.useRef(null);
+  const [res, setRes] = React.useState(null);
+  const [err, setErr] = React.useState(null);
+  const [name, setName] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  const [done, setDone] = React.useState(null);
+  const [skipWarn, setSkipWarn] = React.useState(false);
+  const validate = p => {
+    const H = p.headers.map(h => String(h || '').trim());
+    const col = re => H.findIndex(h => re.test(h));
+    const c = {
+      ar: col(/اسم الطالب|^الاسم$|student name|^name$/i),
+      uid: col(/الرقم الجامعي|رقم الطالب|university id|student id|^id$/i),
+      email: col(/البريد|email/i),
+      phone: col(/الجوال|الهاتف|التليفون|phone|mobile/i),
+      prog: col(/البرنامج|التخصص|program|major/i)
+    };
+    if (c.uid < 0 || c.ar < 0) throw new Error('cols');
+    const seen = {};
+    return p.rows.map((r, k) => {
+      const n = k + 2;
+      const g = i => i >= 0 ? String(r[i] || '').trim() : '';
+      const u = {
+        id: n,
+        n,
+        ar: g(c.ar),
+        uid: g(c.uid).replace(/\D/g, ''),
+        email: g(c.email).toLowerCase(),
+        phone: stuPhoneNorm(g(c.phone)),
+        progRaw: g(c.prog)
+      };
+      const errs = [],
+        warns = [];
+      if (!u.ar) errs.push(en ? 'Name missing' : 'الاسم مفقود');
+      if (!/^\d{9}$/.test(u.uid)) errs.push(en ? 'ID must be 9 digits' : 'الرقم الجامعي يجب أن يكون 9 أرقام');else if (seen[u.uid]) errs.push((en ? 'Duplicate of row ' : 'مكرر مع الصف ') + seen[u.uid]);else seen[u.uid] = n;
+      u.existing = st.S.students.find(s => s.uid === u.uid) || null;
+      if (!u.email && u.uid) {
+        u.email = u.uid + '@s.mu.edu.sa';
+        warns.push(en ? 'Email generated from ID' : 'وُلّد البريد من الرقم الجامعي');
+      } else if (u.email && !stuEmailOk(u.email)) errs.push(en ? 'Invalid email' : 'بريد غير صالح');else if (st.S.students.some(s => (s.email || '').toLowerCase() === u.email && s.uid !== u.uid)) errs.push(en ? 'Email belongs to another student' : 'البريد مسجل لطالب آخر');
+      if (u.phone && !stuPhoneOk(u.phone)) errs.push(en ? 'Invalid phone' : 'رقم جوال غير صالح');else if (!u.phone) warns.push(en ? 'Phone missing' : 'رقم الجوال فارغ');
+      const pg = stuProgramOf(st, u.progRaw);
+      if (pg === 'bad') {
+        errs.push((en ? 'Unknown program: ' : 'برنامج غير معروف: ') + u.progRaw);
+        u.program = null;
+      } else if (!pg) {
+        errs.push(en ? 'Program missing' : 'البرنامج مفقود');
+        u.program = null;
+      } else u.program = pg;
+      if (u.existing && !errs.length) warns.push(en ? 'Existing student — details will be updated' : 'طالب مسجل — ستُحدَّث بياناته');
+      u.status = errs.length ? 'error' : warns.length ? 'warning' : 'valid';
+      u.reason = [...errs, ...warns].join(' · ') || (en ? 'Ready' : 'جاهز للإضافة');
+      return u;
+    });
+  };
+  const onFile = async ev => {
+    const f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!f) return;
+    try {
+      const p = await window.parseRosterFile(f);
+      setName(p.name);
+      setErr(null);
+      setRes(validate(p));
+    } catch (x) {
+      setRes(null);
+      setErr(x.message === 'cols' ? en ? 'The file needs “Student name” and “University ID” columns. Download the template.' : 'يجب أن يحتوي الملف على عمودي «اسم الطالب» و«الرقم الجامعي» على الأقل. حمّل القالب.' : x.message === 'size' ? en ? 'File exceeds 20 MB.' : 'الملف يتجاوز 20 ميجابايت.' : en ? 'Unsupported file. Use xlsx or csv.' : 'نوع الملف غير مدعوم. استخدم xlsx أو csv.');
+    }
+  };
+  const sample = () => {
+    const ex = st.S.students[3];
+    setName('students_batch.xlsx');
+    setErr(null);
+    setRes(validate({
+      headers: STU_HDR,
+      rows: [['ليان بنت عبدالله القحطاني', '445100211', '445100211@s.mu.edu.sa', '0551234567', 'HR'], ['محمد بن سعد الحربي', '445100212', '', '0509876543', 'البرمجة وعلوم الحاسب'], ['نوف بنت فهد العتيبي', '445100213', '445100213@s.mu.edu.sa', '+966561112233', 'التسويق'], [ex.ar, ex.uid, ex.email, '0598887766', 'ACC'], ['راكان بن ماجد الشمري', '44510021', '44510021@s.mu.edu.sa', '0544443322', 'CS'], ['جود بنت سلطان المطيري', '445100215', '445100215@s.mu.edu.sa', '12345', 'GD'], ['تركي بن نايف الدوسري', '445100216', '445100216@s.mu.edu.sa', '0533332211', 'الطب'], ['ليان بنت عبدالله القحطاني', '445100211', '445100211@s.mu.edu.sa', '0551234567', 'HR']]
+    }));
+  };
+  const template = () => downloadTemplate('track_students_template.csv', [STU_HDR, ['باسل أنور لطفي راشد جابر اليامي', '999000001', '999000001@s.mu.edu.sa', '0551234567', 'CS'], ['لمى بنت خالد العنزي', '445100300', '445100300@s.mu.edu.sa', '0509998877', 'الموارد البشرية']]);
+  const ok = res ? res.filter(r => r.status === 'valid' || r.status === 'warning' && !skipWarn) : [];
+  const run = () => {
+    setBusy(true);
+    setTimeout(() => {
+      let add = 0,
+        upd = 0;
+      const out = ok.map((r, i) => {
+        if (r.existing) {
+          Object.assign(r.existing, {
+            ar: r.ar,
+            email: r.email,
+            phone: r.phone || r.existing.phone,
+            program: r.program
+          });
+          upd++;
+          st.audit(me.id, 'student.updated', 'student', r.existing.id, null, {
+            uid: r.uid,
+            source: name
+          });
+          return {
+            ...r,
+            act: 'upd'
+          };
+        }
+        const s = {
+          id: Date.now() + i,
+          en: '',
+          ar: r.ar,
+          uid: r.uid,
+          email: r.email,
+          phone: r.phone,
+          program: r.program,
+          pw: r.uid,
+          mustChange: true,
+          active: true,
+          firstLogin: null,
+          lastLogin: null,
+          role: 'STUDENT',
+          branches: []
+        };
+        st.S.students.push(s);
+        add++;
+        st.audit(me.id, 'student.created', 'student', s.id, null, {
+          name: s.ar,
+          uid: s.uid,
+          source: name
+        });
+        return {
+          ...r,
+          act: 'add'
+        };
+      });
+      st.audit(me.id, 'student.bulk_imported', 'student', null, null, {
+        file: name,
+        rows: res.length,
+        created: add,
+        updated: upd,
+        skipped: res.length - out.length
+      });
+      st.emit();
+      setBusy(false);
+      setDone({
+        out,
+        add,
+        upd
+      });
+      notify(en ? 'Students imported' : 'تم استيراد الطلاب', add + (en ? ' added, ' : ' أُضيف، ') + upd + (en ? ' updated' : ' حُدّث'));
+    }, 700);
+  };
+  const cnt = k => res ? res.filter(r => r.status === k).length : 0;
+  const cols = [{
+    key: 'n',
+    label: en ? 'Row' : 'الصف',
+    numeric: true
+  }, {
+    key: 'ar',
+    label: en ? 'Name' : 'الاسم',
+    wrap: true,
+    render: r => /*#__PURE__*/React.createElement("b", null, r.ar || '—')
+  }, {
+    key: 'uid',
+    label: en ? 'ID' : 'الرقم الجامعي',
+    numeric: true,
+    render: r => r.uid || '—'
+  }, {
+    key: 'email',
+    label: en ? 'Email' : 'البريد',
+    numeric: true
+  }, {
+    key: 'phone',
+    label: en ? 'Phone' : 'الجوال',
+    numeric: true,
+    render: r => r.phone || '—'
+  }, {
+    key: 'p',
+    label: en ? 'Program' : 'البرنامج',
+    render: r => r.program ? st.programName(r.program, lang) : r.progRaw || '—'
+  }];
+  return /*#__PURE__*/React.createElement(Dialog, {
+    title: en ? 'Import students from Excel' : 'استيراد الطلاب من Excel',
+    onClose: onClose,
+    width: 1000,
+    footer: done ? /*#__PURE__*/React.createElement(Button, {
+      onClick: onClose
+    }, en ? 'Done' : 'تم') : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      onClick: onClose
+    }, t('cancel')), /*#__PURE__*/React.createElement(Button, {
+      icon: "users",
+      loading: busy,
+      disabled: !ok.length,
+      onClick: run
+    }, (en ? 'Import ' : 'استيراد ') + ok.length + (en ? ' students' : ' طالب')))
+  }, done ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement(Alert, {
+    tone: "success",
+    title: (en ? 'Added ' : 'أُضيف ') + done.add + (en ? ' · updated ' : ' · حُدّث ') + done.upd
+  }, en ? 'New students sign in with their university email; the first password is their university ID.' : 'يدخل الطلاب الجدد ببريدهم الجامعي، وكلمة المرور الأولى هي الرقم الجامعي.'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: 360,
+      overflow: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement(DataTable, {
+    dense: true,
+    columns: [...cols.slice(1), {
+      key: 'a',
+      label: en ? 'Action' : 'الإجراء',
+      render: r => r.act === 'add' ? en ? 'Added' : 'إضافة' : en ? 'Updated' : 'تحديث'
+    }],
+    rows: done.out
+  }))) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: '2px dashed var(--border-strong)',
+      borderRadius: 'var(--radius-lg)',
+      padding: '22px 16px',
+      textAlign: 'center',
+      background: 'var(--gray-50)'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "file-spreadsheet",
+    size: 30,
+    color: "var(--track-green)",
+    style: {
+      margin: '0 auto 8px'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '700 14px var(--font-sans)'
+    }
+  }, en ? 'Upload a students file (xlsx or csv)' : 'ارفع ملف الطلاب (xlsx أو csv)'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '400 12px/1.6 var(--font-sans)',
+      color: 'var(--text-secondary)',
+      marginTop: 4
+    }
+  }, en ? 'Columns: student name, university ID, university email, phone, program (code or name). Existing IDs are updated.' : 'الأعمدة: اسم الطالب، الرقم الجامعي، البريد الإلكتروني الجامعي، رقم الجوال، البرنامج (الرمز أو الاسم). الأرقام الجامعية الموجودة تُحدَّث بياناتها.'), /*#__PURE__*/React.createElement("input", {
+    ref: ref,
+    type: "file",
+    accept: ".xlsx,.csv",
+    onChange: onFile,
+    style: {
+      display: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'center',
+      marginTop: 12,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement(Button, {
+    size: "sm",
+    variant: "secondary",
+    icon: "download",
+    onClick: template
+  }, en ? 'Download template' : 'تنزيل القالب'), /*#__PURE__*/React.createElement(Button, {
+    size: "sm",
+    variant: "secondary",
+    icon: "folder-open",
+    onClick: () => ref.current && ref.current.click()
+  }, en ? 'Choose file' : 'اختيار ملف'), /*#__PURE__*/React.createElement(Button, {
+    size: "sm",
+    variant: "ghost",
+    onClick: sample
+  }, en ? 'Use sample file' : 'استخدام ملف تجريبي'))), err && /*#__PURE__*/React.createElement(Alert, {
+    tone: "danger"
+  }, err), res && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 10,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      font: '600 13px var(--font-sans)'
+    }
+  }, name, " \xB7 ", res.length, " ", en ? 'rows' : 'صف', " \xB7 ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--green-700)'
+    }
+  }, cnt('valid'), " ", en ? 'ready' : 'جاهز'), " \xB7 ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--amber-600)'
+    }
+  }, cnt('warning'), " ", en ? 'with notes' : 'بملاحظات'), " \xB7 ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--red-600)'
+    }
+  }, cnt('error'), " ", en ? 'rejected' : 'مرفوض')), cnt('warning') > 0 && /*#__PURE__*/React.createElement(Checkbox, {
+    label: en ? 'Skip rows with notes' : 'تجاهل الصفوف ذات الملاحظات',
+    checked: skipWarn,
+    onChange: setSkipWarn
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: 360,
+      overflow: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement(DataTable, {
+    dense: true,
+    columns: [...cols, {
+      key: 's',
+      label: en ? 'Result' : 'النتيجة',
+      render: r => /*#__PURE__*/React.createElement(StatusBadge, {
+        status: r.status
+      })
+    }, {
+      key: 'r',
+      label: en ? 'Details' : 'التفاصيل',
+      wrap: true,
+      render: r => /*#__PURE__*/React.createElement("span", {
+        style: {
+          font: '400 12px var(--font-sans)',
+          color: r.status === 'error' ? 'var(--red-600)' : 'var(--text-secondary)'
+        }
+      }, r.reason)
+    }],
+    rows: res
+  })))));
+}
+Object.assign(window, {
+  StudentsAdminScreen,
+  StudentDialog,
+  StudentImportDialog
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/web-app/StudentsAdmin.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/web-app/SupportScreens.jsx
+try { (() => {
+const TK_CATS = {
+  login: ['الدخول والحساب', 'Sign-in & account'],
+  progress: ['مراحل المبادرة', 'Initiative stages'],
+  enroll: ['الشعب والتسجيل', 'Sections & enrollment'],
+  other: ['أخرى', 'Other']
+};
+const TK_ST = {
+  open: ['pending', 'مفتوح', 'Open'],
+  in_progress: ['progress', 'قيد المعالجة', 'In progress'],
+  resolved: ['completed', 'تم الحل', 'Resolved']
+};
+function TicketBadge({
+  s
+}) {
+  const {
+    StatusBadge
+  } = window.DS;
+  const {
+    lang
+  } = useApp();
+  const x = TK_ST[s];
+  return /*#__PURE__*/React.createElement(StatusBadge, {
+    status: x[0]
+  }, lang === 'en' ? x[2] : x[1]);
+}
+const tkArea = {
+  minHeight: 110,
+  padding: '10px 12px',
+  border: '1px solid var(--border-default)',
+  borderRadius: 'var(--radius-md)',
+  font: '400 14px/1.7 var(--font-sans)',
+  resize: 'vertical',
+  width: '100%',
+  color: 'var(--text-primary)'
+};
+function NewTicketDialog({
+  onClose,
+  notify
+}) {
+  const {
+    Dialog,
+    Button,
+    Input,
+    Select
+  } = window.DS;
+  const {
+    me,
+    lang,
+    t
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const secs = st.studentEnrollments(me.id).map(e => st.S.sections.find(s => s.id === e.section)).filter(Boolean);
+  const [f, setF] = React.useState({
+    cat: 'progress',
+    section: secs[0] ? String(secs[0].id) : '',
+    subject: '',
+    body: ''
+  });
+  const [e, setE] = React.useState({});
+  const [busy, setBusy] = React.useState(false);
+  const save = () => {
+    const n = {
+      subject: f.subject.trim() ? null : t('required'),
+      body: f.body.trim().length < 10 ? en ? 'Describe the issue (10+ characters).' : 'اكتب وصفًا للمشكلة (10 أحرف على الأقل).' : null
+    };
+    setE(n);
+    if (n.subject || n.body) return;
+    setBusy(true);
+    setTimeout(() => {
+      const id = Math.max(0, ...st.S.tickets.map(x => x.id)) + 1;
+      const tk = {
+        id,
+        no: 'TK-' + (1000 + id),
+        student: me.id,
+        section: f.section ? +f.section : null,
+        cat: f.cat,
+        subject: f.subject.trim(),
+        body: f.body.trim(),
+        status: 'open',
+        at: st.now().slice(0, 19),
+        replies: []
+      };
+      st.S.tickets.unshift(tk);
+      st.audit(null, 'support.created', 'ticket', id, null, {
+        no: tk.no,
+        student: me.uid,
+        subject: tk.subject
+      });
+      st.emit();
+      setBusy(false);
+      notify(en ? 'Request submitted' : 'تم إرسال الطلب', tk.no);
+      onClose();
+    }, 500);
+  };
+  return /*#__PURE__*/React.createElement(Dialog, {
+    title: en ? 'New support request' : 'طلب دعم فني جديد',
+    onClose: onClose,
+    width: 560,
+    footer: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      onClick: onClose
+    }, t('cancel')), /*#__PURE__*/React.createElement(Button, {
+      icon: "send",
+      loading: busy,
+      onClick: save
+    }, en ? 'Submit' : 'إرسال الطلب'))
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement(Select, {
+    label: en ? 'Category' : 'نوع المشكلة',
+    value: f.cat,
+    onChange: x => setF({
+      ...f,
+      cat: x.target.value
+    }),
+    options: Object.entries(TK_CATS).map(([k, v]) => ({
+      value: k,
+      label: en ? v[1] : v[0]
+    }))
+  }), /*#__PURE__*/React.createElement(Select, {
+    label: en ? 'Related section' : 'الشعبة المرتبطة',
+    value: f.section,
+    onChange: x => setF({
+      ...f,
+      section: x.target.value
+    }),
+    options: [{
+      value: '',
+      label: en ? 'Not section-specific' : 'غير مرتبط بشعبة'
+    }, ...secs.map(s => ({
+      value: String(s.id),
+      label: (en ? st.course(s.course).en : st.course(s.course).ar) + ' · ' + s.no
+    }))]
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: en ? 'Subject' : 'العنوان',
+    required: true,
+    value: f.subject,
+    error: e.subject,
+    onChange: x => setF({
+      ...f,
+      subject: x.target.value
+    }),
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: '1 / -1'
+    }
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: en ? 'Description' : 'وصف المشكلة',
+    required: true,
+    error: e.body
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: f.body,
+    onChange: x => setF({
+      ...f,
+      body: x.target.value
+    }),
+    style: tkArea
+  })))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: '12px 0 0',
+      font: '400 12px/1.6 var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, en ? 'Your request is visible to the section instructor, the branch coordinator and the system administrator.' : 'يظهر طلبك لمدرس الشعبة ومنسق الفرع ومسؤول النظام.'));
+}
+function TicketDialog({
+  tk,
+  onClose,
+  notify
+}) {
+  const {
+    Dialog,
+    Button,
+    Icon
+  } = window.DS;
+  const {
+    me,
+    lang,
+    t
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const isSt = me.role === 'STUDENT';
+  const [msg, setMsg] = React.useState('');
+  const stu = st.student(tk.student);
+  const sec = tk.section && st.S.sections.find(s => s.id === tk.section);
+  const who = r => r.kind === 'student' ? [stu ? stu.ar : '—', en ? 'Student' : 'طالب'] : [st.uname(r.by, lang), t('role_' + (st.user(r.by) || {}).role)];
+  const setStatus = s => {
+    const old = tk.status;
+    tk.status = s;
+    st.audit(isSt ? null : me.id, 'support.status_changed', 'ticket', tk.id, {
+      status: old
+    }, {
+      status: s
+    });
+    st.emit();
+  };
+  const reply = () => {
+    if (!msg.trim()) return;
+    tk.replies.push({
+      kind: isSt ? 'student' : 'user',
+      by: me.id,
+      body: msg.trim(),
+      at: st.now().slice(0, 19)
+    });
+    st.audit(isSt ? null : me.id, 'support.replied', 'ticket', tk.id, null, {
+      no: tk.no
+    });
+    if (!isSt && tk.status === 'open') tk.status = 'in_progress';
+    if (isSt && tk.status === 'resolved') tk.status = 'open';
+    st.emit();
+    setMsg('');
+    notify(en ? 'Reply sent' : 'تم إرسال الرد', tk.no);
+  };
+  const bubble = (name, role, body, at, mine) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      alignSelf: mine ? 'flex-start' : 'flex-end',
+      maxWidth: '85%',
+      background: mine ? 'var(--blue-50)' : 'var(--gray-50)',
+      border: '1px solid var(--border-default)',
+      borderRadius: 12,
+      padding: '10px 14px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      alignItems: 'baseline',
+      flexWrap: 'wrap',
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("b", {
+    style: {
+      font: '700 13px var(--font-sans)'
+    }
+  }, name), /*#__PURE__*/React.createElement("span", {
+    style: {
+      font: '400 11px var(--font-sans)',
+      color: 'var(--text-secondary)'
+    }
+  }, role, " \xB7 ", fmtDateTime(at))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '400 14px/1.7 var(--font-sans)',
+      whiteSpace: 'pre-wrap'
+    }
+  }, body));
+  return /*#__PURE__*/React.createElement(Dialog, {
+    title: tk.no + ' · ' + tk.subject,
+    onClose: onClose,
+    width: 720,
+    footer: /*#__PURE__*/React.createElement(React.Fragment, null, !isSt && tk.status !== 'resolved' && /*#__PURE__*/React.createElement(Button, {
+      variant: "secondary",
+      icon: "circle-check",
+      onClick: () => setStatus('resolved')
+    }, en ? 'Mark resolved' : 'تحديد كمحلول'), !isSt && tk.status === 'resolved' && /*#__PURE__*/React.createElement(Button, {
+      variant: "secondary",
+      icon: "rotate-ccw",
+      onClick: () => setStatus('open')
+    }, en ? 'Reopen' : 'إعادة فتح'), /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      onClick: onClose
+    }, t('close')))
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '8px 20px',
+      alignItems: 'center',
+      font: '400 13px var(--font-sans)',
+      color: 'var(--text-secondary)',
+      paddingBottom: 14,
+      borderBottom: '1px solid var(--border-default)'
+    }
+  }, /*#__PURE__*/React.createElement(TicketBadge, {
+    s: tk.status
+  }), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement(Icon, {
+    name: "tag",
+    size: 14
+  }), " ", en ? TK_CATS[tk.cat][1] : TK_CATS[tk.cat][0]), stu && /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 14
+  }), " ", stu.ar, " \xB7 ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-latin)'
+    }
+  }, stu.uid)), sec && /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement(Icon, {
+    name: "users",
+    size: 14
+  }), " ", (en ? st.course(sec.course).en : st.course(sec.course).ar) + ' · ' + sec.no + ' · ' + st.branchLabel(sec.branch, lang))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+      padding: '16px 0',
+      maxHeight: 340,
+      overflow: 'auto'
+    }
+  }, bubble(stu ? stu.ar : '—', en ? 'Student' : 'طالب', tk.body, tk.at, isSt), tk.replies.map((r, i) => {
+    const [n, ro] = who(r);
+    return /*#__PURE__*/React.createElement(React.Fragment, {
+      key: i
+    }, bubble(n, ro, r.body, r.at, r.kind === 'student' === isSt));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: msg,
+    onChange: e => setMsg(e.target.value),
+    placeholder: en ? 'Write a reply…' : 'اكتب ردًا…',
+    style: {
+      ...tkArea,
+      minHeight: 80
+    }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Button, {
+    icon: "send",
+    disabled: !msg.trim(),
+    onClick: reply
+  }, en ? 'Send reply' : 'إرسال الرد'))));
+}
+function SupportScreen({
+  notify
+}) {
+  const {
+    Button,
+    DataTable,
+    Tabs,
+    Input,
+    EmptyState
+  } = window.DS;
+  const {
+    me,
+    lang,
+    t,
+    route
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const isSt = me.role === 'STUDENT';
+  const [tab, setTab] = React.useState(isSt ? 'all' : 'open');
+  const [q, setQ] = React.useState('');
+  const [open, setOpen] = React.useState(null);
+  const [nw, setNw] = React.useState(!!(route.param && route.param.new));
+  const all = st.ticketScope(me);
+  const rows = all.filter(x => (tab === 'all' || x.status === tab) && (!q || (x.no + x.subject + ((st.student(x.student) || {}).ar || '') + ((st.student(x.student) || {}).uid || '')).toLowerCase().includes(q.toLowerCase())));
+  const secLbl = x => {
+    const s = x.section && st.S.sections.find(y => y.id === x.section);
+    return s ? (en ? st.course(s.course).en : st.course(s.course).ar) + ' · ' + s.no : '—';
+  };
+  const cols = [{
+    key: 'no',
+    label: en ? 'No.' : 'الرقم',
+    numeric: true,
+    render: r => /*#__PURE__*/React.createElement("b", null, r.no)
+  }, ...(isSt ? [] : [{
+    key: 's',
+    label: en ? 'Student' : 'الطالب',
+    render: r => {
+      const s = st.student(r.student);
+      return s ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontWeight: 700
+        }
+      }, s.ar), /*#__PURE__*/React.createElement("div", {
+        style: {
+          font: '400 12px var(--font-latin)',
+          color: 'var(--text-secondary)'
+        }
+      }, s.uid)) : '—';
+    }
+  }]), {
+    key: 'sub',
+    label: en ? 'Subject' : 'العنوان',
+    wrap: true,
+    render: r => /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: 600
+      }
+    }, r.subject)
+  }, {
+    key: 'cat',
+    label: en ? 'Category' : 'النوع',
+    render: r => en ? TK_CATS[r.cat][1] : TK_CATS[r.cat][0]
+  }, {
+    key: 'sec',
+    label: en ? 'Section' : 'الشعبة',
+    render: secLbl
+  }, ...(isSt ? [] : [{
+    key: 'b',
+    label: en ? 'Branch' : 'الفرع',
+    render: r => {
+      const s = r.section && st.S.sections.find(y => y.id === r.section);
+      return s ? st.branchLabel(s.branch, lang) : '—';
+    }
+  }]), {
+    key: 'at',
+    label: en ? 'Submitted' : 'تاريخ الطلب',
+    numeric: true,
+    render: r => fmtDateTime(r.at)
+  }, {
+    key: 'r',
+    label: en ? 'Replies' : 'الردود',
+    numeric: true,
+    render: r => r.replies.length
+  }, {
+    key: 'st',
+    label: t('status'),
+    render: r => /*#__PURE__*/React.createElement(TicketBadge, {
+      s: r.status
+    })
+  }];
+  const cnt = s => all.filter(x => x.status === s).length;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PageHeader, {
+    title: t('nav_support'),
+    subtitle: isSt ? en ? 'Track your requests and replies from the college team.' : 'تابع طلباتك وردود فريق الكلية.' : en ? 'Requests from students in your scope. Replying moves a request to “In progress”.' : 'طلبات الطلاب ضمن نطاق صلاحيتك. الرد على الطلب ينقله إلى «قيد المعالجة».',
+    actions: isSt && /*#__PURE__*/React.createElement(Button, {
+      icon: "plus",
+      onClick: () => setNw(true)
+    }, en ? 'New request' : 'طلب دعم جديد')
+  }), /*#__PURE__*/React.createElement(Panel, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 16,
+      padding: '8px 20px 0',
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement(Tabs, {
+    value: tab,
+    onChange: setTab,
+    tabs: [...['open', 'in_progress', 'resolved'].map(s => ({
+      id: s,
+      label: en ? TK_ST[s][2] : TK_ST[s][1],
+      count: cnt(s)
+    })), {
+      id: 'all',
+      label: t('all'),
+      count: all.length
+    }]
+  }), !isSt && /*#__PURE__*/React.createElement(Input, {
+    size: "sm",
+    icon: "search",
+    placeholder: en ? 'No., student, ID…' : 'رقم الطلب، الطالب، الرقم الجامعي…',
+    value: q,
+    onChange: e => setQ(e.target.value),
+    style: {
+      width: 260
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, rows.length ? /*#__PURE__*/React.createElement(DataTable, {
+    columns: cols,
+    rows: rows,
+    onRowClick: r => setOpen(r)
+  }) : /*#__PURE__*/React.createElement(EmptyState, {
+    icon: "life-buoy",
+    title: en ? 'No requests' : 'لا توجد طلبات',
+    message: isSt ? en ? 'Submit a request if something is wrong with your initiatives or sections.' : 'سجّل طلبًا إذا واجهت مشكلة في مبادراتك أو شعبك.' : en ? 'Nothing in this tab.' : 'لا توجد طلبات في هذا التبويب.'
+  }))), open && /*#__PURE__*/React.createElement(TicketDialog, {
+    tk: open,
+    onClose: () => setOpen(null),
+    notify: notify
+  }), nw && /*#__PURE__*/React.createElement(NewTicketDialog, {
+    onClose: () => setNw(false),
+    notify: notify
+  }));
+}
+function TicketList({
+  rows,
+  notify,
+  showSection = true
+}) {
+  const {
+    DataTable,
+    EmptyState
+  } = window.DS;
+  const {
+    lang,
+    t
+  } = useApp();
+  const st = useStore();
+  const en = lang === 'en';
+  const [open, setOpen] = React.useState(null);
+  if (!rows.length) return /*#__PURE__*/React.createElement(EmptyState, {
+    icon: "life-buoy",
+    title: en ? 'No support requests' : 'لا توجد طلبات دعم',
+    message: en ? 'Requests submitted by students appear here.' : 'تظهر هنا الطلبات التي يرسلها الطلبة.'
+  });
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DataTable, {
+    onRowClick: r => setOpen(r),
+    columns: [{
+      key: 'no',
+      label: en ? 'No.' : 'الرقم',
+      numeric: true,
+      render: r => /*#__PURE__*/React.createElement("b", null, r.no)
+    }, {
+      key: 's',
+      label: en ? 'Student' : 'الطالب',
+      render: r => {
+        const s = st.student(r.student);
+        return s ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontWeight: 700
+          }
+        }, s.ar), /*#__PURE__*/React.createElement("div", {
+          style: {
+            font: '400 12px var(--font-latin)',
+            color: 'var(--text-secondary)'
+          }
+        }, s.uid)) : '—';
+      }
+    }, {
+      key: 'sub',
+      label: en ? 'Subject' : 'العنوان',
+      wrap: true,
+      render: r => /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontWeight: 600
+        }
+      }, r.subject)
+    }, {
+      key: 'cat',
+      label: en ? 'Category' : 'النوع',
+      render: r => en ? TK_CATS[r.cat][1] : TK_CATS[r.cat][0]
+    }, ...(showSection ? [{
+      key: 'sec',
+      label: en ? 'Section' : 'الشعبة',
+      render: r => {
+        const s = r.section && st.S.sections.find(y => y.id === r.section);
+        return s ? st.course(s.course).code + ' · ' + s.no : '—';
+      }
+    }] : []), {
+      key: 'at',
+      label: en ? 'Submitted' : 'تاريخ الطلب',
+      numeric: true,
+      render: r => fmtDateTime(r.at)
+    }, {
+      key: 'st',
+      label: t('status'),
+      render: r => /*#__PURE__*/React.createElement(TicketBadge, {
+        s: r.status
+      })
+    }],
+    rows: rows
+  }), open && /*#__PURE__*/React.createElement(TicketDialog, {
+    tk: open,
+    onClose: () => setOpen(null),
+    notify: notify
+  }));
+}
+Object.assign(window, {
+  SupportScreen,
+  TicketDialog,
+  NewTicketDialog,
+  TicketBadge,
+  TicketList
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/web-app/SupportScreens.jsx", error: String((e && e.message) || e) }); }
 
 // ui_kits/web-app/UsersScreen.jsx
 try { (() => {
@@ -12091,6 +15272,20 @@ window.DS = new Proxy(window.TRACKDesignSystem_c33017 || {}, {
     if (!iso) return '—';
     return fmtDate(iso) + ' ' + iso.slice(11, 16);
   }
+  Object.assign(I18N.ar, {
+    nav_support: 'طلبات الدعم الفني',
+    nav_studentsadmin: 'الطلبة',
+    nav_approvals: 'اعتماد الشعب',
+    nav_myinitiatives: 'مبادراتي',
+    role_STUDENT: 'طالب'
+  });
+  Object.assign(I18N.en, {
+    nav_support: 'Support requests',
+    nav_studentsadmin: 'Students',
+    nav_approvals: 'Section approvals',
+    nav_myinitiatives: 'My initiatives',
+    role_STUDENT: 'Student'
+  });
   window.TRACK_I18N = {
     I18N,
     t,
@@ -12491,7 +15686,7 @@ try { (() => {
       section: '2298'
     },
     headers: ['تسلسل', 'رقم الطالب', 'اسم الطالب', 'الحالة'],
-    rows: [["1", "442104959", "سعود بن محمد بن ابراهيم الشدوخي", "منتظم"], ["2", "462103556", "علي بن ابراهيم بن علي حدادي", "منتظم"], ["3", "462109105", "عبدالعزيز بن عبدالرحمن بن عبدالعزيز الجويعي", "منتظم"], ["4", "462109230", "يونس بن علي بن محمد حدادي", "منتظم"], ["5", "462109232", "فهد بن سلطان بن ماضي العتيبي", "منتظم"], ["6", "471103890", "عبدالمجيد بن محمد بن عبدالله الراشد", "منتظم"], ["7", "471104932", "عبدالعزيز بن محمد بن سالم البديري المطيري", "منتظم"], ["8", "471105041", "ثامر بن ابراهيم بن حمد اللهيب", "منتظم"], ["9", "471105043", "عبدالسلام بن فهد بن حمود السبيعي", "منتظم"], ["10", "471105048", "عبدالرحمن بن عبدالله بن ضميان السبيعي العنزي", "منتظم"], ["11", "471105050", "مازن بن بشير بن نافع العنزي", "منتظم"], ["12", "471105056", "ريان بن جلوي بن مسفر المطيري", "منتظم"], ["13", "471105058", "تركي بن سلمان بن فيصل العتيبي", "منتظم"], ["14", "471105060", "بدر بن فهد بن سليمان السبيعي العنزي", "منتظم"], ["15", "471105061", "سلمان بن بدر بن محمد الشثيلي المطيري", "منتظم"], ["16", "471105064", "عبدالعزيز بن مطلق بن حمد العيباني المطيري", "منتظم"], ["17", "471105067", "فهد بن منيور بن قريزح الضبيطي المطيري", "منتظم"], ["18", "471105068", "فارس بن مرزوق بن مقبل البديرى المطيرى", "منتظم"], ["19", "471105069", "عبدالعزيز بن حمد بن عبدالعزيز الجوف", "منتظم"], ["20", "471105074", "نواف بن عبدالله بن محمد التويجري", "منتظم"], ["21", "471105147", "سليمان بن عبدالله بن سليمان العطيوي", "منتظم"], ["22", "472113211", "زياد بن عبدالله بن احمد الزعيبي", "منتظم"]]
+    rows: [["1", "999000001", "باسل أنور لطفي راشد جابر اليامي", "منتظم"], ["2", "999000002", "فارس نصار نصار هلال هلال القرني", "منتظم"], ["3", "999000003", "مازن راشد مراد نصار فهمي البارقي", "منتظم"], ["4", "999000004", "عادل راشد راشد صابر عاطف الهذلي", "منتظم"], ["5", "999000005", "مازن حمدان أنور عاطف راشد الوادعي", "منتظم"], ["6", "999000006", "لؤي ثامر غازي عاطف فهمي القرني", "منتظم"], ["7", "999000007", "غسان فهمي راشد شاكر ضياء عاطف الكثيري", "منتظم"], ["8", "999000008", "شادي عاطف قاسم ضياء غازي البارقي", "منتظم"], ["9", "999000009", "رائد وائل راشد وائل غازي النجدي", "منتظم"], ["10", "999000010", "شادي بدر ضياء ضياء ضياء راشد الفيفي", "منتظم"], ["11", "999000011", "طارق لطفي ثامر حمدان قاسم الوادعي", "منتظم"], ["12", "999000012", "جمال مراد مراد غازي حمدان البارقي", "منتظم"], ["13", "999000013", "وليد فهمي راشد عاطف ثامر اليامي", "منتظم"], ["14", "999000014", "رائد بدر سامي ياسر مراد حمدان الصاعدي", "منتظم"], ["15", "999000015", "شادي ثامر هلال ثامر راشد لطفي المالكي", "منتظم"], ["16", "999000016", "فارس ثامر جابر شاكر ياسر ضياء الوادعي", "منتظم"], ["17", "999000017", "سالم جابر سامي جابر أنور وائل الحميدي", "منتظم"], ["18", "999000018", "فارس لطفي لطفي ضياء شاكر نصار الكثيري", "منتظم"], ["19", "999000019", "غسان غازي فهمي أنور لطفي اليامي", "منتظم"], ["20", "999000020", "زياد قاسم وائل ضياء جابر الوادعي", "منتظم"], ["21", "999000021", "لؤي مراد شاكر حمدان حمدان الطلحي", "منتظم"], ["22", "999000022", "عمار ضياء أنور وائل بدر الصاعدي", "منتظم"]]
   };
   REAL_FILE.rows.slice(0, 19).forEach((r, i) => {
     const st = {
@@ -12514,7 +15709,75 @@ try { (() => {
   S.sections.forEach(x => {
     x.degree = x.degree || 'البكالوريوس';
     x.activity = x.activity || 'محاضرة';
+    x.status = x.status || 'active';
   });
+  S.sections.push({
+    id: 31,
+    term: 1,
+    branch: 4,
+    course: 4,
+    no: '318',
+    instructor: 3,
+    program: 2,
+    status: 'pending',
+    suggested: [1],
+    note: 'شعبة جديدة أُضيفت بعد اكتمال الجدول.',
+    req: {
+      by: 3,
+      at: '2026-09-24T11:30:00'
+    },
+    degree: 'البكالوريوس',
+    activity: 'محاضرة'
+  }, {
+    id: 32,
+    term: 1,
+    branch: 1,
+    course: 3,
+    no: '402',
+    instructor: 5,
+    program: 6,
+    status: 'pending',
+    suggested: [1, 2],
+    note: '',
+    req: {
+      by: 5,
+      at: '2026-09-25T13:10:00'
+    },
+    degree: 'البكالوريوس',
+    activity: 'محاضرة'
+  }, {
+    id: 33,
+    term: 1,
+    branch: 3,
+    course: 6,
+    no: '2310',
+    instructor: 7,
+    program: 5,
+    status: 'returned',
+    suggested: [2],
+    note: '',
+    req: {
+      by: 7,
+      at: '2026-09-20T09:00:00'
+    },
+    decision: {
+      kind: 'returned',
+      by: 1,
+      at: '2026-09-21T10:15:00',
+      reason: 'رقم الشعبة لا يطابق الجدول الرسمي، يرجى التحقق.'
+    },
+    degree: 'الدبلوم المتوسط',
+    activity: 'محاضرة'
+  });
+  S.students.slice(0, 6).forEach((s, i) => S.enrollments.push({
+    id: 9000 + i,
+    student: s.id,
+    section: 31,
+    status: 'active',
+    enrolled: '2026-09-24',
+    acad: 'منتظم',
+    seq: i + 1
+  }));
   const SEC_PROG = {
     11: 1,
     12: 2,
@@ -12540,6 +15803,23 @@ try { (() => {
   S.sections.forEach(x => {
     x.program = x.program || SEC_PROG[x.id] || 1;
   });
+  const PH = ['055', '050', '056', '059', '054'];
+  S.students.forEach((s, i) => {
+    const e = S.enrollments.find(x => x.student === s.id);
+    const sec = e && S.sections.find(x => x.id === e.section);
+    Object.assign(s, {
+      email: s.uid + '@s.mu.edu.sa',
+      phone: PH[i % 5] + String(1000000 + s.id * 7919 % 8999999).slice(0, 7),
+      program: sec ? sec.program : null,
+      pw: s.uid,
+      mustChange: true,
+      active: true,
+      firstLogin: null,
+      lastLogin: null,
+      role: 'STUDENT',
+      branches: []
+    });
+  });
   const TPL = {
     1: ['تسجيل الطالب', 'التوثيق', 'الانتهاء'],
     2: ['التسجيل في المنصة', 'اجتياز الاختبار', 'رفع الشهادة'],
@@ -12547,7 +15827,7 @@ try { (() => {
   };
   S.assignments = [];
   let asid = 1;
-  S.sections.filter(x => x.term === 1).forEach(x => {
+  S.sections.filter(x => x.term === 1 && x.status === 'active').forEach(x => {
     S.assignments.push({
       id: asid++,
       section: x.id,
@@ -12562,6 +15842,50 @@ try { (() => {
     });
   });
   S.marks = {};
+  S.tickets = [{
+    id: 1,
+    no: 'TK-1001',
+    student: 106,
+    section: 12,
+    cat: 'progress',
+    subject: 'مرحلة «التوثيق» لا تظهر مكتملة',
+    body: 'رفعت التوثيق المطلوب في مبادرة مهارات المستقبل قبل يومين ولا تزال المرحلة غير مكتملة في حسابي.',
+    status: 'open',
+    at: '2026-09-25T10:20:00',
+    replies: []
+  }, {
+    id: 2,
+    no: 'TK-1002',
+    student: 103,
+    section: 14,
+    cat: 'enroll',
+    subject: 'شعبة مبادئ الرياضيات غير ظاهرة',
+    body: 'أنا مسجلة في شعبة 123 لمقرر مبادئ الرياضيات ولكن لا أرى المبادرة المرتبطة بها.',
+    status: 'in_progress',
+    at: '2026-09-22T09:05:00',
+    replies: [{
+      kind: 'user',
+      by: 7,
+      body: 'تم التحقق من التسجيل، وسيتم تحديث الربط خلال يوم عمل.',
+      at: '2026-09-22T12:40:00'
+    }]
+  }, {
+    id: 3,
+    no: 'TK-1003',
+    student: 500,
+    section: 19,
+    cat: 'login',
+    subject: 'نسيت كلمة المرور',
+    body: 'غيّرت كلمة المرور بعد أول دخول ونسيتها.',
+    status: 'resolved',
+    at: '2026-09-18T08:15:00',
+    replies: [{
+      kind: 'user',
+      by: 1,
+      body: 'تمت إعادة تعيين كلمة المرور إلى رقمك الجامعي، وسيُطلب منك تغييرها عند الدخول.',
+      at: '2026-09-18T09:02:00'
+    }]
+  }];
   S.enrollments.find(e => e.section === 11).status = 'withdrawn';
   Object.assign(S.enrollments.find(e => e.section === 11), {
     withdrawn: '2026-09-15',
@@ -12791,8 +16115,24 @@ try { (() => {
     currentTerm() {
       return S.terms.find(t => t.current);
     },
+    approvalScope(u) {
+      if (!u) return [];
+      if (u.role === 'SUPER_ADMIN') return S.sections.filter(s => s.req);
+      if (u.role === 'BRANCH_COORDINATOR') return S.sections.filter(s => s.req && u.branches.includes(s.branch));
+      return [];
+    },
     student(id) {
       return S.students.find(s => s.id === id);
+    },
+    studentEnrollments(sid) {
+      return S.enrollments.filter(e => e.student === sid && e.status === 'active');
+    },
+    ticketScope(u) {
+      if (!u) return [];
+      if (u.role === 'SUPER_ADMIN') return S.tickets;
+      if (u.role === 'STUDENT') return S.tickets.filter(x => x.student === u.id);
+      const ids = new Set(store.sectionScope(u).map(s => s.id));
+      return S.tickets.filter(x => x.section ? ids.has(x.section) : S.enrollments.some(e => e.student === x.student && ids.has(e.section)));
     },
     sectionScope(u) {
       if (!u) return [];
@@ -12814,8 +16154,9 @@ try { (() => {
     },
     PERMS: {
       SUPER_ADMIN: ['*'],
-      BRANCH_COORDINATOR: ['term.view', 'branch.view', 'course.view', 'section.view', 'student.view', 'import.view', 'audit.view'],
-      INSTRUCTOR: ['section.view', 'student.view', 'student.create', 'enrollment.create', 'enrollment.withdraw', 'import.section.run', 'import.view']
+      BRANCH_COORDINATOR: ['term.view', 'branch.view', 'course.view', 'section.view', 'student.view', 'import.view', 'audit.view', 'support.view', 'section.approve'],
+      INSTRUCTOR: ['section.view', 'student.view', 'student.create', 'enrollment.create', 'enrollment.withdraw', 'import.section.run', 'import.view', 'support.view', 'section.request'],
+      STUDENT: ['ini.self', 'support.view']
     },
     can(u, p) {
       const l = store.PERMS[u.role] || [];

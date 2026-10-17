@@ -9,18 +9,19 @@ use App\Models\Branch;
 use App\Models\Course;
 use App\Models\Program;
 use App\Models\Section;
-use App\Models\SectionInstructorHistory;
 use App\Models\User;
+use App\Modules\Audit\Services\Auditor;
 use App\Modules\Sections\Actions\ChangeSectionInstructor;
+use App\Modules\Sections\Actions\CreateSection;
+use App\Modules\Sections\Enums\SectionStatus;
 use App\Modules\Sections\Http\Requests\StoreSectionRequest;
-use App\Modules\Settings\Settings;
 use App\Modules\Shared\Http\Concerns\RespondsToBoth;
+use App\Modules\Shared\Support\CsvSafe;
 use App\Modules\Shared\Support\Format;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -147,6 +148,14 @@ final class SectionController extends Controller
             'sequenced' => $sequenced,
 
             /*
+             * T498 — FR-179: the creator of a returned section corrects it in a dialog. The options are
+             * built only for them, so every other viewer of the page pays nothing for them.
+             */
+            'resubmitOptions' => $section->status === SectionStatus::Returned->value && ($request->user()?->can('resubmit', $section) ?? false)
+                ? array_intersect_key($this->createOptions($request), array_flip(['courseOptions', 'programOptions']))
+                : null,
+
+            /*
              * Counted separately, and deliberately not $roster->total(): the roster deliberately
              * includes withdrawn rows, while "enrolled" on the metadata panel means active. Reusing
              * the paginator's total would quietly inflate the headline number by every student who
@@ -186,51 +195,21 @@ final class SectionController extends Controller
      */
     public function store(StoreSectionRequest $request): JsonResponse|RedirectResponse
     {
-        $validated = $request->validated();
+        /** @var User $creator */
+        $creator = $request->user();
 
-        $section = new Section;
-
-        /*
-         * forceFill for the three columns that are not request fields: `status`, `created_by` and
-         * `requires_approval` are derived from the creator's role (FR-171, FR-172), and a section
-         * that could be born approved from a payload would defeat Amendment 4's whole point.
-         */
-        $approver = $request->user()?->can('section.approve') || $request->user()?->can('scope.bypass_all');
-
-        DB::transaction(function () use ($section, $validated, $approver, $request): void {
-            $section->forceFill($validated + [
-                'degree' => $validated['degree'] ?? Settings::values(Settings::SECTION_DEGREES)[0],
-                'activity' => $validated['activity'] ?? Settings::values(Settings::SECTION_ACTIVITIES)[0],
-                'created_by' => $request->user()?->getKey(),
-                'status' => $approver ? 'active' : 'pending',
-                'requires_approval' => ! $approver,
-            ])->save();
-
-            /*
-             * The first instructor opens the history, here, in the same transaction as the section.
-             *
-             * ChangeSectionInstructor closes "the open period" and opens a new one, so it assumes
-             * creation left one behind. Nothing did — which meant the founding instructor appeared
-             * in no history row at all, and the first handover produced a history that began with
-             * the *second* person. FR-048 asks who taught it in March, and the answer was missing
-             * for every section that had never changed hands.
-             *
-             * ChangeInstructorTest passed because it seeded this row itself, certifying a path the
-             * application never walked.
-             */
-            if ($section->instructor_id !== null) {
-                SectionInstructorHistory::query()->create([
-                    'section_id' => $section->getKey(),
-                    'instructor_id' => $section->instructor_id,
-                    'assigned_at' => now(),
-                    'unassigned_at' => null,
-                    'changed_by' => $request->user()?->getKey(),
-                ]);
-            }
-        });
+        // T488 + T494: the creator's role decides the status, and an attached roster goes through the
+        // existing section import mode. Both inside CreateSection, in one transaction.
+        $result = app(CreateSection::class)->execute(
+            $creator,
+            array_intersect_key($request->validated(), array_flip((new Section)->getFillable())),
+            $request->file('roster'),
+        );
 
         return $this->respond($request, [
-            'data' => $this->present($section->load(['term', 'branch', 'course', 'program', 'instructor'])),
+            'data' => $this->present($result['section']->load(['term', 'branch', 'course', 'program', 'instructor'])) + [
+                'import_job_id' => $result['import_job_id'],
+            ],
         ], 201);
     }
 
@@ -277,6 +256,16 @@ final class SectionController extends Controller
     {
         $query = $this->filtered($request)->with(['branch', 'course', 'instructor']);
 
+        /*
+         * SEC-061 (G-07): the audit and error-report exports are audited; this one carried the
+         * same data out unrecorded. The filters are kept (names and values only, no rows), so the
+         * entry says what was taken, not just that something was.
+         */
+        app(Auditor::class)->record('section.exported', null, [], [
+            'filters' => $request->only(['term_id', 'branch_id', 'course_id', 'status', 'search', 'instructor_id']),
+            'rows' => (clone $query)->count(),
+        ]);
+
         return response()->streamDownload(function () use ($query): void {
             $handle = fopen('php://output', 'wb');
 
@@ -285,15 +274,17 @@ final class SectionController extends Controller
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, ['section_number', 'course', 'branch', 'instructor', 'status']);
 
+            // SEC-060: every cell defused — a section number or name beginning with = runs as a formula.
+
             $query->orderBy('id')->chunk(500, function ($chunk) use ($handle): void {
                 foreach ($chunk as $section) {
-                    fputcsv($handle, [
+                    fputcsv($handle, CsvSafe::row([
                         $section->section_number,
                         $section->course?->code,
                         $section->branch?->campus_name_ar,
                         $section->instructor?->name_ar,
                         $section->status,
-                    ]);
+                    ]));
                 }
             });
 
@@ -312,7 +303,20 @@ final class SectionController extends Controller
             ->when($request->filled('course_id'), fn ($q) => $q->where('course_id', $request->integer('course_id')))
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
             ->when($request->filled('instructor_id'), fn ($q) => $q->where('instructor_id', $request->integer('instructor_id')))
-            ->when($request->filled('q'), fn ($q) => $q->where('section_number', 'like', '%'.$request->string('q')->toString().'%'));
+            ->when($request->filled('q'), fn ($q) => $q->where('section_number', 'like', '%'.$request->string('q')->toString().'%'))
+            /*
+             * T494 — FR-181, FR-183. A rejected section is out of every default list. A pending or
+             * returned one is in, and badged, so a creator sees their own without a separate screen.
+             * `status=rejected` asks for the rejected ones, and nothing else does. An unknown status
+             * matches nothing rather than everything.
+             */
+            ->when(
+                $request->filled('status'),
+                // An array (`status[]=`) or an unknown value matches nothing, never everything, and never a 500.
+                fn ($q) => $q->where('status', is_string($request->input('status')) && SectionStatus::tryFrom($request->input('status')) instanceof SectionStatus ? $request->input('status') : '__none__'),
+                fn ($q) => $q->where('status', '!=', SectionStatus::Rejected->value),
+            )
+            ->when($request->filled('created_by'), fn ($q) => $q->where('created_by', $request->integer('created_by')));
     }
 
     /**
@@ -518,6 +522,11 @@ final class SectionController extends Controller
             ],
             'active_enrollments' => (int) ($section->active_enrollments ?? 0),
             'status' => $section->status,
+
+            // Amendment 4 — the approval state and who it waits on (contracts/academic.md).
+            'requires_approval' => (bool) $section->requires_approval,
+            'created_by' => $section->created_by,
+            'review_reason' => $section->review_reason,
 
             // FR-026 — per caller, not per row. See Section::sharedAccess().
             'shared_access' => $section->shared_access,

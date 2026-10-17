@@ -38,7 +38,7 @@ final class SectionAccessGrantController extends Controller
          */
         $recipient = User::query()->find($validated['user_id']);
 
-        $this->refuseUngrantableRecipient($recipient);
+        $this->refuseUngrantableRecipient($recipient, $section);
         $this->refuseDuplicate($section, $recipient);
 
         $grant = app(GrantSectionAccess::class)->execute($section, $recipient);
@@ -50,7 +50,7 @@ final class SectionAccessGrantController extends Controller
      * 422, not 403: the caller holds the permission, the *target* is wrong. A 403 here would tell
      * an administrator they lack an authority they actually have.
      */
-    private function refuseUngrantableRecipient(?User $recipient): void
+    private function refuseUngrantableRecipient(?User $recipient, Section $section): void
     {
         /** @var list<string> $grantable */
         $grantable = config('authorization.grants.grantable_roles', []);
@@ -62,8 +62,12 @@ final class SectionAccessGrantController extends Controller
          * the grant permission, and a deactivated account is exactly the sort of thing an
          * administrator should have to look up rather than probe for.
          */
+        // SEC-052 (G-15): and of the section's own organization — one message for that too.
+        $sectionOrganization = $section->branch()->withoutGlobalScopes()->value('organization_id');
+
         $grantableTarget = $recipient !== null
             && $recipient->is_active
+            && (int) $recipient->organization_id === (int) $sectionOrganization
             && $recipient->roles->pluck('name')->intersect($grantable)->isNotEmpty();
 
         if (! $grantableTarget) {

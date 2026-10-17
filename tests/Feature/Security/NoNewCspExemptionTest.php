@@ -67,6 +67,10 @@ test('a route on the public group — the group routes/public.php is loaded with
     // or reordered the CSP middleware would fail here, not on /support in production.
     Illuminate\Support\Facades\Route::middleware('public')->get('/__probe/public-csp', fn () => 'ok');
 
+    // The group's flood floor reads the `public_throttle` setting (Phase 19 review), and settings are
+    // part of a working deployment, not optional.
+    (new Database\Seeders\SettingSeeder)->run();
+
     $response = $this->get('/__probe/public-csp')->assertOk();
 
     expect(parsePolicy((string) $response->headers->get('Content-Security-Policy')))->toBe(POLICY_AS_SHIPPED)

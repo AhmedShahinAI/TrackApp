@@ -103,7 +103,10 @@ final class ModuleServiceProvider extends ServiceProvider
 
         $api = $this->modulePath($module, 'Routes/api.php');
         if (is_file($api)) {
-            Route::middleware(['web', 'auth:sanctum', 'throttle:api'])
+            // `active` and `session.auth` exactly as the web groups carry them (SEC-031, G-02). The
+            // session purge in DeactivateUser and ResetPassword only works under the database driver;
+            // these are what end a revoked session on every driver, Redis included.
+            Route::middleware(['web', 'auth:sanctum', 'active', 'session.auth', 'password.own', 'throttle:api'])
                 ->prefix('api/v1')
                 ->name('api.v1.')
                 ->group($api);

@@ -37,6 +37,8 @@ final class JsonLogFormatter
 
             if ($handler instanceof ProcessableHandlerInterface) {
                 $handler->pushProcessor(new RequestContextProcessor);
+                // SEC-080 (G-10): last pushed runs first, so nothing reaches the formatter unscrubbed.
+                $handler->pushProcessor(new RedactingProcessor);
             }
         }
     }

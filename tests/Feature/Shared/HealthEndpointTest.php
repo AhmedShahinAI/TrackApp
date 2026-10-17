@@ -109,3 +109,42 @@ test('the heartbeat writes at most once per throttle window per worker', functio
 
     expect($first)->toBeInt()->and(Cache::get(QueueHeartbeat::KEY))->toBe(1);
 });
+
+// ---- SEC-091 (security plan G-18): the detail is for the token holder ----
+
+test('on production without the token, the probe answers its status and nothing more', function (): void {
+    app()->instance('env', 'production');
+    config(['monitoring.health_token' => 'probe-secret-123']);
+
+    $response = $this->getJson('/health');
+    app()->instance('env', 'testing');
+
+    expect($response->json())->toHaveKey('status');
+    expect($response->json())->not->toHaveKey('checks');
+});
+
+test('the token holder sees every check', function (): void {
+    app()->instance('env', 'production');
+    config(['monitoring.health_token' => 'probe-secret-123']);
+
+    $response = $this->getJson('/health', ['X-Health-Token' => 'probe-secret-123']);
+    app()->instance('env', 'testing');
+
+    expect($response->json('checks'))->toHaveKeys(['database', 'redis', 'queue', 'storage']);
+});
+
+test('a wrong token is the same as none', function (): void {
+    config(['monitoring.health_token' => 'probe-secret-123']);
+
+    expect($this->getJson('/health', ['X-Health-Token' => 'guess'])->json())->not->toHaveKey('checks');
+});
+
+test('a production host with no token configured still hides the detail', function (): void {
+    app()->instance('env', 'production');
+    config(['monitoring.health_token' => null]);
+
+    $response = $this->getJson('/health');
+    app()->instance('env', 'testing');
+
+    expect($response->json())->not->toHaveKey('checks');
+});

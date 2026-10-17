@@ -29,8 +29,23 @@ return [
     'disk_usage' => (float) env('ALERT_DISK_USAGE', 0.80),
 
     // One alert per condition per this many minutes, so a stuck queue is one message, not 288 a day.
+    // Phase 25 review, M-1: how many days past its retention a support request may still hold its
+    // student before the monitor says the sweep has stopped. The sweep is daily, so 2 tolerates one missed
+    // run and a slow one.
+    'retention_grace_days' => (int) env('ALERT_RETENTION_GRACE_DAYS', 2),
+
     'repeat_after_minutes' => (int) env('ALERT_REPEAT_AFTER_MINUTES', 30),
 
     'email' => env('ALERT_EMAIL'),
+
+    /*
+     * SEC-082 (security plan G-20) — security conditions, counted from the audit log over the same
+     * window. Any account lock alerts at once; failed sign-ins and refusals alert past a level.
+     */
+    'login_failures' => (int) env('ALERT_LOGIN_FAILURES', 50),
+    'denied_per_user' => (int) env('ALERT_DENIED_PER_USER', 20),
+
+    // SEC-091 (G-18): the header token that unlocks /health's component detail (runbook §8.2).
+    'health_token' => env('HEALTH_TOKEN'),
 
 ];

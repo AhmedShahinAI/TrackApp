@@ -78,3 +78,91 @@
 
     .track-public__card { padding: var(--space-4); }
 }
+
+// T395 — the honeypot. Off-screen rather than display:none, because some scripts skip fields that
+// are not rendered; aria-hidden and tabindex=-1 in the markup keep it from people. Not .track-sr-only,
+// which exists to be read aloud.
+.track-public__trap {
+    position: absolute;
+    inset-inline-start: -10000px;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+}
+
+.track-public__challenge {
+    font: var(--text-body-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+// T396 — the reference, the one thing on the confirmation page the student must copy down.
+.track-public__reference-label {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-1);
+}
+
+.track-public__reference {
+    font-family: var(--font-numeric);
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    letter-spacing: .08em;
+    color: var(--text-brand);
+    margin: 0;
+    user-select: all;
+    overflow-wrap: anywhere;
+}
+
+// Phase 22 (T431) — the status page.
+.track-public__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.track-public__aside { margin-block-start: var(--space-4); }
+
+.track-public__subtitle {
+    font: var(--text-h4);
+    margin: 0;
+}
+
+.track-public__facts {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+}
+
+.track-public__facts dt {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+}
+
+.track-public__facts dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.track-public__reference--inline { font-size: var(--fs-h4); }
+
+// Staff text and the reason, printed as text: line breaks kept, nothing interpreted (FR-153).
+.track-public__text {
+    display: block;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    margin: 0;
+}
+
+.track-public__message {
+    padding-block: var(--space-3);
+    border-block-end: 1px solid var(--border-default);
+}
+
+.track-public__message-date {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-1);
+}

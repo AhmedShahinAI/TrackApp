@@ -45,6 +45,16 @@ Thumbs.db
 # size and date, which is the traceability that matters.
 /TRACK Design System*.zip
 
+# --- TRACK: personal data (security plan G-01, SEC-018) ---
+# Real student rosters never enter the repository. The design system's spreadsheets are ignored, except
+# the two names of the redacted registrar export that the import tests use; the previous design-system
+# version, which carried real data, is ignored outright. NoPersonalDataFixturesTest pins all of this.
+/design-system-v1/
+/design-system/scratch/*.xlsx
+/design-system/uploads/*.xlsx
+!/design-system/scratch/roster.xlsx
+!/design-system/uploads/filedownloadservlet(21).xlsx
+
 # Local SQLite databases used for schema verification when no MySQL server is available.
 *.sqlite
 *.sqlite-journal

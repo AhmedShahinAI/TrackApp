@@ -92,10 +92,70 @@ final class UploadImport extends TransactionalAction
         }
     }
 
+    /**
+     * Phase 27 review — the slow half of an upload, for a caller that must not hold a transaction
+     * while it runs: validate (which counts every row), store, read the header, hash.
+     * CreateSection stages a roster before it opens its own transaction, so the new section's row
+     * and its unique-key entry are locked for two inserts, not for a spreadsheet's parse.
+     * {@see executeStaged()} is the other half. A caller that does not continue must delete
+     * `path`.
+     *
+     * @return array{checked: array{extension: string, data_rows: int}, path: string, header: array<int, mixed>|null, hash: string}
+     */
+    public function stage(UploadedFile $file): array
+    {
+        $checked = $this->validator->validate($file);
+
+        $path = $file->storeAs(
+            'imports/'.now()->format('Y/m'),
+            Str::uuid()->toString().'.'.$checked['extension'],
+            'private',
+        );
+
+        if ($path === false) {
+            throw new RuntimeException('The import file could not be stored.');
+        }
+
+        try {
+            $absolute = Storage::disk('private')->path($path);
+
+            return [
+                'checked' => $checked,
+                'path' => $path,
+                'header' => SpreadsheetReader::header($absolute, $checked['extension']),
+                'hash' => (string) hash_file('sha256', $absolute),
+            ];
+        } catch (Throwable $e) {
+            Storage::disk('private')->delete($path);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * The transactional half: the job row only, from what {@see stage()} prepared. A section-mode or
+     * central-mode upload; the registrar reads its metadata block, so it keeps execute().
+     *
+     * @param  array{checked: array{extension: string, data_rows: int}, path: string, header: array<int, mixed>|null, hash: string}  $staged
+     */
+    public function executeStaged(array $staged, UploadedFile $file, User $actor, ?int $termId, ?Section $section): ImportJob
+    {
+        try {
+            /** @var ImportJob */
+            return parent::execute($file, $actor, $termId, $staged['path'], $staged['checked'], $section, null, ['header' => $staged['header'], 'hash' => $staged['hash']]);
+        } catch (Throwable $e) {
+            Storage::disk('private')->delete($staged['path']);
+
+            throw $e;
+        }
+    }
+
     protected function handle(mixed ...$arguments): ImportJob
     {
         /** @var UploadedFile $file */
         [$file, $actor, $termId, $path, $checked, $section, $context] = $arguments;
+        /** @var array{header?: array<int, mixed>|null, hash?: string}|null $staged */
+        $staged = $arguments[7] ?? null;
 
         /** @var User $actor */
         /** @var Section|null $section */
@@ -120,7 +180,7 @@ final class UploadImport extends TransactionalAction
         if (in_array($mode, [CourseMode::class, UserMode::class], true)) {
             $termId = null;
         }
-        $header = SpreadsheetReader::header($absolute, $checked['extension']);
+        $header = $staged['header'] ?? SpreadsheetReader::header($absolute, $checked['extension']);
         $headers = $header[1] ?? [];
 
         $job = new ImportJob;
@@ -135,7 +195,7 @@ final class UploadImport extends TransactionalAction
             'term_id' => $section !== null ? $section->term_id : $termId,
             'original_filename' => mb_substr(basename($file->getClientOriginalName()), 0, 255),
             'file_path' => $path,
-            'file_hash' => (string) hash_file('sha256', $absolute),
+            'file_hash' => $staged['hash'] ?? (string) hash_file('sha256', $absolute),
             'status' => 'uploaded',
             'total_rows' => $checked['data_rows'],
             'file_metadata' => [

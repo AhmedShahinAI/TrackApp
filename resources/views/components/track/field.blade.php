@@ -30,8 +30,11 @@
     @if ($error)
         {{-- role="alert" so the message is announced the moment it appears, which is what FR-078
              asks for: validation on blur is useless to a screen-reader user who never hears it. --}}
-        <p class="track-field__error" role="alert">{{ $error }}</p>
+        <p class="track-field__error" role="alert" @if ($for) id="{{ $for }}-error" @endif>{{ $error }}</p>
     @elseif ($hint)
-        <p class="track-field__hint">{{ $hint }}</p>
+        {{-- The ids the control's aria-describedby names (x-track-input: `{id}-error` / `{id}-hint`).
+             Without them that reference pointed at nothing and no assistive technology read the
+             message with the field — found in the Phase 22 review, true of every form. --}}
+        <p class="track-field__hint" @if ($for) id="{{ $for }}-hint" @endif>{{ $hint }}</p>
     @endif
 </div>

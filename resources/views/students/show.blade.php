@@ -15,10 +15,20 @@
 @php
     $locale = app()->getLocale();
 
+    // T468 — v2 shows each section's programme, degree and activity (Amendment 1); they belong to the
+    // section, so they are columns of the enrollment, not fields of the student.
+    $optionLabels = fn (string $key) => collect(App\Modules\Settings\Settings::options($key))
+        ->mapWithKeys(fn (array $option) => [$option['value'] => $option[$locale] ?? $option['ar']]);
+    $degreeLabels = $optionLabels(App\Modules\Settings\Settings::SECTION_DEGREES);
+    $activityLabels = $optionLabels(App\Modules\Settings\Settings::SECTION_ACTIVITIES);
+
     $enrollmentRows = $student->enrollments->map(fn ($enrollment) => [
         'id' => $enrollment->id,
         'section' => $enrollment->section?->section_number,
         'course' => $enrollment->section?->course?->code,
+        'program' => ($enrollment->section?->program?->{'name_'.$locale} ?: $enrollment->section?->program?->name_ar) ?? '—',
+        'degree' => $degreeLabels[$enrollment->section?->degree] ?? ($enrollment->section?->degree ?? '—'),
+        'activity' => $activityLabels[$enrollment->section?->activity] ?? ($enrollment->section?->activity ?? '—'),
         'branch' => $enrollment->section?->branch?->{'campus_name_'.$locale}
             ?? $enrollment->section?->branch?->campus_name_ar,
         'enrolled_at' => Format::date($enrollment->enrolled_at),
@@ -31,6 +41,9 @@
     $enrollmentColumns = [
         ['key' => 'section', 'label' => __('students.fields.section'), 'numeric' => true],
         ['key' => 'course', 'label' => __('students.fields.course')],
+        ['key' => 'program', 'label' => __('students.fields.program'), 'wrap' => true],
+        ['key' => 'degree', 'label' => __('students.fields.degree')],
+        ['key' => 'activity', 'label' => __('students.fields.activity')],
         ['key' => 'branch', 'label' => __('students.fields.branch')],
         ['key' => 'enrolled_at', 'label' => __('students.fields.enrolled_at')],
         ['key' => 'status', 'label' => __('students.fields.status')],

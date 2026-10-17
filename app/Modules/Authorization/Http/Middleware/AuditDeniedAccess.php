@@ -68,7 +68,8 @@ final class AuditDeniedAccess
     private static function statusFor(Throwable $exception): ?int
     {
         return match (true) {
-            $exception instanceof AuthorizationException,
+            // A policy may refuse as not found (Response::denyAsNotFound) — record the 404 it becomes.
+            $exception instanceof AuthorizationException => $exception->hasStatus() ? (int) $exception->status() : 403,
             $exception instanceof AccessDeniedHttpException => 403,
 
             $exception instanceof ModelNotFoundException,

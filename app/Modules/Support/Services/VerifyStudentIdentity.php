@@ -24,9 +24,16 @@ use App\Modules\Shared\Rules\UniversityId;
  * The query starts from the enrollment and joins outward, so every condition is a join or a filter
  * on one statement:
  *
- *     section_enrollments (active)
+ *     section_enrollments (active, not withdrawn by the registrar)
  *       → students (this identifier, not deleted)
- *       → sections → academic_terms (current, not deleted)
+ *       → sections (active) → academic_terms (current, not deleted)
+ *
+ * "Active" is three conditions, not one (Phase 19 review). An enrollment row stays `active` when its
+ * section is pending approval, returned or rejected (Amendment 4), and when the registrar's file
+ * marks the student withdrawn (`academic_status`); a student whose only enrollment is one of those
+ * is not enrolled now, and verifying them would let them raise requests against a term they are not
+ * in. SupportRequest's branch scope uses the same three, so whom a coordinator sees and who may file
+ * are one definition.
  *
  * The global scopes are dropped explicitly. They are inert on a public request already — there is no
  * authenticated caller — but a verification that silently narrowed when a staff member happened to be
@@ -49,6 +56,8 @@ final class VerifyStudentIdentity
             ->where('students.university_id', UniversityId::normalise($universityId))
             ->whereNull('students.deleted_at')
             ->where('section_enrollments.status', 'active')
+            ->where(fn ($q) => $q->whereNull('section_enrollments.academic_status')->orWhere('section_enrollments.academic_status', '!=', 'withdrawn'))
+            ->where('sections.status', 'active')
             ->where('academic_terms.is_current', true)
             ->whereNull('academic_terms.deleted_at')
             ->select(['students.id as verified_student_id', 'academic_terms.id as verified_term_id'])

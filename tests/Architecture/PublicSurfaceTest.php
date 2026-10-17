@@ -124,7 +124,7 @@ test('a controller under Http/Controllers/Public is only ever reached through th
 test('the public group is web plus the per-IP throttle, and nothing that resolves a user', function (): void {
     $group = app('router')->getMiddlewareGroups()['public'] ?? null;
 
-    expect($group)->toBe(['web', 'throttle:public']);
+    expect($group)->toBe(['web', App\Modules\Shared\Http\Middleware\HideRateLimitState::class, 'throttle:public']);
 });
 
 test('the scanner catches an unauthenticated route declared outside routes/public.php', function (): void {

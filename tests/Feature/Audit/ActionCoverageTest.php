@@ -92,10 +92,20 @@ function actionPerformers(): array
             }
         },
 
+        // SEC-061: the sections CSV export is audited like the other exports.
+        'section.exported' => function (): void {
+            test()->actingAs(aUser('SUPER_ADMIN'))->get('/api/v1/sections/export')->streamedContent();
+        },
+
+        // SEC-044: an operator ends an account lock from the console.
+        'auth.login_unblocked' => function (): void {
+            Illuminate\Support\Facades\Artisan::call('track:login-unblock', ['email' => aUser('INSTRUCTOR')->email]);
+        },
+
         'user.created' => function (): void {
             test()->actingAs(aUser('SUPER_ADMIN'))->postJson('/api/v1/users', [
                 'name_ar' => 'جديد', 'name_en' => 'New',
-                'email' => 'new.account@mu.edu.sa', 'password' => 'Track2026',
+                'email' => 'new.account@mu.edu.sa', 'password' => 'Track2026-Own',
                 'role' => 'INSTRUCTOR',
             ]);
         },
@@ -113,16 +123,16 @@ function actionPerformers(): array
             $user = aUser('INSTRUCTOR');
             test()->actingAs($user)->putJson('/api/v1/auth/password', [
                 'current_password' => 'Track2026',
-                'password' => 'Track2027new',
-                'password_confirmation' => 'Track2027new',
+                'password' => 'Track2027-new-own',
+                'password_confirmation' => 'Track2027-new-own',
             ]);
         },
         'user.password_reset' => function (): void {
             $target = aUser('INSTRUCTOR');
             test()->actingAs(aUser('SUPER_ADMIN'))
                 ->postJson("/api/v1/users/{$target->id}/reset-password", [
-                    'password' => 'Track2027new',
-                    'password_confirmation' => 'Track2027new',
+                    'password' => 'Track2027-new-own',
+                    'password_confirmation' => 'Track2027-new-own',
                 ]);
         },
         'user.roles_changed' => function (): void {
@@ -192,6 +202,39 @@ function actionPerformers(): array
             $section->update(['activity' => 'lab']);
         },
 
+        // Phase 27 — section approval, each through its endpoint.
+        'section.submitted_for_approval' => function (): void {
+            $world = approvalWorld();
+            DB::table('audit_logs')->delete();
+            createSectionAs($world['instructor'], $world);
+        },
+        'section.approved' => function (): void {
+            $world = approvalWorld();
+            $section = sectionCreatedBy($world['instructor'], $world);
+            DB::table('audit_logs')->delete();
+            decideSection($world['coordinator'], $section, 'approve');
+        },
+        'section.returned' => function (): void {
+            $world = approvalWorld();
+            $section = sectionCreatedBy($world['instructor'], $world);
+            DB::table('audit_logs')->delete();
+            decideSection($world['coordinator'], $section, 'return', 'Wrong programme for this course.');
+        },
+        'section.rejected' => function (): void {
+            $world = approvalWorld();
+            $section = sectionCreatedBy($world['instructor'], $world);
+            DB::table('audit_logs')->delete();
+            decideSection($world['coordinator'], $section, 'reject', 'This section duplicates 1201.');
+        },
+        'section.resubmitted' => function (): void {
+            $world = approvalWorld();
+            $section = sectionCreatedBy($world['instructor'], $world);
+            decideSection($world['coordinator'], $section, 'return', 'Wrong programme for this course.');
+            DB::table('audit_logs')->delete();
+            app('auth')->forgetGuards();
+            test()->actingAs($world['instructor'])->patchJson('/api/v1/sections/'.$section->id.'/resubmit', []);
+        },
+
         'student.created' => fn () => Student::factory()->create(),
         'student.updated' => function (): void {
             $student = Student::factory()->create();
@@ -225,6 +268,11 @@ function actionPerformers(): array
 
             importRoster($world, [rosterRow($world, ['section_number' => '611'])], ['create_missing_instructors' => true]);
         },
+        // SEC-062: completing an import deletes its uploaded file, and says so.
+        'import.file_discarded' => function (): void {
+            $world = importWorld();
+            importRoster($world, [rosterRow($world, ['section_number' => '612'])], ['create_missing_instructors' => true]);
+        },
         'import.resumed' => function (): void {
             $world = importWorld();
             $job = importRoster($world, [rosterRow($world)]);
@@ -243,6 +291,50 @@ function actionPerformers(): array
             test()->actingAs($world['admin'])->get(route('api.v1.imports.errors.download', $job))->streamedContent();
         },
 
+        // Phase 20 — the public form: no one signed in, so the entry's actor is null.
+        'support.request_created' => function (): void {
+            Illuminate\Support\Sleep::fake();
+            supportWorld();
+            enrolledStudent('441234567');
+            DB::table('audit_logs')->delete();
+
+            test()->post('/support', supportSubmission());
+        },
+
+        // Phase 21 — the staff side of the support channel.
+        'support.responded' => function (): void {
+            $world = supportStaffWorld();
+            $request = supportRequestFor($world['branch'], ['status' => 'in_progress']);
+            DB::table('audit_logs')->delete();
+
+            test()->actingAs($world['admin'])->postJson('/api/v1/support-requests/'.$request->reference.'/responses', ['body' => 'Reply']);
+        },
+        'support.status_changed' => function (): void {
+            $world = supportStaffWorld();
+            $request = supportRequestFor($world['branch'], ['status' => 'in_progress']);
+            DB::table('audit_logs')->delete();
+
+            test()->actingAs($world['admin'])->patchJson('/api/v1/support-requests/'.$request->reference.'/status', ['status' => 'rejected', 'reason' => 'Out of scope']);
+        },
+        'support.reassigned' => function (): void {
+            $world = supportStaffWorld();
+            $request = supportRequestFor($world['branch']);
+            $request->forceFill(['status' => 'in_progress'])->saveQuietly();
+            DB::table('audit_logs')->delete();
+
+            test()->actingAs($world['admin'])->patchJson('/api/v1/support-requests/'.$request->reference.'/assignee', ['assigned_to' => $world['coordinator']->id]);
+        },
+
+        // Phase 25 — the retention sweep: no one signed in, so the entry's actor is null.
+        'support.anonymised' => function (): void {
+            $world = supportStaffWorld();
+            $request = supportRequestFor($world['branch']);
+            $request->forceFill(['created_at' => now()->subMonths(25)])->saveQuietly();
+            DB::table('audit_logs')->delete();
+
+            runRetentionSweep();
+        },
+
         'audit.exported' => function (): void {
             $admin = aUser('SUPER_ADMIN');
             DB::table('audit_logs')->delete();
@@ -251,7 +343,7 @@ function actionPerformers(): array
     ];
 }
 
-test('the performers and the deferred list together account for all 43 contract keys', function (): void {
+test('the performers and the deferred list together account for all 48 contract keys', function (): void {
     $performed = array_keys(actionPerformers());
     $deferred = array_keys(actionsAwaitingTheirPhase());
 

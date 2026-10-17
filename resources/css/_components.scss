@@ -921,6 +921,15 @@
     align-items: start;
 }
 
+// The page header's badges about its subject, under the title (Phase 27: the default slot, which was
+// never rendered).
+.track-page-header__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-start: var(--space-2);
+}
+
 .track-filters {
     display: flex;
     flex-wrap: wrap;
@@ -931,6 +940,20 @@
 
 .track-filters > * { flex: 1 1 180px; min-width: 0; }
 .track-filters__search { flex: 2 1 260px; }
+
+// T468 — the students list (v2 StudentsAdminScreen): the result count at the end of the filter row, and
+// an open-requests figure that stands out. v2 draws it amber-600, a pairing A11Y-04 corrects. So it is
+// --text-warning, the AA-passing warning text.
+.track-filters > .track-students__count {
+    flex: 0 0 auto;
+    align-self: center;
+    margin: 0;
+    margin-inline-start: auto;
+    font: var(--text-body-sm);
+    color: var(--text-secondary);
+}
+
+.track-students__open { color: var(--text-warning); font-weight: 700; }
 
 .track-dl {
     display: grid;
@@ -1107,7 +1130,11 @@
  *
  * Tabular figures because the comparison a registrar actually makes here is scanning a column for
  * the one id that differs by a single digit, which proportional figures make impossible.
+ *
+ * Exempt from RTLCSS: left-to-right is the point here, and the Arabic build would otherwise flip
+ * `direction: ltr` to `rtl` and undo the `dir="ltr"` every identifier carries.
  */
+/* rtl:ignore */
 .track-code {
     direction: ltr;
     unicode-bidi: isolate;
@@ -1425,3 +1452,112 @@ a.track-pager__page:focus-visible { outline: none; box-shadow: var(--ring-focus)
 
 .track-preference__label { margin: 0; font: var(--text-body); font-weight: var(--fw-bold); }
 .track-preference__hint { margin: var(--space-1) 0 0; font: var(--text-body-sm); color: var(--text-secondary); }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// Support requests — the staff detail (T419, Amendment 2)
+// ═════════════════════════════════════════════════════════════════════════════════════════════════
+// The request and its thread beside its facts; one column below 992px, the facts first so the status
+// and the student are what a coordinator on a tablet reads before scrolling.
+.track-support {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+    gap: var(--space-6);
+    align-items: start;
+}
+
+.track-support__main,
+.track-support__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+}
+
+.track-support__heading {
+    font: var(--text-h4);
+    margin: 0 0 var(--space-3);
+}
+
+// Student and staff text, printed as text: line breaks kept, nothing interpreted (FR-153), and a
+// long unbroken string wraps instead of widening the card.
+.track-support__text {
+    font: var(--text-body);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    margin: 0 0 var(--space-4);
+}
+
+.track-support__empty {
+    font: var(--text-body-sm);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4);
+}
+
+.track-support__message {
+    padding-block: var(--space-3);
+    border-block-end: 1px solid var(--border-default);
+}
+
+.track-support__message-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+    font: var(--text-caption);
+    color: var(--text-secondary);
+    margin-block-end: var(--space-2);
+}
+
+.track-support__composer { margin-block-start: var(--space-4); }
+
+.track-support__facts {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+}
+
+.track-support__facts dt {
+    font: var(--text-caption);
+    color: var(--text-secondary);
+}
+
+.track-support__facts dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+// FR-145 — the contact is the student's word, not a checked fact; the marker is never colour alone.
+.track-support__unverified {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-inline-start: var(--space-2);
+    font: var(--text-caption);
+    color: var(--text-warning);
+}
+
+.track-support__reject { margin-block-start: var(--space-3); }
+
+.track-support__history {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font: var(--text-caption);
+    color: var(--text-secondary);
+}
+
+.track-support__history li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+@media (max-width: 991.98px) {
+    .track-support { grid-template-columns: minmax(0, 1fr); }
+    .track-support__side { order: -1; }
+}

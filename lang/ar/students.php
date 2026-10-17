@@ -5,6 +5,24 @@ declare(strict_types=1);
 return [
     'title' => 'الطلبة',
     'subtitle' => 'سجلّات الطلبة وتسجيلاتهم',
+
+    // T468 — v2's StudentsAdminScreen, verbatim, without its sentence about student accounts (C-19).
+    'subtitle_all' => 'جميع الطلبة.',
+    'subtitle_scoped' => 'الطلبة المسجلون في الشعب ضمن نطاق صلاحيتك للفصل الحالي.',
+    'count' => ':count طالب',
+    'list_separator' => '، ',
+    'filters' => [
+        'q' => 'بحث',
+        // v2's placeholder also names the email and the phone, which students do not have (C-23).
+        'q_placeholder' => 'الاسم أو الرقم الجامعي',
+        'branch' => 'الفرع',
+        'section' => 'الشعبة',
+        'program' => 'البرنامج',
+        'all_branches' => 'كل الفروع',
+        'all_sections' => 'كل الشعب',
+        'all_programs' => 'كل البرامج',
+        'sections_truncated' => 'تُعرض أول :count شعبة فقط. اختر الفرع لتضييق القائمة.',
+    ],
     'fields' => [
         'university_id' => 'الرقم الجامعي',
         'name' => 'الاسم',
@@ -21,6 +39,12 @@ return [
         'enrolled_at' => 'تاريخ التسجيل',
         'withdrawn_at' => 'تاريخ الانسحاب',
         'withdraw_reason' => 'سبب الانسحاب',
+        // T468, from v2's column labels.
+        'program' => 'البرنامج',
+        'degree' => 'الدرجة',
+        'activity' => 'النشاط',
+        'sections' => 'الشعب',
+        'open_requests' => 'طلبات مفتوحة',
     ],
     'actions' => [
         'enroll' => 'تسجيل طالب',

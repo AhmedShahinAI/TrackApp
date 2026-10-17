@@ -65,6 +65,14 @@ return [
         'notFoundMessage' => 'The link is wrong, or the record is no longer available.',
         'generic' => 'That did not go through',
         'genericMessage' => 'Try again. If it keeps happening, tell support.',
+        // SEC-074 (G-12): the pages Laravel would otherwise render in its own words, in English only.
+        'sessionExpired' => 'Your session has expired',
+        'sessionExpiredMessage' => 'For your security the page was open too long. Sign in or reload the page, then try again.',
+        'tooMany' => 'Too many requests',
+        'tooManyMessage' => 'Wait a moment before trying again.',
+        'server' => 'Something went wrong on our side',
+        'serverMessage' => 'The problem has been recorded. Try again in a few minutes; if it keeps happening, tell support.',
+        'reload' => 'Go to the start page',
     ],
     'queue' => [
         'waiting' => 'Queued',

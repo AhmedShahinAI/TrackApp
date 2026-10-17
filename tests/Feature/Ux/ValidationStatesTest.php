@@ -123,6 +123,16 @@ test('the server refuses every value the form\'s own markup refuses, in the page
             // Nested, as the browser's `mapping[term]` arrives: a literal "mapping.term" key is a
             // different field.
             $payload = $form['hidden'];
+
+            // Phase 20 — the public support form refuses anything without a solved proof-of-work and
+            // an aged form stamp BEFORE any field rule runs (contracts/support-public.md, order of
+            // evaluation). The browser supplies both; here a solved, aged, otherwise-valid submission
+            // stands in for them, so the one bad value below is what the server answers.
+            if ($form['action'] === route('support.store')) {
+                supportWorld();
+                $payload = array_merge($payload, supportSubmission());
+            }
+
             data_set($payload, $rule['field'], $rule['value']);
 
             $response = test()->json($form['method'], $form['action'], $payload);

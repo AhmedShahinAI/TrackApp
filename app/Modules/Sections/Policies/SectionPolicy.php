@@ -6,6 +6,8 @@ namespace App\Modules\Sections\Policies;
 
 use App\Models\Section;
 use App\Models\User;
+use App\Modules\Sections\Enums\SectionStatus;
+use Illuminate\Auth\Access\Response;
 
 /**
  * T195 — sections.
@@ -52,9 +54,46 @@ final class SectionPolicy
         return $actor->can('section.access_override');
     }
 
-    public function approve(User $actor): bool
+    /**
+     * T491 — FR-178. Holding `section.approve` is not enough; three refusals, all **403**, because the
+     * caller can see the section and simply may not decide it:
+     *
+     *   - its creator, who would be approving their own work;
+     *   - a coordinator, when the creator could approve sections themselves: a fellow coordinator, or
+     *     one who also teaches, is a peer, not a second pair of eyes, so those go to the Super Admin.
+     *
+     * "Could approve" is the creator's own `section.approve`, never a role name. FR-020 makes a fourth
+     * role a seeded row and nothing else (NewRoleNeedsNoCodeChangeTest).
+     *
+     * Without a section (the queue route's `can:`), only the permission is asked.
+     */
+    public function approve(User $actor, ?Section $section = null): Response
     {
-        return $actor->can('section.approve');
+        if (! $actor->can('section.approve')) {
+            return Response::deny();
+        }
+
+        if ($section === null) {
+            return Response::allow();
+        }
+
+        if ((int) $section->created_by === (int) $actor->getKey()) {
+            return Response::deny(__('sections.approval.errors.own_section'));
+        }
+
+        if (! $actor->can('scope.bypass_all') && ($section->creator === null || $section->creator->can('section.approve'))) {
+            return Response::deny(__('sections.approval.errors.peer_section'));
+        }
+
+        return Response::allow();
+    }
+
+    /** T490 — only the creator resubmits, and only while they may still create sections. */
+    public function resubmit(User $actor, Section $section): Response
+    {
+        return $actor->can('section.create') && (int) $section->created_by === (int) $actor->getKey()
+            ? Response::allow()
+            : Response::deny(__('sections.approval.errors.not_creator'));
     }
 
     /**
@@ -77,6 +116,10 @@ final class SectionPolicy
 
         return $actor->can('scope.bypass_all')
             || (int) $section->instructor_id === (int) $actor->getKey()
-            || in_array((int) $section->getKey(), $actor->grantedSectionIds(), true);
+            || in_array((int) $section->getKey(), $actor->grantedSectionIds(), true)
+            // FR-175 (Phase 27 review): the creator attaches the roster to a section still awaiting
+            // approval, whether or not they named themselves its instructor. Once it is approved,
+            // teaching or a grant decides, as for every other section.
+            || ((int) $section->created_by === (int) $actor->getKey() && $section->status !== SectionStatus::Active->value);
     }
 }

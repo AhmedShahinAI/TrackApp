@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\UserManagement\Http\Requests;
 
+use App\Models\Branch;
 use App\Modules\Shared\Rules\PasswordPolicy;
 use App\Modules\UserManagement\Actions\CreateUser;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -41,10 +43,13 @@ final class StoreUserRequest extends FormRequest
             // an instructor. required_if rather than a conditional rules() branch, so the message
             // names the actual reason.
             'branch_ids' => ['array', 'required_if:role,BRANCH_COORDINATOR', 'min:1'],
-            'branch_ids.*' => ['integer', 'exists:branches,id'],
+            // SEC-052 (G-15): of the creating admin's organization, not any row.
+            'branch_ids.*' => ['integer', Rule::exists('branches', 'id')->where('organization_id', $this->user()?->organization_id)],
 
             'section_ids' => ['array'],
-            'section_ids.*' => ['integer', 'exists:sections,id'],
+            'section_ids.*' => ['integer', Rule::exists('sections', 'id')->where(
+                fn (Builder $query) => $query->whereIn('branch_id', Branch::query()->select('id')->where('organization_id', $this->user()?->organization_id)),
+            )],
 
             'locale' => ['nullable', 'string', Rule::in(['ar', 'en'])],
         ];

@@ -112,8 +112,15 @@ test('programs.index — a coordinator reads the list, with no create, edit or i
 test('programs.index — the Super Admin\'s sidebar links it, with its own icon', function (): void {
     $html = (string) $this->actingAs(aUser('SUPER_ADMIN'))->get(route('home'))->assertOk()->getContent();
 
+    // T465: v2's Shell.jsx gives programmes `library` and students `graduation-cap`.
     expect($html)->toContain('href="'.route('programs.index').'"')
-        ->and(config('navigation.items.programs.icon'))->toBe('graduation-cap')
-        // Students had the same glyph; one icon must mean one destination in a collapsed sidebar.
-        ->and(config('navigation.items.students.icon'))->not->toBe('graduation-cap');
+        ->and(config('navigation.items.programs.icon'))->toBe('library')
+        ->and(config('navigation.items.students.icon'))->toBe('graduation-cap');
+
+    // One icon, one destination: a collapsed sidebar tells entries apart by glyph alone. Only entries
+    // that lead to the same route may share one (`sections` and `mysections`).
+    $byIcon = collect((array) config('navigation.items'))->groupBy('icon')
+        ->filter(fn ($items) => $items->pluck('route')->unique()->count() > 1);
+
+    expect($byIcon->keys()->all())->toBe([]);
 });

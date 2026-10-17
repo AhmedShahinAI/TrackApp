@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Modules\Audit\Concerns\Auditable;
+use App\Modules\Sections\Enums\SectionStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -42,6 +43,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $password
  * @property string $locale
  * @property bool $is_active
+ * @property bool $password_change_required
  * @property \Illuminate\Support\Carbon|null $first_login_at
  * @property \Illuminate\Support\Carbon|null $last_login_at
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -120,7 +122,8 @@ class User extends Authenticatable
     }
 
     /**
-     * Sections this user may reach: the ones they teach, plus the ones explicitly shared with them.
+     * Sections this user may reach: the ones they teach, the ones explicitly shared with them, and
+     * (Amendment 4) the ones they created.
      *
      * The union is the whole definition of "accessible" for an instructor (FR-038, FR-039). A
      * shared grant is how a substitute or a co-teacher gets in without being made the instructor of
@@ -147,8 +150,33 @@ class User extends Authenticatable
         $taught = $this->taughtSections()->withoutGlobalScopes()->pluck('sections.id');
         $granted = $this->sectionAccessGrants()->pluck('section_id');
 
+        /*
+         * Phase 27 — FR-183: a creator sees their own pending, returned and rejected sections, so they
+         * can read a return's reason and resubmit. An instructor may create a section without naming
+         * themselves its instructor, and without this they could not see it again. It widens nothing:
+         * an instructor creates only in a branch they already teach in (StoreSectionRequest), and the
+         * section is their own request.
+         *
+         * Only for a caller the branch scope does not already govern. SectionScope stands aside for a
+         * coordinator only while this list is EMPTY, so counting a coordinator's created sections
+         * here switched the section scope on for them and narrowed their whole branch to the one
+         * section they had made (found by ApprovalScopeTest). A coordinator sees their own creations
+         * through their branch; a Super Admin bypasses both scopes.
+         */
+        /*
+         * And only while the section awaits a decision, or was refused (Phase 27 review). Once approved,
+         * a creator who does not teach it has no claim on it. Without this, an instructor who created a
+         * section for a colleague kept reading its roster, students and support requests for as long as
+         * the row existed: every scoped model shares this list.
+         */
+        $created = $this->coordinatorBranchIds() === [] && ! $this->can('scope.bypass_all')
+            ? Section::query()->withoutGlobalScopes()->where('created_by', $this->getKey())
+                ->where('status', '!=', SectionStatus::Active->value)->pluck('id')
+            : collect();
+
         return $this->memoizedAccessibleSectionIds = $taught
             ->concat($granted)
+            ->concat($created)
             ->map(static fn (mixed $id): int => (int) $id)
             ->unique()
             ->sort()
@@ -210,6 +238,7 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'password_change_required' => 'boolean',
             'first_login_at' => 'datetime',
             'last_login_at' => 'datetime',
         ];

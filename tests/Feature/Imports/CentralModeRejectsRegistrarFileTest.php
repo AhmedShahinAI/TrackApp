@@ -13,7 +13,7 @@ use Illuminate\Http\UploadedFile;
 |--------------------------------------------------------------------------
 |
 | `design-system/uploads/filedownloadservlet(21).xlsx` is the file the registration unit actually
-| sends: a five-line metadata block, then four data columns. It is not a central roster, and C-09
+| sends, with its personal data redacted (SEC-012): a five-line metadata block, then four data columns. It is not a central roster, and C-09
 | gave it its own mode (Phase 15, T325 imports it end to end). This test guards the central mode's
 | behaviour when someone uploads it there anyway, which they will:
 |

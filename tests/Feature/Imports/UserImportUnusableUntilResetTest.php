@@ -45,13 +45,13 @@ test('a Super Admin reset sets a real password, and only then can the account si
     $user = User::query()->where('email', 'teacher@mu.edu.sa')->sole();
 
     $this->actingAs($admin)
-        ->postJson(route('api.v1.users.reset-password', $user), ['password' => 'Track2026'])
+        ->postJson(route('api.v1.users.reset-password', $user), ['password' => 'Track2026-Own'])
         ->assertOk();
 
     $this->postJson('/api/v1/auth/logout');
     app('auth')->forgetGuards();
 
-    $this->postJson('/api/v1/auth/login', ['email' => $user->email, 'password' => 'Track2026'])
+    $this->postJson('/api/v1/auth/login', ['email' => $user->email, 'password' => 'Track2026-Own'])
         ->assertOk()
         ->assertJsonPath('data.first_login', true);
 });

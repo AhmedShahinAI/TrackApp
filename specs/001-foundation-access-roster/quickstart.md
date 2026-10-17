@@ -578,8 +578,9 @@ npx playwright test tests/Visual/support-axe.spec.ts     # zero AA violations
 php artisan test tests/Architecture/PublicSurfaceBoundedTest.php
 ```
 
-**Expect**: it fails the build if any route is registered outside the authenticated stack other than the
-five declared in [contracts/public.md](./contracts/support-public.md) — two that act and three that serve them.
+**Expect**: it fails the build if the `public` group holds any route other than the six declared for the
+five entries in [contracts/support-public.md](./contracts/support-public.md). There are two that act and
+three that serve them, and the status lookup's page shares its entry (Phase 25).
 The constitution permits a public endpoint only where it creates no account and exposes no record, and
 names these two functions as the only public ones, so a sixth route requires an amendment, not a pull
 request.

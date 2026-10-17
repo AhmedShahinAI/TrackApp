@@ -17,6 +17,10 @@
         <div>
             <h1 class="track-page-header__title">{{ $title }}</h1>
             @if ($subtitle)<p class="track-page-header__subtitle">{{ $subtitle }}</p>@endif
+            {{-- The default slot: badges about the page's subject. It was never rendered, so the section
+                 detail's FR-026 "shared" badge had never appeared, and neither would the approval state
+                 (Phase 27, T498). --}}
+            @if ($slot->isNotEmpty())<div class="track-page-header__badges">{{ $slot }}</div>@endif
         </div>
 
         @isset($actions)

@@ -92,6 +92,18 @@ class Student extends Model implements ConstrainableToBranches, ConstrainableToS
             ->withTimestamps();
     }
 
+    /**
+     * T468 — the requests this student raised, for the students list's "open requests" count. The
+     * support scope still applies through the related model, so a caller sees only what they could
+     * open, and the list asks only when the caller holds `support.view` (FR-142).
+     *
+     * @return HasMany<SupportRequest, $this>
+     */
+    public function supportRequests(): HasMany
+    {
+        return $this->hasMany(SupportRequest::class);
+    }
+
     /** @return list<string> */
     public function auditedAttributes(): array
     {

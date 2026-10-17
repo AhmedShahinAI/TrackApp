@@ -364,6 +364,28 @@ A refusal caused by either limit returns **one message** that says a limit was r
 be retried, **without saying which limit** (FR-130). Saying "too many requests for this University ID"
 would confirm the identifier is being processed, which is an enumeration leak through the error path.
 
+**When each is counted (Phase 19 review).** Both are counted with an atomic increment, and the
+refusal compares the count it got back — a check followed by a separate count let a burst of
+simultaneous requests all read zero and all pass. The address is counted on arrival. The identifier
+is only *checked* on arrival and *counted* once a challenge has been verified and consumed **and the
+fields are valid** (Phase 20 review: a student's typos must not spend their three attempts, and an
+identifier that fails its format makes no key): counted
+on arrival, three requests naming a student, with nothing solved, locked that student out for an hour
+from any address. Counting after the challenge makes each spent attempt cost a solved proof-of-work.
+It does not make the lock impossible — a per-identifier limit is by nature one an attacker can spend
+— so this is a trade, accepted: the alternative, no identifier limit, reopens the distributed attack
+on one identifier that is the reason the axis exists.
+
+**Status retrieval (Phase 22 review).** The lookup is counted twice, per address and per reference, and a
+lookup that finds its request is refunded. A limit on failures can then be tight, 4 an hour per address,
+without refusing a campus that shares one address. IPv6 is counted by /64 on every public limit, because
+one subscriber holds a whole /64.
+
+**One Retry-After.** Every submission refusal carries the longer of the two configured windows, not the
+time left on whichever counter fired; two counters started at different moments would otherwise tell
+the caller which limit it was. Refusals are not padded by the response-time floor (R-10): the 429 status
+already says "refused", and padding it would make a refused flood hold the PHP workers.
+
 **Rationale**: The constitution requires the two axes be independent, and the reason is concrete. An IP
 limit alone lets a distributed attacker hammer one student's identifier from many addresses. An
 identifier limit alone lets one address enumerate thousands of identifiers, one submission each. Either

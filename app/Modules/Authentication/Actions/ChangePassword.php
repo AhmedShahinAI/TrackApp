@@ -33,7 +33,8 @@ final class ChangePassword extends TransactionalAction
         // The `hashed` cast hashes on assignment with Argon2id, so no plaintext reaches storage
         // (FR-007). saveQuietly: `password` is not in the audited allowlist, and the entry below is
         // the deliberate one.
-        $user->forceFill(['password' => $password])->saveQuietly();
+        // Their own password now, so the SEC-047 requirement an admin-set one carried is met.
+        $user->forceFill(['password' => $password, 'password_change_required' => false])->saveQuietly();
 
         /*
          * Must run after the new password is persisted. logoutOtherDevices re-hashes and re-stamps

@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Modules\Audit\Services\Auditor;
 use App\Modules\Shared\Actions\TransactionalAction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 /**
  * T191 — reassigning a section (FR-048, SC-018).
@@ -41,6 +42,17 @@ final class ChangeSectionInstructor extends TransactionalAction
 
         /** @var User|null $instructor */
         $instructor = $arguments[1];
+
+        /*
+         * SEC-050 (G-08). The controller only knew the id existed. Access to a section's students is
+         * what this hands over, so the recipient must be someone who may teach: an active INSTRUCTOR
+         * of the section's own organization, the same rule the registrar import applies
+         * (RegistrarImportController). Checked here, not only in the request, so every caller of the
+         * action is held to it.
+         */
+        if ($instructor !== null && ! self::mayTeach($instructor, $section)) {
+            throw ValidationException::withMessages(['instructor_id' => __('sections.errors.instructor_invalid')]);
+        }
 
         $previousId = $section->instructor_id === null ? null : (int) $section->instructor_id;
         $newId = $instructor?->getKey();
@@ -86,5 +98,19 @@ final class ChangeSectionInstructor extends TransactionalAction
         );
 
         return $section->refresh();
+    }
+
+    /**
+     * Active, of the organization the section's branch belongs to, and holding a role that may be
+     * given a section's access — the same configured list SectionAccessGrantController uses
+     * (authorization.grants.grantable_roles), so a new teaching role is data, not code (FR-020).
+     */
+    public static function mayTeach(User $user, Section $section): bool
+    {
+        $organizationId = $section->branch()->withoutGlobalScopes()->value('organization_id');
+
+        return $user->is_active
+            && (int) $user->organization_id === (int) $organizationId
+            && $user->roles->pluck('name')->intersect(config('authorization.grants.grantable_roles', []))->isNotEmpty();
     }
 }

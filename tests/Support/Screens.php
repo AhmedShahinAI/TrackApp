@@ -34,7 +34,7 @@ const SCREEN_ACCOUNTS = [
  * Fixture ids: section 13 (current term, taught by instructor 5), student 100, import jobs 11
  * (mapping), 13 (checking, queue-waiting), 14 (preview), 16 (importing) and 1 (report).
  *
- * @return array<string, array{0: string, 1: array<string, int>, 2: string}>
+ * @return array<string, array{0: string, 1: array<string, int|string>, 2: string}>
  */
 function screens(): array
 {
@@ -54,6 +54,8 @@ function screens(): array
         'sections' => ['sections.index', [], 'admin'],
         'sections.mine' => ['sections.index', [], 'instructor'],
         'section' => ['sections.show', ['section' => 13], 'admin'],
+        // Amendment 4 (T496) — the section approval queue.
+        'section-approvals' => ['sections.approvals', [], 'admin'],
         'section.import' => ['sections.import', ['section' => 13], 'admin'],
         'students' => ['students.index', [], 'admin'],
         'student' => ['students.show', ['student' => 100], 'admin'],
@@ -70,6 +72,14 @@ function screens(): array
         'import.preview' => ['imports.show', ['import' => 14], 'admin'],
         'import.importing' => ['imports.show', ['import' => 16], 'admin'],
         'import.report' => ['imports.show', ['import' => 1], 'admin'],
+        // Phase 20 (US9) — the public support form, the platform's one page for someone with no
+        // account; swept in both directions like every other screen.
+        'support' => ['support.create', [], 'guest'],
+        // Phase 22 (US11) — the status lookup's form.
+        'support.status' => ['support.status.form', [], 'guest'],
+        // Phase 21 (US10) — the staff queue and a request being handled (fixture request 2).
+        'support-requests' => ['support-requests.index', [], 'admin'],
+        'support-request' => ['support-requests.show', ['supportRequest' => 'FX00000002'.App\Modules\Support\Services\ReferenceGenerator::checkCharacter('FX00000002')], 'admin'],
     ];
 }
 
@@ -87,6 +97,9 @@ function screensExcluded(): array
         'imports.courses.template' => 'a file download, not a page',
         'imports.users.template' => 'a file download, not a page',
         'health' => 'a JSON readiness probe for the load balancer, not a page (T276)',
+        'support.challenge' => 'a JSON proof-of-work challenge, not a page (T392)',
+        'support.submitted' => 'renders only from the one-render flash of a submission; without one it '
+            .'redirects to the form. Rendered in both locales by SubmitRequestTest and T388',
     ];
 }
 

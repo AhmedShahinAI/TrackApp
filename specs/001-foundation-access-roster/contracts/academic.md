@@ -301,13 +301,17 @@ field:**
 | Creator | Resulting `status` | Approval |
 |---|---|---|
 | `SUPER_ADMIN` | `active` | None (FR-171) |
-| `BRANCH_COORDINATOR` | `pending` | Super Admin only (FR-178) |
+| `BRANCH_COORDINATOR` | `pending` | Super Admin only (FR-178). *Phase 27 fix: the first create path read `section.approve`, which a coordinator holds, and created theirs `active`. The role decides, through `scope.bypass_all`* |
 | `INSTRUCTOR` | `pending` | Coordinator of the branch, or Super Admin (FR-177) |
 
 An instructor MUST only create a section in a branch they teach in, and a coordinator only in their own
 branches — the existing scope applies to creation as it does to reading.
 
-**201**: the section with its `status`, `requires_approval`, and `created_by`.
+**201**: the section with its `status`, `requires_approval`, and `created_by`, plus `import_job_id`: the
+section-mode import the roster became, or `null` without one (Phase 27). The creator continues it through
+the import wizard. A roster the import refuses refuses the section with it, because both are one
+transaction. A creator who could not import into the section (SectionPolicy::importRoster) gets a 422 on
+`roster`.
 
 **422**: a **non-rejected** section already exists for this term, branch, course, and number (FR-176). A
 **rejected** one does not block — its number has returned to the pool.

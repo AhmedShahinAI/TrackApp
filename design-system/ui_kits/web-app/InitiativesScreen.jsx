@@ -150,14 +150,18 @@ function InitiativesScreen({notify}){
 }
 
 function InitiativeDetailScreen({id,notify}){
-  const {Button,DataTable,StatusBadge,StatCard,ProgressBar}=window.DS;const {lang,me,go,t}=useApp();const st=useStore();const en=lang==='en';
-  const ini=st.initiatives.find(i=>i.id===id);const [edit,setEdit]=React.useState(false);
+  const {Button,DataTable,StatusBadge,StatCard,ProgressBar,Tabs,Input,Select}=window.DS;const {lang,me,go,t}=useApp();const st=useStore();const en=lang==='en';
+  const ini=st.initiatives.find(i=>i.id===id);const [edit,setEdit]=React.useState(false);const [tab,setTab]=React.useState('sections');const [q,setQ]=React.useState('');const [fs,setFs]=React.useState('');const [fl,setFl]=React.useState('');
   if(!ini)return <RefusalScreen kind="404"/>;
   const scope=new Set(st.sectionScope(me).map(s=>s.id));
   const as=st.S.assignments.filter(a=>a.ini===id&&scope.has(a.section));
   const rows=as.map(a=>{const sec=st.S.sections.find(s=>s.id===a.section);const enr=st.S.enrollments.filter(e=>e.section===a.section&&e.status==='active');const M=enr.map(e=>st.marks(a,e.student));return {id:a.id,a,sec,n:enr.length,counts:a.stages.map((_,i)=>M.filter(m=>m[i]).length),done:M.filter(m=>m[m.length-1]).length};});
   const totN=rows.reduce((x,r)=>x+r.n,0),totD=rows.reduce((x,r)=>x+r.done,0);
   const stages=st.TPL[id]||[];
+  const studs=as.flatMap(a=>{const sec=st.S.sections.find(s=>s.id===a.section);return st.S.enrollments.filter(e=>e.section===a.section&&e.status==='active').map(e=>({id:a.id+'-'+e.student,a,sec,s:st.student(e.student),m:st.marks(a,e.student)}));});
+  const lvl=r=>r.m.filter(Boolean).length;
+  const srows=studs.filter(r=>(!fs||String(r.sec.id)===fs)&&(fl===''||(fl==='done'?r.m[r.m.length-1]:lvl(r)===+fl&&!r.m[r.m.length-1]))&&(r.s.uid+r.s.ar).toLowerCase().includes(q.toLowerCase()));
+  const secIds=new Set(as.map(a=>a.section));const tks=st.ticketScope(me).filter(x=>x.section&&secIds.has(x.section));
   return <div>
     <PageHeader crumbs={[{label:t('nav_initiatives'),onClick:()=>go('initiatives')},{label:en?ini.en:ini.ar}]} title={en?ini.en:ini.ar} subtitle={ini.desc}
       actions={me.role==='SUPER_ADMIN'&&<Button variant="secondary" icon="pencil" onClick={()=>setEdit(true)}>{t('edit')}</Button>}/>
@@ -165,8 +169,26 @@ function InitiativeDetailScreen({id,notify}){
       <StatCard value={rows.length} label={t('sections_n')}/><StatCard value={new Set(rows.map(r=>r.sec.branch)).size} label={t('branches')}/>
       <StatCard value={totN} label={t('students_n')}/><StatCard value={totD} label={en?'Completed':'أنهوا المبادرة'} tone="green"/><StatCard value={(totN?Math.round(totD/totN*100):0)+'%'} label={en?'Completion':'نسبة الإنهاء'} tone="green"/>
     </div>
-    <Panel style={{padding:20}}>
-      <div style={{font:'700 15px var(--font-sans)',marginBottom:14}}>{en?'Target sections':'الشعب المستهدفة'}</div>
+    <Panel>
+      <div style={{padding:'8px 20px 0'}}><Tabs value={tab} onChange={setTab} tabs={[{id:'sections',label:en?'Target sections':'الشعب المستهدفة',count:rows.length},{id:'students',label:en?'Initiative students':'طلبة المبادرة',count:studs.length},{id:'support',label:en?'Support requests':'طلبات الدعم الفني',count:tks.length}]}/></div>
+      <div style={{padding:20}}>
+      {tab==='students'&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
+        <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
+          <Input size="sm" icon="search" placeholder={en?'Student no. / name':'رقم الطالب / الاسم'} value={q} onChange={e=>setQ(e.target.value)} style={{width:230}}/>
+          <Select size="sm" icon="users" value={fs} onChange={e=>setFs(e.target.value)} options={[{value:'',label:en?'All sections':'كل الشعب'},...rows.map(r=>({value:String(r.sec.id),label:st.course(r.sec.course).code+' · '+r.sec.no+' · '+st.branchLabel(r.sec.branch,lang)}))]} style={{width:260}}/>
+          <Select size="sm" icon="list-checks" value={fl} onChange={e=>setFl(e.target.value)} options={[{value:'',label:en?'All progress':'كل الحالات'},{value:'0',label:en?'Not started':'لم يبدأ'},...stages.slice(0,-1).map((s,i)=>({value:String(i+1),label:(en?'Reached: ':'وصل إلى: ')+s})),{value:'done',label:en?'Completed':'أنهى المبادرة'}]} style={{width:220}}/>
+          <span style={{marginInlineStart:'auto',font:'600 13px var(--font-sans)',color:'var(--text-secondary)'}}>{srows.length} {en?'students':'طالب'}</span>
+          <Button size="sm" variant="secondary" icon="download" onClick={()=>downloadTemplate('initiative_'+id+'_students.csv',[['الرقم الجامعي','اسم الطالب','المقرر','الشعبة','الفرع',...stages],...srows.map(r=>[r.s.uid,r.s.ar,st.course(r.sec.course).code,r.sec.no,st.branchLabel(r.sec.branch,'ar'),...stages.map((_,i)=>r.m[i]?'تم':'لم يتم')])])}>{t('export')}</Button>
+        </div>
+        <DataTable dense onRowClick={r=>go('student',r.s.id)} columns={[
+          {key:'uid',label:en?'Student no.':'رقم الطالب',numeric:true,render:r=><b>{r.s.uid}</b>},
+          {key:'ar',label:en?'Student name':'اسم الطالب',wrap:true,render:r=><span style={{fontWeight:600}}>{r.s.ar}</span>},
+          {key:'sec',label:en?'Section':'الشعبة',render:r=>st.course(r.sec.course).code+' · '+r.sec.no},
+          {key:'b',label:t('branch'),render:r=>st.branchLabel(r.sec.branch,lang)},
+          ...stages.map((s,i)=>({key:'st'+i,label:s,render:r=>window.stageFlag(!!r.m[i],r.m[i]?(en?'Done':'تم'):(en?'Not yet':'لم يتم'))}))]} rows={srows} empty={en?'No students match':'لا يوجد طلبة مطابقون'}/>
+      </div>}
+      {tab==='support'&&<TicketList rows={tks} notify={notify}/>}
+      {tab==='sections'&&<>
       <DataTable onRowClick={r=>go('section',r.sec.id)} columns={[
         {key:'no',label:t('section_no'),numeric:true,render:r=><b>{r.sec.no}</b>},
         {key:'c',label:t('course'),render:r=>{const c=st.course(r.sec.course);return <span><span style={{fontFamily:'var(--font-latin)'}}>{c.code}</span> <span style={{color:'var(--text-secondary)'}}>· {en?c.en:c.ar}</span></span>;}},
@@ -175,6 +197,8 @@ function InitiativeDetailScreen({id,notify}){
         {key:'n',label:t('students_n'),numeric:true,render:r=>r.n},
         ...stages.map((s,i)=>({key:'s'+i,label:s,numeric:true,render:r=>(r.counts[i]??0)+'/'+r.n})),
         {key:'p',label:en?'Completion':'نسبة الإنهاء',width:150,render:r=><ProgressBar value={r.n?Math.round(r.done/r.n*100):0}/>}]} rows={rows} empty={en?'No sections assigned yet':'لم تُسند لأي شعبة بعد'}/>
+      </>}
+      </div>
     </Panel>
     {edit&&<InitiativeDialog ini={ini} onClose={()=>setEdit(false)} notify={notify}/>}
   </div>;

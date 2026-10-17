@@ -21,6 +21,9 @@ beforeEach(function (): void {
 });
 
 test('the sixth attempt within a minute is refused with a countdown', function (): void {
+    // The clock stands still, so "exactly 60" cannot become 59 when six sign-ins straddle a second.
+    $this->freezeTime();
+
     aUser(attributes: ['email' => 'target@mu.edu.sa']);
 
     foreach (range(1, 5) as $attempt) {

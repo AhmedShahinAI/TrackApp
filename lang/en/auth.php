@@ -23,6 +23,7 @@ return [
 
     // FR-001.
     'no_registration' => 'There is no self-registration — the administrator creates all accounts.',
+    'support_link' => 'A student with a problem? Contact support',
 
     'tagline_ar' => 'معًا .. نحو أثر أكاديمي أكبر',
     'tagline_en' => 'Track Today, a Brighter Tomorrow',
@@ -39,13 +40,14 @@ return [
         'current' => 'Current password',
         'new' => 'New password',
         'confirm' => 'Confirm password',
-        'rule' => 'At least 8 characters, including a letter and a digit.',
+        'rule' => 'At least 12 characters, including a letter and a digit.',
+        'required' => 'Your password was set by an administrator. Choose your own password to continue.',
         'changed' => 'Password changed',
         'changed_message' => 'Your other sessions have been signed out.',
     ],
 
     'errors' => [
-        'policy' => 'Must be at least 8 characters with a letter and a digit.',
+        'policy' => 'Must be at least 12 characters with a letter and a digit.',
         'same_as_current' => 'The new password matches your current one.',
         'mismatch' => 'Confirmation does not match the new password.',
         'wrong_current' => 'Current password is incorrect.',

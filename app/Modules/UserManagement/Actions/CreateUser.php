@@ -50,6 +50,8 @@ final class CreateUser extends TransactionalAction
             'name_en' => $attributes['name_en'],
             'email' => self::normaliseEmail((string) $attributes['email']),
             'password' => $attributes['password'],
+            // SEC-047 (D-3): a password the admin chose is changed by its owner before anything else.
+            'password_change_required' => true,
             'locale' => $attributes['locale'] ?? Settings::string(Settings::DEFAULT_LOCALE),
             'is_active' => true,
 

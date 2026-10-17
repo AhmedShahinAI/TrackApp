@@ -78,8 +78,13 @@ test('an existing session stops working on the very next request', function (): 
      * the database driver, so the guarantee is carried by EnsureUserIsActive, which refuses the
      * next request whatever the driver. This is the assertion that would fail if someone removed
      * the middleware and trusted the row purge alone.
+     *
+     * `fresh()`, because a real next request reads the account from the database. Until SEC-031 this
+     * passed with the stale in-memory $target only by accident: the admin's request had left the
+     * shared test session carrying the wrong password hash, so `session.auth` signed it out, and
+     * EnsureUserIsActive was never what refused it.
      */
-    $this->actingAs($target)->get('/home')->assertRedirect(route('login'));
+    $this->actingAs($target->fresh())->get('/home')->assertRedirect(route('login'));
 });
 
 test('their name still renders on records they created', function (): void {
@@ -138,4 +143,21 @@ test('a caller without user.deactivate is refused', function (): void {
         ->assertForbidden();
 
     expect($target->fresh()->is_active)->toBeTrue();
+});
+
+test('a deactivated session is refused on the API too, whatever the session driver (SEC-035)', function (): void {
+    /*
+     * G-02. The test above proves /home; this proves /api/v1, which had neither `active` nor
+     * `session.auth` until SEC-031. Signed in for real (not actingAs), and the action run as the admin
+     * would run it, so the database-only session purge in DeactivateUser plays its part and is shown
+     * not to be what holds.
+     */
+    $target = aUser('SUPER_ADMIN', ['email' => 'api-target@mu.edu.sa']);
+    $this->post('/login', ['email' => 'api-target@mu.edu.sa', 'password' => 'Track2026']);
+    $this->getJson('/api/v1/auth/me')->assertOk();
+
+    app(App\Modules\UserManagement\Actions\DeactivateUser::class)->execute($target->fresh(), 'test');
+    Illuminate\Support\Facades\Auth::forgetGuards();
+
+    $this->getJson('/api/v1/auth/me')->assertForbidden();
 });

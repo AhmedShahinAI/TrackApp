@@ -9,6 +9,7 @@ use App\Modules\Authorization\Actions\AssignBranches;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -22,6 +23,9 @@ final class UserBranchController extends Controller
 {
     public function update(Request $request, User $user): JsonResponse
     {
+        // SEC-052 (G-15): another organization's account is not found here, as in UserController.
+        abort_unless((int) $user->organization_id === (int) $request->user()?->organization_id, 404);
+
         $validated = $request->validate([
             /*
              * `present`, not `required`. `required` rejects [], which made revoking a coordinator's
@@ -30,7 +34,8 @@ final class UserBranchController extends Controller
              * malformed request — while allowing the empty list to mean what it says.
              */
             'branch_ids' => ['present', 'array'],
-            'branch_ids.*' => ['integer', 'exists:branches,id'],
+            // SEC-052: a branch of the caller's own organization, not any branch row.
+            'branch_ids.*' => ['integer', Rule::exists('branches', 'id')->where('organization_id', $request->user()?->organization_id)],
         ]);
 
         $this->refuseNonCoordinator($user);

@@ -501,7 +501,7 @@ v2 answers that by making **the university ID itself the initial credential** �
 that runs in sequence within a cohort, as the real registrar export shows:
 
 ```
-471105041 · 471105043 · 471105048 · 471105050 · 471105056 · 471105058
+999000008 · 999000009 · 999000010 · 999000011 · 999000012 · 999000013
 ```
 
 Anyone who knows a classmate's ID can sign in as them before that student ever activates. And in v2
@@ -637,15 +637,60 @@ question worth putting to them, because it could convert a blocked conflict into
 
 ---
 
+## C-24 · `StudentImportDialog` maps to none of the five import modes — **RAISED 2026-10-13 (T468), OPEN**
+
+Found while building T468 (Phase 26). The "compatible" table below adopted `StudentsAdminScreen`
+"with its import dialog reconciled against the five already-specified import modes", on the assumption
+that it would map to one of them. It does not, so T468 stops at the dialog and raises it here, as the
+task instructs, rather than adding a sixth mode.
+
+**What v2's dialog does** (`StudentsAdmin.jsx`, `StudentImportDialog`): it takes a flat list of
+students, with no metadata block and no section. Its columns are name, university ID, university email,
+phone and **programme**. It creates a student or updates an existing one by university ID, generates an
+email when none is given, and gives every new student an account whose first password is the
+university ID.
+
+**Why no existing mode fits:**
+
+| Mode | What it needs | Why the dialog is not it |
+|---|---|---|
+| Central roster | a row per **enrollment**: student, course, section, branch | The dialog has no section, so it would create students enrolled in nothing. FR-043 makes a student visible only through an enrollment, so the result would be students **nobody can see** |
+| Section | a roster **for one section** | The same reason |
+| Registrar | the registrar's export: a metadata block, then four columns | The dialog's file has no block |
+| Course | courses and their programmes | It is not about courses |
+| User | staff accounts | Students are not users (C-19) |
+
+**Two of its five columns are blocked on their own:** email and phone are C-23, and its accounts are
+C-19 (retired). The third, **programme**, has no home in the model: Amendment 1 puts the programme on
+the **section**, not the student, so a per-student programme column would contradict it.
+
+**What remains after the blocked columns are removed** is name, university ID and a programme the
+model cannot store. That is a student-record import with nothing to attach the student to.
+
+**Options for the Product Owner:**
+
+- **A.** Drop the dialog. Students arrive through the central, section and registrar modes, as they do
+  today. *Recommended*: nothing a coordinator needs is lost, and it adds no mode.
+- **B.** Treat a flat name-and-ID list as a **correction** import for students who already exist: update
+  names only, create nobody. This is a sixth mode, with its own contract and tests.
+- **C.** Revisit with C-23. If the registration unit supplies contacts, a contact import into a
+  `student_contacts` table (T-C02) is what this dialog would become.
+
+The rest of `StudentsAdminScreen` is built (T468). Its New-student and Edit dialog (`StudentDialog`),
+the password-reset and deactivate actions, and the email, phone and password-state columns are
+**not**, for C-19 and C-23. The initiatives column and filter wait for the initiatives feature.
+
+---
+
 ## Compatible in v2 — no decision needed
 
 | Item | Action |
 |---|---|
 | **Zero foundation drift** | The 7 accessibility corrections, the token pipeline, the Bootstrap bridge, the 24 Blade components and the visual-regression baselines all stand. T057–T103 unaffected |
-| `programs` icon `graduation-cap` → `library` | Adopted — [design-system.md](./design-system.md) §7 corrected |
+| `programs` icon `graduation-cap` → `library` | Adopted — [design-system.md](./design-system.md) §7 corrected; `config/navigation.php` too (T465, which also found the committed icon sprite missing `life-buoy`) |
 | Four new `nav_*` translation keys | Adopted |
-| `StudentsAdminScreen` | Adopted as an extension of the existing students screens, with its import dialog reconciled against the five already-specified import modes |
-| Two further real registrar exports | Adopted as import test fixtures — more real column variation to test the registrar mode against |
+| `StudentsAdminScreen` | Adopted **in part** (T468): the programme, degree, activity, sections and open-requests columns, and the search, branch, section and programme filters. Its import dialog maps to no mode; that is **C-24** |
+| Two further real registrar exports | **Not additional evidence** (T467). By SHA-1 they are the same file as the original export, under new names; `scratch/roster.xlsx` is the same file too. The registrar test now runs over every distinct vendored export and pins that there is one |
 
 ---
 
@@ -656,7 +701,7 @@ question worth putting to them, because it could convert a blocked conflict into
 | **Compatible, adopted** | Zero foundation drift · the icon fix · four nav keys · the students-admin screen · two roster fixtures |
 | **DECIDED 2026-09-28 — not in this release** | **C-19** student authentication · **C-20** student-visible initiative data · **C-21** support as authenticated tickets |
 | **DECIDED 2026-09-28 — accepted** | **C-22** section creation with approval by originator — Phase 27, T470–T500 |
-| **Still open** | **C-23** student contact columns (3 tasks) |
+| **Still open** | **C-23** student contact columns (3 tasks) · **C-24** the student import dialog (raised by T468) |
 
 C-19, C-20 and C-21 were one decision, not three — the same product question from three screens, and the
 answer was no. C-22 and C-23 are separable and still need yours.

@@ -7,6 +7,8 @@ namespace App\Modules\AcademicTerms\Actions;
 use App\Models\AcademicTerm;
 use App\Modules\Audit\Services\Auditor;
 use App\Modules\Shared\Actions\TransactionalAction;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 /**
@@ -112,6 +114,14 @@ final class ChangeTermStatus extends TransactionalAction
                 'reason' => $reason === null ? null : trim($reason),
             ], static fn (mixed $v): bool => $v !== null),
         );
+
+        /*
+         * SEC-101 (PRD 8.3): "plus a snapshot on every term closure" — queued after the commit, labelled
+         * so the daily pruning keeps it. A failure alerts like any failed job.
+         */
+        if ($to === 'closed' && config('backup.enabled')) {
+            DB::afterCommit(static fn () => Artisan::queue('track:backup', ['--label' => 'term-closure-'.$term->getKey()]));
+        }
 
         return $term->refresh();
     }

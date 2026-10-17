@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
+Route::middleware(['auth', 'active', 'session.auth', 'password.own'])->group(function (): void {
     Route::get('/audit', [AuditLogController::class, 'index'])
         ->middleware('can:audit.view')
         ->name('audit.index');

@@ -1520,7 +1520,7 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 - [X] T375 [P] Create `resources/css/_public.scss` for the public layout using **only** design tokens, and add it to both the RTL and LTR Vite entry points
 - [X] T376 [P] Add the shared `support` translation keys to `lang/ar/support.php` and `lang/en/support.php`: the five category labels, the five state labels, the two generic failure messages, and the throttle message
 
-**Checkpoint**: Schema migrates, 46 permissions and 7 settings seed, all four security services exist and fail closed, and the public layout renders in both directions.
+**Checkpoint**: Schema migrates, 47 permissions and 9 settings seed (46 and 7 as first written; see the notes below), all four security services exist and fail closed, and the public layout renders in both directions.
 
 **Implementation notes (2026-10-11).**
 
@@ -1586,6 +1586,55 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
   exempts `import_jobs`: the five states have their own labels (`support.statuses.*`), and a new test
   asserts every one exists in both languages, so the exemption cannot hide a missing label.
 
+**Review corrections (2026-10-11).** Ten findings, all fixed. Six of the fixes were mutation-checked:
+reverting each one makes its test fail.
+
+1. **The limits held only one request at a time.** The throttle checked and then counted in two
+   steps, so a simultaneous burst all read zero. `SupportLimits` now counts with
+   `RateLimiter::increment` (Redis `INCR`) and refuses on the count it returns. A test freezes the
+   race: the reads say 0 and the shared counter says 4.
+2. **No trusted proxies.** Behind a load balancer every visitor shared one address, and five students
+   an hour, institution-wide, would have been refused. `config/trustedproxy.php` reads
+   `TRUSTED_PROXIES` (explicit addresses or CIDRs) and **refuses `*`**, which would let a client pick its
+   own `X-Forwarded-For`. It is in `.env.example` and the runbook, and tested both ways.
+3. **Anyone could lock any student out.** The identifier was counted on arrival, before the challenge.
+   Now it is only checked on arrival and counted after the challenge (`consumeIdentifier`; T391's
+   text updated). R-09 records the residual trade: three solved challenges still spend a student's
+   limit.
+4. **The padding held a worker on every refusal.** The throttle now sits outside
+   `ConstantResponseTime` (T394's text updated), and the middleware returns any 429 at once, wherever
+   it was raised, so the two limits cannot be told apart by timing either. A floor of 0 or below is now
+   a broken setting that falls back to 400 ms, not a silent "off". The runbook sizes the PHP pool.
+5. **A third refusal shape.** The `public` floor returned Laravel's 429 with `X-RateLimit-*` headers,
+   and its 60 was a literal. It now reads the `public_throttle` setting (nine keys now) and refuses
+   through `SupportLimitReached`. Both submission limits send the same `Retry-After`: the longer
+   configured window, not the time left on whichever counter fired.
+6. **Generic `support.updated` / `.deleted` entries.** `SupportRequest` now wires only the trait's
+   `created` event. A later change is audited only by its named action, so the retention sweep cannot
+   copy the cleared `student_id` and `submitted_ip` into a 5-year entry.
+7. **`student_id` "never null on creation" was not enforced.** A `creating` guard refuses a request
+   without its student or its reference.
+8. **A coordinator who teaches saw an empty queue.** The section constraint now stands aside for a
+   caller who holds branches. Teaching is no claim on a support request, so it neither widens nor
+   narrows the branch claim. Instructors still see nothing.
+9. **"Active" was one condition, not three.** Verification and the branch scope now also require an
+   active section (not pending, returned or rejected; Amendment 4) and no registrar withdrawal
+   (`academic_status`). Both use the same definition.
+10. **References pasted from an Arabic page failed.** `normalise()` now strips `\p{Cf}` (bidi marks),
+    `\p{Pd}` (Unicode dashes) and `\p{Z}`, and folds Arabic-Indic digits as `UniversityId` does. A unit
+    test covers RLM/LRM, isolates, the en dash, the no-break space and both digit sets. The checkpoint
+    line and plan.md's counts are corrected.
+
+- **Tests added:** 23 cases. `tests/Feature/Support` went from 50 to 72, and `tests/Unit/Support`
+  from 34 to 35.
+  - Covered: the race, the lockout, identical `Retry-After`, unpadded refusals, the public floor's
+    shape, trusted proxies, the floor fallback, the unapproved-section and registrar-withdrawn
+    verification, seeder idempotency (47 permissions, a Super Admin's edit kept), no generic audit,
+    the creation guard, the coordinator who teaches, and Arabic-page references.
+- **`NoNewCspExemptionTest` now seeds settings.** Its `public`-group probe reaches the flood floor,
+  which reads `public_throttle`. A deployment missing that row refuses public pages with a 500 rather
+  than run them unthrottled. That is fail-closed, and it is the same contract as every other setting.
+
 ---
 
 ## Phase 20: User Story 9 - A Student Reports A Problem (Priority: P1) 🎯 MVP
@@ -1596,33 +1645,129 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 
 ### Tests for User Story 9
 
-- [ ] T377 [P] [US9] Write `tests/Feature/Support/SubmitRequestTest.php` covering successful submission by an enrolled student, the recorded reference, the recorded IP, the empty-description refusal, and that **no account, credential, or session is created** (FR-124)
-- [ ] T378 [P] [US9] Write `tests/Feature/Support/Enumeration/SubmissionFailuresIdenticalTest.php` asserting **byte-identical bodies, identical status codes, and no varying header** across all three verification failures: identifier absent · identifier present with no enrollment in the current term · identifier present with only a withdrawn enrollment (FR-119, SC-026). **This is the single most important test in the feature**
-- [ ] T379 [P] [US9] Write `tests/Feature/Support/Enumeration/ResponseTimeFloorTest.php` asserting every public response takes at least `support_min_response_ms`, so the one-lookup path and the join path are indistinguishable by stopwatch (R-10)
-- [ ] T380 [P] [US9] Write `tests/Feature/Support/FormatFailureIsSpecificTest.php` asserting a University ID failing the configured pattern gets a **specific** message naming the expected format, and that it is returned **before** the verification query runs — the one deliberate exception to the generic-failure rule (FR-117)
-- [ ] T381 [P] [US9] Write `tests/Feature/Support/Throttle/IpThrottleTest.php` asserting sustained submission from one IP with **varying** identifiers is refused at `support_throttle_ip`
-- [ ] T382 [P] [US9] Write `tests/Feature/Support/Throttle/IdentifierThrottleTest.php` asserting sustained submission for one identifier from **varying** IPs is refused at `support_throttle_identifier`, **independently** of the IP limit. A single combined limiter passes T381 and fails this — which is the point (R-09)
-- [ ] T383 [P] [US9] Write `tests/Feature/Support/Throttle/ThrottleMessageHidesWhichLimitTest.php` asserting neither refusal reveals which limit was reached (FR-130)
-- [ ] T384 [P] [US9] Write `tests/Feature/Support/ChallengeTest.php` asserting submission is refused with no solution, with a replayed solution, with an expired solution, with the honeypot completed, within the minimum elapsed time, and — critically — **when the challenge store is unavailable** (FR-128, FR-129)
-- [ ] T385 [P] [US9] Write `tests/Feature/Support/ReferenceGeneratorTest.php` generating 1,000 references and asserting no sequence, no timestamp correlation, no growing shared prefix, and none of the characters `I`, `L`, `O`, `U` (SC-027)
-- [ ] T386 [P] [US9] Write `tests/Feature/Support/AuditOnPublicSubmissionTest.php` asserting exactly one `support.request_created` entry with a **null actor**, `channel: public`, the IP, and the resolved student and term — and that the entry contains **no** description, challenge solution, or honeypot value
-- [ ] T387 [P] [US9] Write `tests/Feature/Support/NoAttachmentRouteTest.php` asserting no upload route exists for this feature and the form carries no file control (FR-125)
+- [X] T377 [P] [US9] Write `tests/Feature/Support/SubmitRequestTest.php` covering successful submission by an enrolled student, the recorded reference, the recorded IP, the empty-description refusal, and that **no account, credential, or session is created** (FR-124)
+- [X] T378 [P] [US9] Write `tests/Feature/Support/Enumeration/SubmissionFailuresIdenticalTest.php` asserting **byte-identical bodies, identical status codes, and no varying header** across all three verification failures: identifier absent · identifier present with no enrollment in the current term · identifier present with only a withdrawn enrollment (FR-119, SC-026). **This is the single most important test in the feature**
+- [X] T379 [P] [US9] Write `tests/Feature/Support/Enumeration/ResponseTimeFloorTest.php` asserting every public response takes at least `support_min_response_ms`, so the one-lookup path and the join path are indistinguishable by stopwatch (R-10)
+- [X] T380 [P] [US9] Write `tests/Feature/Support/FormatFailureIsSpecificTest.php` asserting a University ID failing the configured pattern gets a **specific** message naming the expected format, and that it is returned **before** the verification query runs — the one deliberate exception to the generic-failure rule (FR-117)
+- [X] T381 [P] [US9] Write `tests/Feature/Support/Throttle/IpThrottleTest.php` asserting sustained submission from one IP with **varying** identifiers is refused at `support_throttle_ip`
+- [X] T382 [P] [US9] Write `tests/Feature/Support/Throttle/IdentifierThrottleTest.php` asserting sustained submission for one identifier from **varying** IPs is refused at `support_throttle_identifier`, **independently** of the IP limit. A single combined limiter passes T381 and fails this — which is the point (R-09)
+- [X] T383 [P] [US9] Write `tests/Feature/Support/Throttle/ThrottleMessageHidesWhichLimitTest.php` asserting neither refusal reveals which limit was reached (FR-130)
+- [X] T384 [P] [US9] Write `tests/Feature/Support/ChallengeTest.php` asserting submission is refused with no solution, with a replayed solution, with an expired solution, with the honeypot completed, within the minimum elapsed time, and — critically — **when the challenge store is unavailable** (FR-128, FR-129)
+- [X] T385 [P] [US9] Write `tests/Feature/Support/ReferenceGeneratorTest.php` generating 1,000 references and asserting no sequence, no timestamp correlation, no growing shared prefix, and none of the characters `I`, `L`, `O`, `U` (SC-027)
+- [X] T386 [P] [US9] Write `tests/Feature/Support/AuditOnPublicSubmissionTest.php` asserting exactly one `support.request_created` entry with a **null actor**, `channel: public`, the IP, and the resolved student and term — and that the entry contains **no** description, challenge solution, or honeypot value
+- [X] T387 [P] [US9] Write `tests/Feature/Support/NoAttachmentRouteTest.php` asserting no upload route exists for this feature and the form carries no file control (FR-125)
 - [ ] T388 [P] [US9] Write `tests/Visual/support-public-form.spec.ts` screenshotting the form, the confirmation, and the generic refusal in both locales at desktop and phone width
 
 ### Implementation for User Story 9
 
-- [ ] T389 [US9] Implement `app/Modules/Support/Http/Requests/SubmitSupportRequestRequest.php` validating `university_id` against 001's shared `UniversityId` rule, `category` against 001's shared `InSetting` rule reading `support_categories`, `description` present and within `support_description_max`, `contact` optional, and the honeypot and issued-at guards
-- [ ] T390 [US9] Implement `app/Modules/Support/Actions/SubmitSupportRequest.php` extending 001's `TransactionalAction`: resolve the student through `VerifyStudentIdentity`, generate the reference, create the request in `new`, record the IP, and audit `support.request_created` with a null actor — all in one transaction so a failed audit aborts the submission (constitution II)
-- [ ] T391 [US9] Implement `app/Modules/Support/Http/Controllers/Public/SupportRequestController.php` with `GET /support` and `POST /support`, applying the **contractual order of evaluation** from [contracts/public.md](./contracts/support-public.md): rate limits first, then challenge and honeypot and elapsed time, then **format** validation, then other fields, then verification. Refusing first means no later step can be used as an oracle
-- [ ] T392 [US9] Implement `GET /support/challenge` in `app/Modules/Support/Http/Controllers/Public/ChallengeController.php` returning the challenge, its difficulty, and its expiry, and **503** with a generic message when the store is unavailable
-- [ ] T393 [US9] Implement `GET /support/submitted` reading the reference from a **single-render flash**, not from the URL, so it does not land in browser history, a proxy log, or a shared link
-- [ ] T394 [US9] Register all four routes in `routes/public.php` with the `SupportSubmissionThrottle` and `ConstantResponseTime` middlewares, CSRF **enabled** (a public form is not an excuse to disable it), and no `auth` middleware
-- [ ] T395 [P] [US9] Build `resources/views/support/public/form.blade.php` on the public layout — `x-track-input` for the University ID, `x-track-select` for the category from settings, a description textarea with a live character count against `support_description_max`, an optional contact input, the challenge widget, the hidden honeypot, and `x-track-button` primary with `loading`
-- [ ] T396 [P] [US9] Build `resources/views/support/public/submitted.blade.php` displaying the reference **prominently** with guidance to retain it, and a link to the status page
-- [ ] T397 [P] [US9] Build `resources/views/support/public/refused.blade.php` rendering the generic failure through `x-track-alert` tone danger, with **identical** copy for all three verification failure modes
-- [ ] T398 [P] [US9] Add the US9 translation keys to `lang/ar/support.php` and `lang/en/support.php` — form labels, the character-count text, the guidance to retain the reference, and the two generic messages
+- [X] T389 [US9] Implement `app/Modules/Support/Http/Requests/SubmitSupportRequestRequest.php` validating `university_id` against 001's shared `UniversityId` rule, `category` against 001's shared `InSetting` rule reading `support_categories`, `description` present and within `support_description_max`, `contact` optional, and the honeypot and issued-at guards
+- [X] T390 [US9] Implement `app/Modules/Support/Actions/SubmitSupportRequest.php` extending 001's `TransactionalAction`: resolve the student through `VerifyStudentIdentity`, generate the reference, create the request in `new`, record the IP, and audit `support.request_created` with a null actor — all in one transaction so a failed audit aborts the submission (constitution II)
+- [X] T391 [US9] Implement `app/Modules/Support/Http/Controllers/Public/SupportRequestController.php` with `GET /support` and `POST /support`, applying the **contractual order of evaluation** from [contracts/support-public.md](./contracts/support-public.md): rate limits first, then challenge and honeypot and elapsed time, then **format** validation, then other fields, then verification. Refusing first means no later step can be used as an oracle. **(Phase 19 review, moved by the Phase 20 review)** Once the challenge is verified and consumed **and the field rules have passed**, call `SupportLimits::consumeIdentifier($universityId)`: the throttle only *checks* the identifier on arrival, and this is where it is *counted* (research.md R-09)
+- [X] T392 [US9] Implement `GET /support/challenge` in `app/Modules/Support/Http/Controllers/Public/ChallengeController.php` returning the challenge, its difficulty, and its expiry, and **503** with a generic message when the store is unavailable
+- [X] T393 [US9] Implement `GET /support/submitted` reading the reference from a **single-render flash**, not from the URL, so it does not land in browser history, a proxy log, or a shared link
+- [X] T394 [US9] Register all four routes in `routes/public.php` with the `SupportSubmissionThrottle` and `ConstantResponseTime` middlewares — **in that order, the throttle outside** (Phase 19 review: a refusal returns at once, unpadded) — CSRF **enabled** (a public form is not an excuse to disable it), and no `auth` middleware
+- [X] T395 [P] [US9] Build `resources/views/support/public/form.blade.php` on the public layout — `x-track-input` for the University ID, `x-track-select` for the category from settings, a description textarea with a live character count against `support_description_max`, an optional contact input, the challenge widget, the hidden honeypot, and `x-track-button` primary with `loading`
+- [X] T396 [P] [US9] Build `resources/views/support/public/submitted.blade.php` displaying the reference **prominently** with guidance to retain it, and a link to the status page — **the link is carried to T432a** (the status page is Phase 22; a link to a route that does not exist yet would 404)
+- [X] T397 [P] [US9] Build `resources/views/support/public/refused.blade.php` rendering the generic failure through `x-track-alert` tone danger, with **identical** copy for all three verification failure modes
+- [X] T398 [P] [US9] Add the US9 translation keys to `lang/ar/support.php` and `lang/en/support.php` — form labels, the character-count text, the guidance to retain the reference, and the two generic messages
 
 **Checkpoint**: A student can raise a request and nothing about the roster leaks. This is the MVP — but see the note under US10 about why it should not ship alone.
+
+**Implementation notes (2026-10-11).**
+
+- **T388 is written and not run.** `tests/Visual/support-public-form.spec.ts` captures the form, the
+  confirmation (its random reference masked) and the refusal in both locales at every project width.
+  No baseline has been captured; `--update-snapshots` is the reviewer's call, as for T313, T328 and
+  T343. `global-setup.ts` widens the two submission limits on the throwaway visual database, because
+  every project posts from localhost.
+- **The order of evaluation (T389, T391).**
+  - The throttle counts the address and checks the identifier.
+  - `SubmitSupportRequestRequest::validateResolved()` runs the guards before any field rule:
+    challenge, honeypot, and the signed `_issued_at`. It then counts the identifier
+    (`consumeIdentifier`), then the rules run.
+  - The rules check the format first, with `bail` and its specific message, then the other fields.
+  - The action then verifies the student.
+  - The three guards fail with **one** message under one key, so a script is not told which guard
+    caught it. The challenge is always consumed, even when the honeypot already failed.
+- **New setting `support_min_elapsed_seconds` (3).** The contract names "the configured minimum age"
+  of a form, and no key held it. That makes **ten** support settings. `_issued_at` is
+  `<seconds>.<HMAC>` under its own key prefix (`FormStamp`), so a script cannot backdate it.
+- **T397: the refusal page takes no input.** The three verification failures render a page built from
+  nothing the visitor sent — no identifier, no category, no description, no form stamp. So it is
+  byte-identical within one browser session. The trade: the student retypes their description.
+  Re-rendering the form would put a fresh timestamp and their input in the body.
+- **T378 found a leak, now fixed.** `throttle:public` added `X-RateLimit-Limit` and
+  `X-RateLimit-Remaining` to **every** response it let through, not only to refusals. That is a live
+  readout of the caller's counter, and the three failures differed by exactly that header.
+  - The new `HideRateLimitState` middleware sits in the `public` group, around the throttle, and
+    strips them.
+  - It is placed on Laravel's middleware priority list just before `ThrottleRequests`. Without that,
+    the priority sort moved the throttle outside it and the strip did nothing.
+  - `PublicSurfaceTest` pins the new group: `web`, `HideRateLimitState`, `throttle:public`.
+- **Routes (T394).** Only `POST /support` is padded and carries the submission limits, outside the
+  padding (the three GETs were padded too until the Phase 20 review; see below). The resolved order is
+  `… HideRateLimitState > ThrottleRequests:public > … SupportSubmissionThrottle > ConstantResponseTime`.
+  A page view is not a submission: a student who has used up their submissions can still open the
+  form.
+- **T396: no status-page link yet.** The status page is US11 (Phase 22), and a link to a route that
+  does not exist would 404. The confirmation offers "send another request". The link is task **T432a**
+  in Phase 22, so it is planned there rather than remembered from this note.
+- **T395.**
+  - The challenge widget is `resources/js/components/support-form.js`. It imports the solver
+    dynamically, so the solver loads on this page only, as its own same-origin chunk.
+  - It re-solves a minute before the challenge expires.
+  - Submit stays disabled until the challenge is solved, and stays disabled with a message if it
+    cannot be (FR-129).
+  - The honeypot is hidden from sight and from assistive technology (`aria-hidden`, `tabindex=-1`),
+    not `.track-sr-only`, which is meant to be read aloud.
+  - The button does not use the server-side `loading` spinner. The spinner exists only when it is
+    rendered server-side, so toggling its class client-side would hide the label with nothing in its
+    place. A disabled button plus the status line stand in for it.
+- **T390 / T386.** The action returns `null` on any verification failure and writes nothing, so
+  neither a row nor an audit count moves. The model's creation entry now carries `channel: public`.
+  `support.request_created` moved from the deferred list to `ActionCoverageTest`'s performers.
+  - Under the test runner the audit row's own `ip_address` column is `0.0.0.0`, because the Auditor
+    treats the console as no request. The test therefore asserts the payload's `submitted_ip`.
+- **The Enumeration placeholder is gone.** The suite now runs 12 real tests
+  (`php artisan test --testsuite=Enumeration`).
+- **Category labels** fall back to the other language, then to the machine value, when a setting row
+  lacks one (`SupportRequestController::categoryOptions`).
+- **The sweeps know the form.** The form is in the both-directions screen registry as a guest
+  screen. The JSON challenge and the flash-only confirmation are excluded, each with its reason.
+  `ValidationStatesTest` gives the support form a solved, aged submission, because the guards
+  rightly refuse anything else before a field rule can answer.
+
+**Review corrections (2026-10-11).** Ten findings, all fixed. No enumeration channel was found. Five
+of the fixes were mutation-checked: reverting each one makes its test fail.
+
+1. **Padding the page views parked workers.** The form, the challenge and the confirmation take no
+   identifier, so padding hid nothing. At 60 requests a minute per address, about 125 addresses could
+   fill a 50-worker pool with sleeping challenge fetches. Only `POST /support` is padded now. The
+   contract, the runbook and T379 are updated, and T379 asserts the GETs never sleep.
+2. **A harvested form stamp lived forever.** `FormStamp` now also refuses a stamp older than the
+   session it was served in (`session.lifetime`). Past that the form's CSRF token is dead anyway, so
+   no real submission is refused by it.
+3. **CRLF counted twice.** Browsers submit textarea line breaks as CRLF, which the counter and
+   `maxlength` count as one character. `prepareForValidation` normalises to LF, so a description the
+   counter accepted is accepted.
+4. **Typos spent a student's limit.** `consumeIdentifier` now runs after the field rules pass. It is
+   still before verification, and runs whatever the roster says. A malformed identifier is not
+   counted and makes no key. R-09 and T391 are updated.
+5. **Constitution II is now proven for this action.** With the audit table unavailable, the
+   submission throws and no request row remains.
+6. **The challenge race is frozen in a test.** Both calls read the record and only the store's
+   delete separates them; exactly one passes. A second test pins `CACHE_STORE=redis` in `.env.example`
+   and the runbook, which now says why: the database store's delete does not report success to one
+   caller only.
+7. **Back from the confirmation, the form was stuck.** A `pageshow` listener resets the form and
+   re-solves when the browser restores the page from its back-forward cache.
+8. **T396's missing link is now task T432a** in Phase 22.
+9. **`support_min_elapsed_seconds` was read with a bare cast**, so `-1`, `''` and `'three'` silently
+   switched the guard off. Out of range (1–600) or not an integer, the 3-second default holds and the
+   bad row is logged.
+10. **The floor's `Retry-After` was a countdown.** It is now the whole window. The floor is per
+    address and says nothing about an identifier, so it may differ from the submission limits' 3600.
+    Those two do not differ from each other.
 
 ---
 
@@ -1636,35 +1781,120 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 
 ### Tests for User Story 10
 
-- [ ] T399 [P] [US10] Write `tests/Feature/Support/QueueTest.php` asserting each row carries the student, their branch, the category, the state, the assignee, and the **waiting time**, ordered oldest-first by default
-- [ ] T400 [P] [US10] Write `tests/Feature/Support/QueueFiltersTest.php` asserting the `status`, `category`, `branch_id`, `assigned_to`, `date_from`, `date_to`, and `q` filters each narrow correctly and that totals count only matching rows
-- [ ] T401 [P] [US10] Write `tests/Feature/Support/OpenTransitionsToInProgressTest.php` asserting opening a `new` request moves it to `in_progress` and records who did so (FR-147)
-- [ ] T402 [P] [US10] Write `tests/Feature/Support/RespondTest.php` asserting a response is recorded against its author, becomes visible to the student, and that a response on a **closed** request is refused (FR-150, FR-151)
-- [ ] T403 [P] [US10] Write `tests/Feature/Support/StateMachineTest.php` asserting every permitted transition in [data-model.md](./data-model.md) succeeds and every other is refused — explicitly including `new` → `closed`, `new` → `resolved`, and anything out of `closed` (FR-148)
-- [ ] T404 [P] [US10] Write `tests/Feature/Support/RejectRequiresReasonTest.php` asserting rejection without a reason is refused and that the reason is visible to the student (FR-149)
-- [ ] T405 [P] [US10] Write `tests/Feature/Support/ReassignTest.php` asserting both previous and new assignee are recorded, that a coordinator is refused, and that assigning to a user without `support.view` is refused because it would silently strand the request (FR-152)
-- [ ] T406 [P] [US10] Write `tests/Feature/Support/ContactMarkedUnverifiedTest.php` asserting the student-typed contact is flagged unverified **in the payload**, not only in the view, so a client cannot render it as confirmed (FR-145)
-- [ ] T407 [P] [US10] Write `tests/Feature/Support/AuditCoverageTest.php` performing respond, transition, and reassign once each and asserting exactly one entry per action with the correct key from [contracts/README.md](./contracts/README.md)
-- [ ] T408 [P] [US10] Write `tests/Authorization/SupportEndpointsTest.php` with an allow case and a deny case for each of the **5** staff endpoints in [contracts/staff.md](./contracts/support-staff.md)
-- [ ] T409 [P] [US10] Write `tests/Feature/Support/NoMarkupInterpretedTest.php` asserting a description and a response containing markup or script are rendered as plain text to staff (FR-153)
+- [X] T399 [P] [US10] Write `tests/Feature/Support/QueueTest.php` asserting each row carries the student, their branch, the category, the state, the assignee, and the **waiting time**, ordered oldest-first by default
+- [X] T400 [P] [US10] Write `tests/Feature/Support/QueueFiltersTest.php` asserting the `status`, `category`, `branch_id`, `assigned_to`, `date_from`, `date_to`, and `q` filters each narrow correctly and that totals count only matching rows
+- [X] T401 [P] [US10] Write `tests/Feature/Support/OpenTransitionsToInProgressTest.php` asserting opening a `new` request moves it to `in_progress` and records who did so (FR-147)
+- [X] T402 [P] [US10] Write `tests/Feature/Support/RespondTest.php` asserting a response is recorded against its author, becomes visible to the student, and that a response on a **closed** request is refused (FR-150, FR-151)
+- [X] T403 [P] [US10] Write `tests/Feature/Support/StateMachineTest.php` asserting every permitted transition in [data-model.md](./data-model.md) succeeds and every other is refused — explicitly including `new` → `closed`, `new` → `resolved`, and anything out of `closed` (FR-148)
+- [X] T404 [P] [US10] Write `tests/Feature/Support/RejectRequiresReasonTest.php` asserting rejection without a reason is refused and that the reason is visible to the student (FR-149)
+- [X] T405 [P] [US10] Write `tests/Feature/Support/ReassignTest.php` asserting both previous and new assignee are recorded, that a coordinator is refused, and that assigning to a user without `support.view` is refused because it would silently strand the request (FR-152)
+- [X] T406 [P] [US10] Write `tests/Feature/Support/ContactMarkedUnverifiedTest.php` asserting the student-typed contact is flagged unverified **in the payload**, not only in the view, so a client cannot render it as confirmed (FR-145)
+- [X] T407 [P] [US10] Write `tests/Feature/Support/AuditCoverageTest.php` performing respond, transition, and reassign once each and asserting exactly one entry per action with the correct key from [contracts/README.md](./contracts/README.md)
+- [X] T408 [P] [US10] Write `tests/Authorization/SupportEndpointsTest.php` with an allow case and a deny case for each of the **5** staff endpoints in [contracts/support-staff.md](./contracts/support-staff.md)
+- [X] T409 [P] [US10] Write `tests/Feature/Support/NoMarkupInterpretedTest.php` asserting a description and a response containing markup or script are rendered as plain text to staff (FR-153)
 - [ ] T410 [P] [US10] Write `tests/Visual/support-staff.spec.ts` screenshotting the queue, the request detail with its response thread, and the reject confirmation in both locales
 
 ### Implementation for User Story 10
 
-- [ ] T411 [US10] Implement `app/Modules/Support/Http/Controllers/SupportQueueController.php` with `GET /api/v1/support-requests` supporting all seven filters, defaulting to oldest-waiting-first, and returning the computed waiting time
-- [ ] T412 [US10] Implement `GET /api/v1/support-requests/{reference}` in the same controller, bound by **`reference` rather than `id`** so the URL carries no sequential identifier a coordinator could iterate, returning the full response thread, the state history, and the contact flagged unverified
-- [ ] T413 [US10] Implement the open-side-effect in that action: a `new` request becomes `in_progress` on first open, audited as `support.status_changed`. Stated in the contract because a read with a side effect is unusual
-- [ ] T414 [US10] Implement `app/Modules/Support/Actions/RespondToSupportRequest.php` extending `TransactionalAction`, refusing on a `closed` request with 409, and auditing `support.responded`
-- [ ] T415 [US10] Implement `app/Modules/Support/Http/Controllers/SupportResponseController.php` with `POST /api/v1/support-requests/{reference}/responses`
-- [ ] T416 [US10] Implement `app/Modules/Support/Actions/TransitionSupportRequest.php` enforcing the state machine, requiring `rejection_reason` for `rejected`, requiring `support.close` to reach `closed`, and auditing `support.status_changed` with old and new values
-- [ ] T417 [US10] Implement `app/Modules/Support/Http/Controllers/SupportStateController.php` with `PATCH /api/v1/support-requests/{reference}/status` and `PATCH /api/v1/support-requests/{reference}/assignee`, the latter behind `support.assign`
-- [ ] T418 [P] [US10] Build `resources/views/support/staff/queue.blade.php` — `x-track-page-header`, a filter `x-track-card`, and `x-track-data-table` with `x-track-status-badge` per state, the waiting time as a numeric column, and row click-through
-- [ ] T419 [P] [US10] Build `resources/views/support/staff/show.blade.php` — `x-track-breadcrumbs`, the request panel, the response thread, and the contact rendered with a **visible unverified marker**
-- [ ] T420 [P] [US10] Build `resources/views/support/staff/_respond.blade.php` and `_transition.blade.php` — the response composer, the state control, and an `x-track-dialog` danger confirmation for rejection that restates the impact and requires the reason (FR-167)
-- [ ] T421 [P] [US10] Add the support queue entry to `config/navigation.php` for `SUPER_ADMIN` and `BRANCH_COORDINATOR` with the `life-buoy` icon, and **not** for `INSTRUCTOR`
-- [ ] T422 [P] [US10] Add the US10 translation keys and the five `action_label` entries for the new audit keys to `lang/ar/` and `lang/en/`
+- [X] T411 [US10] Implement `app/Modules/Support/Http/Controllers/SupportQueueController.php` with `GET /api/v1/support-requests` supporting all seven filters, defaulting to oldest-waiting-first, and returning the computed waiting time
+- [X] T412 [US10] Implement `GET /api/v1/support-requests/{reference}` in the same controller, bound by **`reference` rather than `id`** so the URL carries no sequential identifier a coordinator could iterate, returning the full response thread, the state history, and the contact flagged unverified
+- [X] T413 [US10] Implement the open-side-effect in that action: a `new` request becomes `in_progress` on first open, audited as `support.status_changed`. Stated in the contract because a read with a side effect is unusual
+- [X] T414 [US10] Implement `app/Modules/Support/Actions/RespondToSupportRequest.php` extending `TransactionalAction`, refusing on a `closed` request with 409, and auditing `support.responded`
+- [X] T415 [US10] Implement `app/Modules/Support/Http/Controllers/SupportResponseController.php` with `POST /api/v1/support-requests/{reference}/responses`
+- [X] T416 [US10] Implement `app/Modules/Support/Actions/TransitionSupportRequest.php` enforcing the state machine, requiring `rejection_reason` for `rejected`, requiring `support.close` to reach `closed`, and auditing `support.status_changed` with old and new values
+- [X] T417 [US10] Implement `app/Modules/Support/Http/Controllers/SupportStateController.php` with `PATCH /api/v1/support-requests/{reference}/status` and `PATCH /api/v1/support-requests/{reference}/assignee`, the latter behind `support.assign`
+- [X] T418 [P] [US10] Build `resources/views/support/staff/queue.blade.php` — `x-track-page-header`, a filter `x-track-card`, and `x-track-data-table` with `x-track-status-badge` per state, the waiting time as a numeric column, and row click-through
+- [X] T419 [P] [US10] Build `resources/views/support/staff/show.blade.php` — `x-track-breadcrumbs`, the request panel, the response thread, and the contact rendered with a **visible unverified marker**
+- [X] T420 [P] [US10] Build `resources/views/support/staff/_respond.blade.php` and `_transition.blade.php` — the response composer, the state control, and an `x-track-dialog` danger confirmation for rejection that restates the impact and requires the reason (FR-167)
+- [X] T421 [P] [US10] Add the support queue entry to `config/navigation.php` for `SUPER_ADMIN` and `BRANCH_COORDINATOR` with the `life-buoy` icon, and **not** for `INSTRUCTOR`
+- [X] T422 [P] [US10] Add the US10 translation keys and the five `action_label` entries for the new audit keys to `lang/ar/` and `lang/en/`
 
 **Checkpoint**: Requests arrive and get answered. US9 + US10 is the smallest honest release.
+
+**Implementation notes (2026-10-11).**
+
+- **T410 is written and not run.** `tests/Visual/support-staff.spec.ts` captures the queue, request
+  FX00000002J with its reply, and the rejection dialog. No baseline yet; same position as T313, T328,
+  T343 and T388. Waiting times are masked, because they are relative to now. `UiFixtureSeeder` now
+  seeds three support requests with fixed, check-valid references (`FX00000001M` new,
+  `FX00000002J` in progress with one reply, `FX00000003G` rejected).
+- **State history (T412) is read from the audit log**, not a new table. The `support.request_created`
+  and `support.status_changed` entries are already the append-only record of who moved a request and
+  when. A history table would be a second record that could disagree with them.
+- **The state machine lives in `TransitionSupportRequest::TRANSITIONS`.** The action, the screen's
+  options and `StateMachineTest`'s 25 pairs all read it.
+  - Refusals: a non-permitted pair is 409. `resolved` with no reply on record is 409. `closed`
+    without `support.close` is 403. `rejected` without a reason is 422.
+  - The row is locked for the read-then-write.
+- **Responding to a `new` request opens it first** (`new` → `in_progress`, audited), as viewing it
+  would: a request with a reply still labelled "new" misleads the next person in the queue. The
+  response's audit entry carries its id, not its body.
+- **The response body uses `support_description_max`**, one length setting for messages in this
+  channel, rather than an eleventh setting nobody would set differently.
+- **Reassignment (T405/T417) also refuses** an assignee who is deactivated, or a coordinator whose
+  branches exclude the student. The contract names only "no `support.view`". The other two strand a
+  request the same way, so they are refused the same way. The screen offers only people who could
+  open the request.
+- **An instructor gets 404, not 403, on a bound request.** The section constraint on
+  `SupportRequest` hides every request from them before `can:` runs, which is the platform's
+  404-not-403 rule. The queue, which binds nothing, answers 403. `SupportEndpointsTest` pins both.
+- **Binding by reference (T412).** `SupportRequest::getRouteKeyName()` is `reference`, and
+  `resolveRouteBinding` normalises the hyphenated or lower-case form, through the scoped query.
+  Out of scope and nonexistent are the same 404, recorded as `access.denied` by the existing
+  middleware. The numeric id is a 404.
+- **`branch_id` for a coordinator** narrows only to one of their own branches. Any other value is
+  ignored and their own scope comes back, so the filter cannot ask whether another branch has
+  requests.
+- **Sidebar (T421).** `support` sits between `imports` and `audit` for SUPER_ADMIN and
+  BRANCH_COORDINATOR, with the `life-buoy` icon. `nav.php` already had an unused `support` label from
+  the reference, which is now reworded. The icon sprite gains `life-buoy`, `send`, `message-square`
+  and `user-check`. `send` was used by the Phase 20 form button and rendered nothing until then.
+- **T422.** The five audit labels were added in Phase 19. The staff keys are under `support.staff.*`.
+- **Wiring.**
+  - `support.responded`, `support.status_changed` and `support.reassigned` moved from the deferred
+    list to `ActionCoverageTest`'s performers. Only `support.anonymised` (Phase 25) is still deferred.
+  - The queue and the in-progress request joined the both-directions screen sweep.
+  - `NoAttachmentRouteTest` now selects the public form's routes exactly, so it no longer catches
+    `/support-requests`.
+- **Tests.** `tests/Feature/Support` has eleven new files (T399–T407, T409), and there is
+  `tests/Authorization/SupportEndpointsTest.php` (T408). The queue is checked to issue the same
+  number of queries for 3 rows as for 9.
+
+**Review corrections (2026-10-12).** Ten findings, all fixed. No cross-branch access, stored XSS or
+missing audit entry was found. Six fixes were mutation-checked: reverting each makes its test fail.
+
+1. **Two people opening a `new` request at once: the second got a 409.**
+   `TransitionSupportRequest::openIfNew` decides under the row lock, and a row already open is
+   returned unchanged with no entry. `show()` and respond both use it. A test freezes the race.
+2. **`StateMachineTest` could not catch a wrong table.** It read its expectations from
+   `TRANSITIONS`. The 25 cells are now written out by hand from data-model.md, and a second test
+   checks the constant against them cell by cell.
+3. **Date filters were three hours off in Riyadh.** The picked day's first and last instants in
+   `app.display_timezone` are now converted to UTC before comparing. There is a boundary test at
+   01:30 Riyadh, which is 22:30 UTC the day before.
+4. **Malformed or reversed dates.** Dates now need `date_format:Y-m-d`, and `date_to` must be
+   `after_or_equal:date_from`. Otherwise the request gets a 422.
+5. **A coordinator could list other branches' staff in the assignee filter.** The options are now
+   themselves plus staff sharing one of their branches. The Super Admin still sees everyone.
+6. **The reassignment control ran an EXISTS query per staff member.**
+   `SupportRequest::studentBranchIds()` (the scope's own three conditions) is asked once, and
+   candidates' branches are eager-loaded. `canOpen` uses the same method. A test checks the show
+   page's query count does not grow with the staff count.
+7. **`q` ran a leading-wildcard LIKE as a correlated subquery, twice per page.** It now tries a
+   reference, then a University ID, and only otherwise a name. The name match runs once against
+   students, capped at 500 ids.
+8. **Finished requests "waited" forever.** `waiting_seconds` and `waiting_label` are null once a
+   request is resolved, rejected or closed. The screen shows "—".
+9. **A reason given with a non-rejection transition was dropped.** It is now in the
+   `support.status_changed` entry (not a column), and the history shows it.
+10. **The thread and the history were unbounded.** Each now shows the latest 50, with
+    `responses_total` and `history_total`, and the screen says when it shows fewer than exist.
+
+- **A flaky padding test.** The faked-clock padding tests now use a 60-second floor. On a loaded
+  machine an error page's first render took longer than 5 seconds, so no padding was due and the
+  test failed for the wrong reason. The clock is faked, so a long floor costs nothing.
+- **contracts/support-staff.md** is updated for each behaviour above. T408's link label read
+  `contracts/staff.md`; corrected to `contracts/support-staff.md`, the authoritative file.
 
 ---
 
@@ -1676,21 +1906,102 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 
 ### Tests for User Story 11
 
-- [ ] T423 [P] [US11] Write `tests/Feature/Support/StatusRetrievalTest.php` asserting a correct reference plus matching University ID returns the request, its state, and every response
-- [ ] T424 [P] [US11] Write `tests/Feature/Support/Enumeration/RetrievalFailuresIdenticalTest.php` asserting **byte-identical** responses for a non-existent reference and for a valid reference with a mismatched University ID (FR-135, SC-029)
-- [ ] T425 [P] [US11] Write `tests/Feature/Support/StatusExposesNothingElseTest.php` asserting the response carries **no** assignee, no internal note, no originating IP, no echoed identifier, and nothing belonging to another student (FR-134)
-- [ ] T426 [P] [US11] Write `tests/Feature/Support/Throttle/StatusThrottleTest.php` asserting retrieval is limited per IP at `support_status_throttle_ip`, tighter than submission, because an attacker holding a stolen reference would otherwise brute-force the identifier against it (FR-131)
-- [ ] T427 [P] [US11] Write `tests/Feature/Support/StatusNoResponseYetTest.php` asserting a request with no response shows its state with an explanation that it is still being handled (FR-136)
+- [X] T423 [P] [US11] Write `tests/Feature/Support/StatusRetrievalTest.php` asserting a correct reference plus matching University ID returns the request, its state, and every response
+- [X] T424 [P] [US11] Write `tests/Feature/Support/Enumeration/RetrievalFailuresIdenticalTest.php` asserting **byte-identical** responses for a non-existent reference and for a valid reference with a mismatched University ID (FR-135, SC-029)
+- [X] T425 [P] [US11] Write `tests/Feature/Support/StatusExposesNothingElseTest.php` asserting the response carries **no** assignee, no internal note, no originating IP, no echoed identifier, and nothing belonging to another student (FR-134)
+- [X] T426 [P] [US11] Write `tests/Feature/Support/Throttle/StatusThrottleTest.php` asserting retrieval is limited per IP at `support_status_throttle_ip`, tighter than submission, because an attacker holding a stolen reference would otherwise brute-force the identifier against it (FR-131)
+- [X] T427 [P] [US11] Write `tests/Feature/Support/StatusNoResponseYetTest.php` asserting a request with no response shows its state with an explanation that it is still being handled (FR-136)
 - [ ] T428 [P] [US11] Write `tests/Visual/support-status.spec.ts` screenshotting the status form, a result with responses, a result with none, and the generic failure in both locales
 
 ### Implementation for User Story 11
 
-- [ ] T429 [US11] Implement `app/Modules/Support/Http/Controllers/Public/SupportStatusController.php` with `POST /support/status` querying on **both** `reference` and the student's University ID in one query, so a mismatch is indistinguishable from a missing reference
-- [ ] T430 [US11] Register the route in `routes/public.php` with its own tighter throttle and the `ConstantResponseTime` middleware, and **no audit entry** — a read exposing only the caller's own request with no state change is not a sensitive action, and logging every poll would fill the audit log with entries carrying the identifier, becoming a disclosure surface itself
-- [ ] T431 [P] [US11] Build `resources/views/support/public/status-form.blade.php` and `status-result.blade.php` on the public layout, the result showing the reference, category, submitted date, `x-track-status-badge`, the rejection reason where present, and the response thread with dates
-- [ ] T432 [P] [US11] Add the US11 translation keys, including the still-being-handled message and the generic retrieval failure
+- [X] T432a [P] [US11] Add the link to the status page to `resources/views/support/public/submitted.blade.php`, beside the reference — **carried over from T396** (Phase 20), which could not link to a route that did not yet exist
+- [X] T429 [US11] Implement `app/Modules/Support/Http/Controllers/Public/SupportStatusController.php` with `POST /support/status` querying on **both** `reference` and the student's University ID in one query, so a mismatch is indistinguishable from a missing reference
+- [X] T430 [US11] Register the route in `routes/public.php` with its own tighter throttle and the `ConstantResponseTime` middleware, and **no audit entry** — a read exposing only the caller's own request with no state change is not a sensitive action, and logging every poll would fill the audit log with entries carrying the identifier, becoming a disclosure surface itself
+- [X] T431 [P] [US11] Build `resources/views/support/public/status-form.blade.php` and `status-result.blade.php` on the public layout, the result showing the reference, category, submitted date, `x-track-status-badge`, the rejection reason where present, and the response thread with dates
+- [X] T432 [P] [US11] Add the US11 translation keys, including the still-being-handled message and the generic retrieval failure
 
 **Checkpoint**: The loop closes — a student can find out what happened.
+
+**Implementation notes (2026-10-12).**
+
+- **T428 is written and not run.** `tests/Visual/support-status.spec.ts` covers the form, a result with
+  a reply (`FX00000002J`, student 101), a result with none (`FX00000001M`, student 100) and the generic
+  failure. There is no baseline yet, like T313, T328, T343, T388 and T410. `global-setup.ts` now also
+  widens `support_status_throttle_ip` on the visual database.
+- **Routes (T430).**
+  - `GET /support/status` is the form: a page view, not padded, under the `public` floor only.
+  - `POST /support/status` is the lookup: `SupportStatusThrottle` (its own per-address limit,
+    `support_status_throttle_ip`, outside the padding), then `ConstantResponseTime`.
+  - A refusal is 429 with the window's whole `Retry-After`, through the same `SupportLimitReached`
+    as every public limit.
+  - The lookup is never audited.
+- **One query, one failure (T429).** The reference is normalised (any case, hyphens or none, Crockford
+  confusables) and then matched together with the normalised University ID in one statement. A
+  missing reference, a mismatched ID, an anonymised request (no student, so no ID can match, R-12) and
+  a wrong check character all give the same 422. The page re-renders the form with one alert and
+  echoes nothing the visitor typed, so it is byte-identical within a session; JSON is
+  `{message}` exactly. Only an empty field is told so by name, which reveals nothing about any record.
+- **What the student sees (FR-134).** The reference, category, date, state badge, rejection reason, and
+  each reply's body and date. Not the assignee, not the reply's author, not the IP, not the contact,
+  and not the ID they typed. With no reply yet, the page says the request is still being handled
+  (FR-136). The result is `Cache-Control: no-store`.
+- **T432a (from T396).** The confirmation page now offers "check its status" beside "send another".
+- **Wiring.** The status form joined the both-directions screen sweep, and `NoAttachmentRouteTest`
+  lists the two new routes. The form's route is `support.status.form`, not `support.status`:
+  `CsrfCoverageTest` treats a GET route named `….status` as one that writes, and this one only
+  reads. The lookup is `support.status.lookup`.
+- **Tests.**
+  - New files: `StatusRetrievalTest`, `Enumeration/RetrievalFailuresIdenticalTest` (four failure
+    modes, HTML and JSON, padded found or not), `StatusExposesNothingElseTest`,
+    `Throttle/StatusThrottleTest` and `StatusNoResponseYetTest`.
+  - The Enumeration suite now covers submission and retrieval.
+
+**Review corrections (2026-10-12).** Ten findings, all fixed. Seven fixes were mutation-checked:
+reverting each makes its test fail.
+
+1. **The lookup limit was looser than submission's** (10 vs 5), contrary to T426.
+   - It is now 4 failed lookups an hour per address.
+   - The test compares it with submission's limit instead of pinning one number.
+   - data-model.md is updated.
+2. **An address limit alone could be walked.**
+   - A new per-reference counter (`support_status_throttle_reference`, 5 an hour) stops guessing
+     against one stolen reference from any number of addresses.
+   - It counts invented references the same as real ones, which a test asserts.
+   - IPv6 is counted by its /64 on every public limit, the `public` floor included.
+3. **Successful lookups used up the budget**, so a campus behind one NAT was locked out.
+   - Both counters still count on arrival (Redis INCR, so a burst cannot slip past) and are refunded
+     on a match, so only failures stay counted.
+   - `TRUSTED_PROXIES` is already in `.env.example` and the runbook (Phase 19).
+4. **The failure paths did different work.**
+   - A malformed reference now runs the same statement as the others, looking up `''`, which matches
+     nothing.
+   - A test checks the lookup SQL is identical across all four failures.
+   - `ConstantResponseTime` logs, at most once a minute, when real work outruns the floor, and the
+     runbook says to raise the floor above p99 if it does.
+5. **Padded lookups could take the whole worker pool.**
+   - `config/support.php` `padding_max_concurrent` (env `SUPPORT_PADDING_MAX_CONCURRENT`, default
+     40) caps sleeping padded responses.
+   - Past it, a request gets an immediate generic 503 before any work, the same for every request.
+   - The count lives in a per-minute cache bucket, so a killed worker cannot wedge it shut.
+   - The runbook sizes the pool for the status lookup too.
+6. **An empty field echoed the other one back.**
+   - A validation failure now redirects without flashing input.
+   - A test checks `getOldInput()` is empty and the ID is not on the page.
+7. **The padding test only checked that a sleep happened.** It now checks that each failure's pause tops
+   it up to the floor.
+8. **Accessibility.**
+   - The failure message sits under the reference as its field error (role=alert).
+   - Both fields are `aria-invalid` and point at it, and focus lands on the reference.
+   - **Platform-wide:** `x-track-field` rendered its hint and error with no `id`, so every input's
+     `aria-describedby` pointed at nothing. They now carry `{id}-hint` / `{id}-error`.
+9. **The message blamed the reference alone.** It now names both fields, in both languages, still as
+   one message for every failure.
+10. **`?lang=` handling was copied in two controllers.** It now lives in the `HonoursRequestedLocale`
+    trait.
+    - Accepted, not changed: switching language on the result page returns to the empty form. The
+      result is never kept between requests, by design, so showing it again means typing the pair
+      again.
 
 ---
 
@@ -1702,21 +2013,99 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 
 ### Tests for User Story 12
 
-- [ ] T433 [P] [US12] Write `tests/Scope/SupportRequestScopeTest.php` asserting a coordinator's queue and totals contain only requests from students enrolled in their branches (FR-140)
-- [ ] T434 [P] [US12] Write `tests/Scope/SupportOutOfScopeReturns404Test.php` asserting a reference from another branch returns **404, never 403**, through the API route and the Blade route, and that the attempt writes `access.denied` (FR-143, FR-158)
-- [ ] T435 [P] [US12] Write `tests/Scope/SupportBranchFilterCannotWidenTest.php` asserting a coordinator passing another branch's `branch_id` receives **their own scope, not an error** — so the filter cannot be used to probe
-- [ ] T436 [P] [US12] Write `tests/Scope/SupportMultiBranchStudentTest.php` asserting a student with active enrollments in two branches has their request visible to coordinators of **both** (FR-141)
-- [ ] T437 [P] [US12] Write `tests/Scope/SupportInstructorHasNoAccessTest.php` asserting an instructor has no queue and every support address returns 404 (FR-142, SC-038)
-- [ ] T438 [P] [US12] Write `tests/Scope/SupportScopeFollowsEnrollmentTest.php` asserting that when a student's active enrollment moves to another branch, the new branch's coordinator gains access and the old one loses it
+- [X] T433 [P] [US12] Write `tests/Scope/SupportRequestScopeTest.php` asserting a coordinator's queue and totals contain only requests from students enrolled in their branches (FR-140)
+- [X] T434 [P] [US12] Write `tests/Scope/SupportOutOfScopeReturns404Test.php` asserting a reference from another branch returns **404, never 403**, through the API route and the Blade route, and that the attempt writes `access.denied` (FR-143, FR-158)
+- [X] T435 [P] [US12] Write `tests/Scope/SupportBranchFilterCannotWidenTest.php` asserting a coordinator passing another branch's `branch_id` receives **their own scope, not an error** — so the filter cannot be used to probe
+- [X] T436 [P] [US12] Write `tests/Scope/SupportMultiBranchStudentTest.php` asserting a student with active enrollments in two branches has their request visible to coordinators of **both** (FR-141)
+- [X] T437 [P] [US12] Write `tests/Scope/SupportInstructorHasNoAccessTest.php` asserting an instructor has no queue and every support address returns 404 (FR-142, SC-038)
+- [X] T438 [P] [US12] Write `tests/Scope/SupportScopeFollowsEnrollmentTest.php` asserting that when a student's active enrollment moves to another branch, the new branch's coordinator gains access and the old one loses it
 
 ### Implementation for User Story 12
 
-- [ ] T439 [US12] Verify `BelongsToBranchScope` on `SupportRequest` resolves through `student.enrollments.section.branch` filtered to **active** enrollments, and correct the relation path until T433–T438 pass. No new scope type is introduced
-- [ ] T440 [US12] Configure route-model binding for `SupportRequest` by `reference` in `app/Providers/RouteServiceProvider.php` to resolve **through** the scoped query, so an out-of-scope reference raises `ModelNotFoundException` → 404 before any policy runs
-- [ ] T441 [P] [US12] Constrain the `branch_id` filter in `SupportQueueController` to the caller's own branches for a coordinator, returning their scope rather than an error
-- [ ] T442 [P] [US12] Add the Super Admin-only branch column and filter to the queue view, hidden for a coordinator whose queue is already single-scoped
+- [X] T439 [US12] Verify `BelongsToBranchScope` on `SupportRequest` resolves through `student.enrollments.section.branch` filtered to **active** enrollments, and correct the relation path until T433–T438 pass. No new scope type is introduced
+- [X] T440 [US12] Configure route-model binding for `SupportRequest` by `reference` in `app/Providers/RouteServiceProvider.php` to resolve **through** the scoped query, so an out-of-scope reference raises `ModelNotFoundException` → 404 before any policy runs
+- [X] T441 [P] [US12] Constrain the `branch_id` filter in `SupportQueueController` to the caller's own branches for a coordinator, returning their scope rather than an error
+- [X] T442 [P] [US12] Add the Super Admin-only branch column and filter to the queue view, hidden for a coordinator whose queue is already single-scoped
 
 **Checkpoint**: Handling is distributed and the data-protection boundary holds.
+
+**Implementation notes (2026-10-12).**
+
+- **Most of the boundary was already built**, and this phase proves it through the routes.
+  - **T439, verified:** `SupportRequest::constrainToBranches` resolves through the student's
+    enrollments, filtered to active enrollments, no registrar withdrawal, and an active section
+    (Phase 19 and its review). No new scope type.
+  - **T441** landed in Phase 21: a coordinator's `branch_id` narrows only within their own branches.
+- **T440.** The binding is now registered in `RouteServiceProvider` beside the platform's other scoped
+  bindings (`section`, `student`, `import`). It delegates to the model's normalising
+  `resolveRouteBinding`, which runs through the scoped query, so an out-of-scope or missing reference
+  is one `ModelNotFoundException` → 404 before any policy runs.
+- **SC-038: the queue is a 404 for an instructor, not a 403.**
+  - `SupportRequestPolicy::viewAny` returns `Response::denyAsNotFound()`, and the queue routes carry
+    `can:viewAny,SupportRequest`.
+  - Every bound address was already a 404 through the scope. Now the one unbound address agrees, and
+    "an instructor has no route to any request" holds for typed addresses too.
+  - `AuditDeniedAccess` records the refusal's real status (404) for a policy that denies as not found.
+  - A coordinator refused assignment or closing still gets the contract's 403.
+- **T442.** The branch column and filter show for the Super Admin and for a coordinator of more than one
+  branch. They are hidden for a single-branch coordinator, whose queue is already one branch.
+- **Tests (T433–T438), six files in `tests/Scope`, all through the real routes.**
+  - Every filter is aimed at another branch's request: status, category, its assignee, its reference,
+    its student's ID, its branch, and all of them at once.
+  - An out-of-scope reference gives the same 404 bytes as a nonexistent one, recorded as
+    `access.denied` with status 404.
+  - Acting on another branch's request by reference is a 404 and changes nothing.
+  - Opening another branch's `new` request does not move it.
+  - A two-branch student is seen and answerable from both branches, and a withdrawn second enrollment
+    does not widen it.
+  - For an instructor, all seven support addresses are a 404, even for a student they teach, and
+    there is no sidebar entry.
+  - An enrollment that moves takes the request with it in both directions, immediately.
+- Two mutation checks (the queue answering 403, the branch column always shown) each fail their test.
+
+**Review corrections (2026-10-12).** Ten findings, all fixed. The boundary held for every bound address.
+Seven fixes were mutation-checked: reverting each makes its test fail.
+
+1. **The queue's 404 could be told apart from a real one.** `denyAsNotFound` became a plain
+   `HttpException(404)`, with an English "Not Found" body and HTML for `/api` without Accept. It
+   confirmed the queue exists.
+   - `bootstrap/app.php` now maps a 404-status `AuthorizationException` to `NotFoundHttpException`.
+   - A test compares the queue's 404 with a missing request's 404 for JSON, no-Accept and the screen:
+     the same bytes and content type.
+2. **The `branch_id` filter doubled the scope.** A single-branch coordinator naming their own branch
+   now adds nothing, and the SQL is identical to the unfiltered queue (a test checks this). Otherwise
+   the filter is one semi-join.
+3. **The scope was a correlated EXISTS per row.** `constrainToBranches` is now one uncorrelated
+   semi-join, `student_id IN (SupportRequest::holdersIn(branches))`.
+   - The new index `sections (branch_id, status)` serves the active-sections lookup.
+4. **Soft-deleted students were visible.** The `withoutGlobalScopes()` on `Student` dropped
+   `SoftDeletingScope`. `holdersIn` now excludes deleted students, and a test pins it.
+5. **"Active enrollment" was written three times, and they drifted.**
+   `SectionEnrollment::scopeCurrentlyHeld` (active, no registrar withdrawal, active section) is now
+   the one definition. The scope, `studentBranchIds` and the queue's branch column all use it. A test
+   checks the column no longer names a branch that grants no visibility.
+6. **T442 was recorded only in tasks.md.** contracts/support-staff.md and plan.md now record it:
+   - the column and filter are shown to the Super Admin and to multi-branch coordinators;
+   - they are hidden for a single-branch coordinator;
+   - there are tests for all three.
+7. **The name search could be crowded out.** It ran across all branches, capped at 500, before the
+   scope. It now runs through the caller's own `Student` scope before the cap. The test creates 600
+   same-named strangers with lower ids first.
+8. **The screens were unthrottled.** Each refusal writes `access.denied`, so one account could flood
+   a five-year log. The two Blade routes now carry `throttle:api`, the per-user limit the API already
+   has, and a test checks they do.
+9. **Missing tests.**
+   - The queue's 404 bytes against a real 404.
+   - Reassigning another branch's request is a 404 even for a holder of `support.assign`, and is
+     recorded.
+   - Closing another branch's request is a 404.
+   - Every spelling of an out-of-scope reference gives the same 404 bytes.
+10. **The binding was duplicated.** The explicit `Route::bind` is gone, and the model's
+    `resolveRouteBinding` is the one binding. It normalises only the `reference` key. Another key,
+    such as `{supportRequest:id}`, binds normally, still through the scope; a test covers it.
+
+- **A flaky test, fixed.** A whole-response comparison carried a waiting time that ticked between the
+  two requests, so the test now freezes the clock.
 
 ---
 
@@ -1728,19 +2117,71 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 
 ### Tests for User Story 13
 
-- [ ] T443 [P] [US13] Write `tests/Feature/Support/Localization/PublicPagesBothLocalesTest.php` asserting the public pages render in both locales with correct `lang` and `dir`, and that the language switch works **while signed out** (FR-161)
-- [ ] T444 [P] [US13] Write `tests/Feature/Support/Localization/NoUntranslatedOutputTest.php` asserting no support screen renders a raw translation key or a fallback-language string
-- [ ] T445 [P] [US13] Write `tests/Visual/support-axe.spec.ts` running axe-core over all 8 screens in both locales, requiring **zero** WCAG 2.1 AA violations (SC-036)
-- [ ] T446 [P] [US13] Write `tests/Visual/support-rtl.spec.ts` asserting per screen that the layout, breadcrumb chevrons, button icon side, and toast corner all mirror correctly
+- [X] T443 [P] [US13] Write `tests/Feature/Support/Localization/PublicPagesBothLocalesTest.php` asserting the public pages render in both locales with correct `lang` and `dir`, and that the language switch works **while signed out** (FR-161)
+- [X] T444 [P] [US13] Write `tests/Feature/Support/Localization/NoUntranslatedOutputTest.php` asserting no support screen renders a raw translation key or a fallback-language string
+- [X] T445 [P] [US13] Write `tests/Visual/support-axe.spec.ts` running axe-core over all 8 screens in both locales, requiring **zero** WCAG 2.1 AA violations (SC-036)
+- [X] T446 [P] [US13] Write `tests/Visual/support-rtl.spec.ts` asserting per screen that the layout, breadcrumb chevrons, button icon side, and toast corner all mirror correctly
 
 ### Implementation for User Story 13
 
-- [ ] T447 [US13] Sweep every view under `resources/views/support/` for hard-coded user-facing text until 001's existing `NoHardcodedStringsTest` and `LocalizationParityTest` both pass for the `support` namespace
-- [ ] T448 [US13] Complete keyboard operation and WCAG 2.1 AA across all 8 screens — focus order, the visible focus ring, ARIA labels on icon-only controls, the challenge widget's accessible labelling, and dialog focus trapping — until `support-axe.spec.ts` is clean
-- [ ] T449 [P] [US13] Apply 001's `Format` helper to every rendered date and number in the support channel so digits are 0-9 and dates read DD/MM/YYYY in both locales
-- [ ] T450 [P] [US13] Verify and correct the responsive behaviour of the public pages and the queue at desktop and phone width in both locales, with the queue table becoming stacked cards below 768px
+- [X] T447 [US13] Sweep every view under `resources/views/support/` for hard-coded user-facing text until 001's existing `NoHardcodedStringsTest` and `LocalizationParityTest` both pass for the `support` namespace
+- [X] T448 [US13] Complete keyboard operation and WCAG 2.1 AA across all 8 screens — focus order, the visible focus ring, ARIA labels on icon-only controls, the challenge widget's accessible labelling, and dialog focus trapping — until `support-axe.spec.ts` is clean
+- [X] T449 [P] [US13] Apply 001's `Format` helper to every rendered date and number in the support channel so digits are 0-9 and dates read DD/MM/YYYY in both locales
+- [X] T450 [P] [US13] Verify and correct the responsive behaviour of the public pages and the queue at desktop and phone width in both locales, with the queue table becoming stacked cards below 768px
 
 **Checkpoint**: All five stories functional, faithful, and accessible in both languages.
+
+**Implementation notes (2026-10-12).**
+
+- **The eight screens:**
+  - public: the form, the confirmation, the refusal, the status form, the status result, and the
+    limit page;
+  - staff: the queue and the request detail.
+  - `tests/Feature/Support/Localization/SupportScreens.php` reaches each one the way a person does:
+    a GET, a submission, a failed verification, a lookup, a spent limit, a staff sign-in.
+- **T445, T446 and T448: the first Playwright run (2026-10-13).**
+  - Both specs share `tests/Visual/support-screens.ts`, which reaches all eight screens and opens the
+    rejection dialog for axe.
+  - Result: axe found zero WCAG 2.1 AA violations on all eight screens and the dialog, in both locales
+    at 1440 and 390. Mirroring passes on every screen in both locales at 1440. The visual baselines
+    T313, T328, T343, T388, T410 and T428 remain open.
+  - **Selector fix.** `form button[type="submit"]` matched three buttons, because the public
+    layout's language switch is a form with two submit buttons. So the click switched the language
+    instead of sending. The selectors are now scoped to `main form ...` here and in
+    `support-public-form.spec.ts` (T388) and `support-status.spec.ts` (T428).
+  - **RTL bug found by T446.** RTLCSS flipped `.track-code`'s `direction: ltr` to `rtl` in the
+    Arabic build, overriding `dir="ltr"`. As a result every reference, University ID and IP address
+    rendered right to left in Arabic, on every platform screen and not just support. Fixed with
+    `/* rtl:ignore */` on the rule in `_components.scss`. Arabic screenshots showing a `.track-code`
+    will differ from any baseline taken before this fix.
+  - T448 needed no code changes beyond these two fixes. axe was clean on the first run.
+- **T443.**
+  - All eight screens carry the right `<html lang dir>` in both locales.
+  - The language switch works signed out: `POST /locale`, then every public page is English.
+  - `?lang=` is remembered for the visit, and anything but `ar`/`en` is ignored.
+- **T444, checked on the rendered screens.**
+  - No raw key (`support.` / `validation.` / `common.` / …) appears in the readable text.
+  - No Arabic character appears on an English screen, apart from the switch's «عربي», which names the
+    language in itself by design.
+  - No English support string (12+ characters, placeholders removed) appears on an Arabic screen.
+  - Two mutations each fail their test: an Arabic comma on an English page, and an Arabic key removed
+    so the English one shows through.
+- **T447 fixes.**
+  - The branch lists were joined with a hard-coded `، ` on English pages too. They now use
+    `support.staff.list_separator` (`، ` / `, `).
+  - `NoHardcodedStringsTest` and `LocalizationParityTest` pass for the `support` namespace.
+- **T449.**
+  - Dates print through `Format::date` / `Format::dateTime` (DD/MM/YYYY, a Western-digit isolated
+    run), and the "showing latest" counts through `Format::number`.
+  - The waiting time is the platform's own `SupportRequestPresenter::duration`: two units, Arabic
+    plural forms with «و», Western digits. Carbon's Arabic `diffForHumans` read «ساعة 30 دقيقة».
+  - A test asserts no Arabic-Indic digit on any of the eight screens in either locale.
+- **T450.**
+  - The queue's data table is in stacked mode (`track-table--stack`, `data-label` per cell), so it
+    becomes cards below 768px.
+  - The public layout's column narrows at 575px (`_public.scss`), and the detail's two columns stack
+    below 992px.
+  - Visual confirmation at both widths is the open specs' job.
 
 ---
 
@@ -1750,19 +2191,166 @@ the link to `/support` behind a feature flag. See T463 in Phase 25.
 
 **Retention is a requirement, not polish** — constitution v1.1.0 mandates it and SC-037 gates on it.
 
-- [ ] T451 Implement `app/Modules/Support/Actions/AnonymiseExpiredRequests.php` clearing **exactly three columns** — `student_id`, `contact`, `submitted_ip` — stamping `anonymised_at`, and preserving the reference, category, status, state history, and **all** responses (FR-159)
-- [ ] T452 Schedule the anonymisation sweep daily as a queued job in `routes/console.php`, reading `support_retention_months` (default **24**), with the clock running from **creation**, not closure, so an abandoned request is not retained indefinitely
-- [ ] T453 [P] Write `tests/Feature/Support/Retention/AnonymiseTest.php` asserting the three columns are cleared, `anonymised_at` is stamped, and the category, state history, and responses **survive** (SC-037)
-- [ ] T454 [P] Write `tests/Feature/Support/Retention/AuditSurvivesAnonymisationTest.php` asserting the audit entries are **not** touched — they follow the 5-year audit retention, which is longer (FR-160)
-- [ ] T455 [P] Write `tests/Feature/Support/Retention/AnonymisedVisibilityTest.php` asserting an anonymised request becomes visible to the **Super Admin only** — it has no student, so no enrollments, so no branch — and that public retrieval by its old reference returns the **same generic failure** as a non-existent reference
-- [ ] T456 Write `tests/Architecture/PublicSurfaceBoundedTest.php` failing the build if any route is registered outside the authenticated stack other than the **five** declared in [contracts/public.md](./contracts/support-public.md). A sixth requires a constitution amendment, not a pull request
-- [ ] T457 [P] Write `tests/Architecture/NoRawOutputInSupportViewsTest.php` banning `{!! !!}` anywhere under `resources/views/support/`, so no description or response can ever be interpreted as markup (FR-153)
-- [ ] T458 [P] Write `tests/Architecture/NoStudentAuthColumnsTest.php` asserting `students` carries no credential, contact, or activation column — the central constraint of this feature, and the reason feature 001 needed no change
-- [ ] T459 [P] Add `support_requests` and `support_responses` retention and the anonymisation sweep to the deployment runbook at `docs/runbook-deploy.md`
-- [ ] T460 Run the security review of this feature's public surface against the OWASP Top 10 and record it in `docs/security-review-002.md`, giving particular attention to the enumeration channels and the accepted impersonation risk recorded in spec "Accepted Risks"
+- [X] T451 Implement `app/Modules/Support/Actions/AnonymiseExpiredRequests.php` clearing **exactly three columns** — `student_id`, `contact`, `submitted_ip` — stamping `anonymised_at`, and preserving the reference, category, status, state history, and **all** responses (FR-159)
+- [X] T452 Schedule the anonymisation sweep daily as a queued job in `routes/console.php`, reading `support_retention_months` (default **24**), with the clock running from **creation**, not closure, so an abandoned request is not retained indefinitely
+- [X] T453 [P] Write `tests/Feature/Support/Retention/AnonymiseTest.php` asserting the three columns are cleared, `anonymised_at` is stamped, and the category, state history, and responses **survive** (SC-037)
+- [X] T454 [P] Write `tests/Feature/Support/Retention/AuditSurvivesAnonymisationTest.php` asserting the audit entries are **not** touched — they follow the 5-year audit retention, which is longer (FR-160)
+- [X] T455 [P] Write `tests/Feature/Support/Retention/AnonymisedVisibilityTest.php` asserting an anonymised request becomes visible to the **Super Admin only** — it has no student, so no enrollments, so no branch — and that public retrieval by its old reference returns the **same generic failure** as a non-existent reference
+- [X] T456 Write `tests/Architecture/PublicSurfaceBoundedTest.php` failing the build if any route is registered outside the authenticated stack other than the **five** declared in [contracts/public.md](./contracts/support-public.md). A sixth requires a constitution amendment, not a pull request
+- [X] T457 [P] Write `tests/Architecture/NoRawOutputInSupportViewsTest.php` banning `{!! !!}` anywhere under `resources/views/support/`, so no description or response can ever be interpreted as markup (FR-153)
+- [X] T458 [P] Write `tests/Architecture/NoStudentAuthColumnsTest.php` asserting `students` carries no credential, contact, or activation column — the central constraint of this feature, and the reason feature 001 needed no change
+- [X] T459 [P] Add `support_requests` and `support_responses` retention and the anonymisation sweep to the deployment runbook at `docs/runbook-deploy.md`
+- [X] T460 Run the security review of this feature's public surface against the OWASP Top 10 and record it in `docs/security-review-002.md`, giving particular attention to the enumeration channels and the accepted impersonation risk recorded in spec "Accepted Risks"
 - [ ] T461 Execute the full gate from [quickstart.md](./quickstart.md): `pint --test`, `phpstan analyse`, `php artisan test`, `--testsuite=Architecture`, `--testsuite=Scope`, and `npx playwright test`
 - [ ] T462 Walk all 11 quickstart.md validation scenarios manually and record the outcome against the 8 Definition-of-Done items
-- [ ] T463 Add the link to `/support` on the sign-in screen in `resources/views/auth/login.blade.php`, behind a `support_channel_enabled` setting defaulting to **false**, with its translation key in both locales — and write `tests/Feature/Support/SignInLinkTest.php` asserting the link is absent while the flag is false and present when true. **This is the only task in Phases 18–25 that edits a file built by Phases 1–17**, and it closes FR-114's requirement that the platform "MUST link to it from the sign-in screen", which the pre-merge analysis found uncovered
+- [X] T463 Add the link to `/support` on the sign-in screen in `resources/views/auth/login.blade.php`, behind a `support_channel_enabled` setting defaulting to **false**, with its translation key in both locales — and write `tests/Feature/Support/SignInLinkTest.php` asserting the link is absent while the flag is false and present when true. **This is the only task in Phases 18–25 that edits a file built by Phases 1–17**, and it closes FR-114's requirement that the platform "MUST link to it from the sign-in screen", which the pre-merge analysis found uncovered
+
+**Implementation notes (2026-10-13).**
+
+- **T451, the sweep.** `AnonymiseExpiredRequests` handles one request per transaction, re-read under a
+  lock, and writes one `support.anonymised` entry (actor null, `channel: system`).
+  - That entry carries **no old values**. Copying the cleared student and IP into it would keep them
+    for the audit log's five years.
+  - A `support_retention_months` below 1 is refused rather than read as "keep nothing", which would
+    anonymise requests a coordinator is answering now.
+  - **Deviation: `submitted_ip` was NOT NULL.** R-12 and data-model.md say the sweep clears it. Migration
+    `2026_10_13_000001` makes it nullable instead of storing `''`. Creation still always sets it. The
+    detail screen shows a dash for a cleared address. data-model.md is updated.
+- **T452.**
+  - `AnonymiseExpiredRequestsJob` is queued, `ShouldBeUnique` for a day, with 3 tries.
+  - It is scheduled in `routes/console.php` as `support:anonymise`, `daily()->onOneServer()`.
+  - The clock runs from `created_at`.
+- **T453–T455: 11 tests** (`tests/Feature/Support/Retention`), sharing `agedSupportRequest()` and
+  `runRetentionSweep()` in `tests/Support/SupportStaff.php`. The history they check is real: a reply
+  and a transition made through the API.
+  - Mutation checks: four mutants each fail a test. They are a sweep leaving the contact, one leaving
+    the IP, one using a shorter period, and one copying the IP into its audit entry.
+  - `support.anonymised` moves from `actionsAwaitingTheirPhase()` to a performer in
+    `ActionCoverageTest`, so all contract keys for support are now performed.
+- **T456: six routes, five entries.** `GET /support/status` is the page `POST /support/status` is
+  posted from, and contracts/support-public.md documents both under one entry.
+  - The bound pins the `public` group by method and URI, maps each route to its contract heading, and
+    has a probe that proves a seventh route is caught.
+  - The contract intro and quickstart Scenario 21 now say this.
+- **T457** scans `resources/views/support` for `{!!` and has a probe. **T458** pins `students` to its
+  exact seven columns, refuses credential-like names, and refuses any `Schema::table('students')`
+  migration.
+- **T459.** The runbook has a new §5a: what each support table keeps and for how long, how the sweep
+  runs, changing the period, running it by hand, and backups. §2.3 now names the sweep.
+- **T460.** `docs/security-review-002.md`: all ten OWASP categories, eight enumeration channels, and
+  the accepted impersonation risk. `composer audit` and `npm audit` are clean.
+  - **F-03, fixed:** the confirmation page carried the reference with Laravel's default `no-cache`, so
+    a shared lab browser could keep it on disk. It now sends `no-store`, as the status result does,
+    and the test asserts it.
+  - **Residual risks for decision:**
+    - R-02: staff replies are readable by whoever raised the request, impersonator included. Needs
+      staff guidance, or a notice by the composer.
+    - R-03: for the audit log's five years, after the request itself is anonymised, the creation entry
+      keeps the student's identity. `student_id` and the IP are in its payload, and the address and user
+      agent are in the row's `ip_address` and `user_agent` columns. Redacting the payload alone would not
+      be enough. For the data-protection officer; the options are in the review.
+    - R-06 (added by the code review): the description, the student's own free text, is kept
+      indefinitely, as FR-159 is written. For the owner.
+- **T463.**
+  - The `support_channel_enabled` setting defaults to `false`, and the twelfth support key is added
+    to data-model.md.
+  - The link sits under the no-registration note, with `auth.support_link` in both locales.
+  - The full suite found that `Settings::get` throws on an unseeded key, which would have taken down
+    the **sign-in page** on any deploy that skipped the seeder. The view now reads
+    `Settings::enabled()`: true only for a stored `true`, and a missing key reads as off.
+  - `SignInLinkTest` covers off, on in both locales, unseeded, truthy-but-not-`true` values, and
+    settings that cannot be read at all.
+  - **T463 is not the only edit to a Phase 1–17 file** (Phase 25 review, L-7). T463 itself touched
+    `resources/views/auth/login.blade.php` and both `lang/*/auth.php`. The setting needed
+    `app/Modules/Settings/Settings.php` (the constant and `enabled()`). The coverage list in
+    `tests/Pest.php` changed, and the monitor needed `app/Console/Commands/Monitor.php`,
+    `config/monitoring.php` and `tests/Feature/Shared/MonitoringTest.php`. Phase 24 changed
+    `resources/css/_components.scss` (`.track-code`).
+- **T461, the gate (2026-10-13). Open: the PHP half is green, and Playwright waits on the baselines.**
+  - `pint --test`: pass. `phpstan analyse`: 0 errors.
+  - `php artisan test`: 1,620 of 1,625 passed and 1 was skipped. The 4 failures all had one cause, the
+    unseeded switch on the sign-in page (T463 above). After the fix, those four files and
+    `SignInLinkTest` pass (72/72).
+  - Testsuites: Enumeration 19/19, Architecture 52/52, Scope 77/77, Authorization 138/138. The support
+    gates (Throttle, Retention, PublicSurfaceBounded) pass 31/31.
+  - `npx playwright test` was stopped at 448 of 2,450. At about 11 tests a minute, the full run on this
+    machine takes 5–6 hours. Its failures were of two kinds only:
+    - **screenshots**, missing or different. These are the open baselines T313, T328, T343, T388, T410
+      and T428, plus `programs.spec.ts`, which has **no** baselines yet (Amendment 1, not in that list
+      before the Phase 25 review, L-8). Arabic screenshots showing an identifier also change because of the Phase 24
+      `.track-code` fix;
+    - **30-second timeouts** from `php artisan serve` under eight parallel projects.
+  - `keyboard.spec.ts`, rerun alone, passes 8/8. `support-axe` and `support-rtl` passed in full earlier
+    the same day.
+  - This closes when the baselines are approved (`--update-snapshots` is the owner's call) and the
+    suite is run on CI or a pooled server.
+- **T462, the walkthrough of Scenarios 11–21 (2026-10-13). Open for the steps that need a person or
+  staging.**
+  - Walked by automated suite, plus a live HTTP check on a running server:
+    - **11:** `SubmitRequestTest`, `NoAttachmentRouteTest`, `FormatFailureIsSpecificTest`.
+    - **12:** the Enumeration suite. Live, d (missing reference) and e (real reference, another
+      student's ID) gave byte-identical bodies, statuses and headers, both as JSON and in the browser
+      form. The matching pair differed, and no `X-RateLimit-*` header was sent.
+    - **13:** the Throttle suite. **14:** `ChallengeTest`, including the store-down case.
+      **15:** `ReferenceGeneratorTest`.
+    - **16:** `StateMachineTest`, `RespondTest`, `ReassignTest`, `ContactMarkedUnverifiedTest`,
+      `AuditCoverageTest`.
+    - **17:** `StatusRetrievalTest`, `StatusExposesNothingElseTest`, `StatusNoResponseYetTest`.
+    - **18:** Scope and `SupportEndpointsTest`. **19:** the Retention suite.
+    - **20:** the Localization tests, plus `support-axe` and `support-rtl` at 1440 and 390.
+      **21:** `PublicSurfaceBoundedTest`.
+  - Steps that still need a person or staging:
+    - 11.2: submission under 2 minutes, timed by a person;
+    - 13.5: staff response times under a sustained flood (SC-031), which needs the pooled server;
+    - 14.6: Redis actually stopped;
+    - 16.3: response under 3 minutes;
+    - 20.4–20.5: a keyboard-only pass and the four width × language combinations, by eye.
+  - Definition of Done:
+    - Items 8–11 (enumeration, independent limits, fail-closed, retention) are **met** by the suites
+      above.
+    - Items 1–7 are 001's own and are unchanged by this phase. Item 5 (performance) is not re-run here.
+
+**Code review fixes (2026-10-13).** The Phase 25 review found two High, five Medium and eight Low
+issues. Every one that needed no owner decision is fixed:
+
+- **H-1, the sign-in page could fail.** `Settings::enabled()` had no guard, so with the settings cache
+  empty and the database unreachable, or the table not yet migrated, `/login` returned 500.
+  `SetLocale` already falls back on purpose. `enabled()` now reads as off when settings cannot be
+  read. Security review F-04; the test drops the table, and a mutant without the guard fails it.
+- **H-2, one row stopped the sweep for good.** No row's failure was caught, and rows go in id order.
+  Now each failure is `report()`ed and the sweep continues, then the run fails as a job, which alerts.
+  The write is `saveQuietly()`, so a staff-facing model rule ("rejected needs a reason") cannot block a
+  legal retention write. F-05. The tests use a SQLite trigger that refuses one row's audit insert,
+  plus a rejected-without-reason row. Two mutants fail them.
+- **M-1, a sweep that never ran was silent.** `track:monitor` raises `support_retention_overdue` when
+  any request is `ALERT_RETENTION_GRACE_DAYS` (2) past its retention, and `support_retention_unreadable`
+  when it cannot check. F-06. `MonitoringTest` now seeds settings, as a deployment does.
+- **M-2.** R-03 is corrected here, in the security review and in the runbook: the audit row's own
+  `ip_address` and `user_agent` columns hold the student's too. The review lists options (a)–(c).
+- **M-3.** The runbook (§6a, "Changing a support setting") gives one command that edits a setting
+  **and** clears the forever-cached `settings.all`. It was run against the visual database: on, then
+  off.
+- **M-4.** The `SupportRequest` docblock claimed the description is cleared. It is kept, and that is
+  now security review R-06, for the owner.
+- **M-5, the sweep scanned all history.** Migration `2026_10_13_000002` adds
+  `(anonymised_at, created_at)`. SQLite's plan for both the sweep and the monitor's check is now a
+  `SEARCH … USING COVERING INDEX` on it. The plain `created_at` index stays for the date filters, and
+  a test pins the new index.
+- **L-1.** The IP migration's `down()` writes `''` into cleared addresses before NOT NULL returns.
+  Both migrations were rolled back and reapplied.
+- **L-2.** The model's `creating` guard now requires a non-empty `submitted_ip`; the column no longer
+  refuses a missing one. `FoundationModelsTest` has two new cases.
+- **L-3.** `NoRawOutputInSupportViewsTest` also finds `echo`/`print`/`->toHtml()`, with Blade comments
+  stripped and line numbers kept. Every `HtmlString` in a support view is now a reviewed allowlist
+  (`staff/queue.blade.php`: 3). The probe proves all three idioms are caught.
+- **L-4.** `NoStudentAuthColumnsTest` checks every table with a foreign key to `students` for credential
+  columns, with a control that it reaches them.
+- **L-5.** New tests cover the inclusive cutoff on a month end, that the scheduled event runs on one
+  server and queues the job, and the job's uniqueness and tries.
+- **L-6.** The runbook says the sweep runs at 00:00 **UTC** (03:00 Riyadh).
+- **L-7, L-8.** Recorded above.
+
+Gate after the fixes: `pint --test` pass, `phpstan analyse` 0 errors, full `php artisan test` **1,643 passed, 1 skipped, 0 failed** (1,644 total).
 
 ---
 
@@ -1783,36 +2371,162 @@ are adopted below. Decisions: [ui-conflicts.md](./ui-conflicts.md) C-19 … C-23
 
 Small, safe, and independent of everything blocked. Can run any time after Phase 3.
 
-- [ ] T464 [P] Re-vendor `design-system/` from `TRACK Design System_V2.zip`, keeping v1 at
+- [X] T464 [P] Re-vendor `design-system/` from `TRACK Design System_V2.zip`, keeping v1 at
   `design-system-v1/` as the visual-regression baseline, and re-apply the seven accessibility
   corrections from `design-system/ACCESSIBILITY-DELTA.md`. Then run
   `tests/Architecture/TokenParityTest.php` — it must pass **without** a baseline update, because v2's
   tokens are byte-identical to v1's; a failure means the re-vendoring went wrong, not that the design
   changed
-- [ ] T465 [P] Correct the `programs` nav icon from `graduation-cap` to `library` in
+- [X] T465 [P] Correct the `programs` nav icon from `graduation-cap` to `library` in
   `config/icons.php` and `config/navigation.php`, matching v2's `Shell.jsx`, and free
   `graduation-cap` for الطلبة as v2 reassigns it
-- [ ] T466 [P] Add the four new navigation translation keys — `nav_approvals`, `nav_myinitiatives`,
+- [X] T466 [P] Add the four new navigation translation keys — `nav_approvals`, `nav_myinitiatives`,
   `nav_studentsadmin`, `nav_support` — to `lang/ar/nav.php` and `lang/en/nav.php`, taking the Arabic
   strings verbatim from `design-system/ui_kits/web-app/i18n.js`. The `approvals` and `myinitiatives`
   keys are seeded now but their nav entries stay **absent** until C-19 and C-22 are decided
-- [ ] T467 [P] Copy `design-system/scratch/roster_sample.xlsx` and
+- [X] T467 [P] Copy `design-system/scratch/roster_sample.xlsx` and
   `design-system/uploads/filedownloadservlet(21)-4d54b7af.xlsx` into `tests/Fixtures/rosters/` and
   extend `tests/Feature/Imports/RegistrarRealFileTest.php` (T325) to run the registrar mode against
   **all three** real exports, asserting each resolves its branch, course, and section from its own
   metadata block. Three real files with differing column shapes is materially better evidence than one
-- [ ] T468 Extend `resources/views/students/index.blade.php` and `show.blade.php` to match v2's
+- [X] T468 Extend `resources/views/students/index.blade.php` and `show.blade.php` to match v2's
   `StudentsAdminScreen` and `StudentDialog` — the richer staff-side students view — reusing the existing
   `x-track-data-table`, adding the program column and the degree and activity columns from Amendment 1,
   and **reconciling its `StudentImportDialog` against the five import modes already specified** rather
   than adding a sixth. If it maps to an existing mode, wire it to that mode; if it does not, stop and
   raise it as a conflict rather than adding a mode
-- [ ] T469 [P] Update `tests/Visual/us4.spec.ts` baselines for the students screens changed by T468, and
+- [X] T469 [P] Update `tests/Visual/us4.spec.ts` baselines for the students screens changed by T468, and
   confirm every other baseline still matches — v2 changed no token, so any other diff is a defect in our
   implementation, not a design change
 
 **Checkpoint**: v2 is vendored, the icon and nav keys are corrected, three real registrar files are under
 test, and the students-admin screen matches the approved design — with nothing blocked touched.
+
+**Implementation notes (2026-10-13).** T464–T468 are done, two of them with deviations. T469 is **open**
+for the owner.
+
+- **T464.**
+  - v1 moved to `design-system-v1/`, and v2 was extracted into `design-system/` with a zip-slip check:
+    180 files, and the zip is exactly the 11,594,160 bytes recorded.
+  - Compared by SHA-256, `tokens/` (5 files), `components/` (86), `assets/` (16) and `guidelines/` (21)
+    are **byte-identical** to v1. `TokenParityTest` passes with no baseline update.
+  - v2 adds 6 files and changes 10, all screen-level. `design-system/VENDORED.md` records both lists.
+    v1's `VENDORED.md` now says it has been superseded.
+  - "Re-apply the seven corrections" needed no write. They are nine since the T061 amendment, they
+    live in `specs/…/ACCESSIBILITY-DELTA.md` and `resources/css/`, and never in `design-system/`. The
+    parity test reads them and v2's tokens together.
+  - Vite, PHPStan, Pint and `.gitattributes` already excluded `design-system-v1/`.
+- **T465.**
+  - `config/icons.php` was already right. `config/navigation.php` was not: it now has `programs` →
+    `library` and `students` → `graduation-cap`.
+  - `ProgramEndpointsTest` pinned the v1 icons, so it now asserts v2's and adds a rule: no two sidebar
+    entries share an icon unless they lead to the same route.
+  - **Found on the way:** the committed icon sprite (`public/icons/lucide.svg`) lacked `life-buoy`, the
+    support entry's icon since Phase 21. It was in `scripts/build-icons.mjs` but the sprite had not been
+    rebuilt, so the support link drew an empty icon. The sprite is now rebuilt (85 symbols).
+  - New `tests/Architecture/NavigationIconsInSpriteTest.php` checks every sidebar and concept icon
+    against the built sprite. Run against the stale sprite, it fails and names `life-buoy`.
+- **T466.**
+  - `approvals`, `myinitiatives` and `studentsadmin` were added to both `lang/*/nav.php`, keyed by entry
+    id as this platform's nav keys are (v2's `nav_` prefix dropped).
+  - `support` already existed, and its Arabic is now v2's verbatim «طلبات الدعم الفني».
+  - A test pins the keys in both locales, and pins that `approvals` and `myinitiatives` have **no** nav
+    entry for any role.
+- **T467: deviation, because the premise did not hold.** v2's "two more real exports" are the
+  original export under new names. By SHA-1, `scratch/roster_sample.xlsx`,
+  `uploads/filedownloadservlet(21)-4d54b7af.xlsx`, `scratch/roster.xlsx` and the original are one file
+  (22 students, section 2298).
+  - Copying them into `tests/Fixtures/rosters/` would run one file four times and call it four.
+  - `RegistrarRealFileTest` instead collects every `.xlsx` in the vendored design system **by content
+    hash**. Each distinct export must load end to end, and a pin records that there is one today, so a
+    genuinely different export in a later vendoring fails the pin until it is given a world. Nothing
+    was copied.
+  - The C-23 backlog's "three real exports currently in hand" is corrected below. Getting genuinely
+    different exports is a question for the registration unit.
+- **T468: done as the task instructs, building what can be built and raising the rest.**
+  - **Built** (`students/index`): the programme, degree, activity and sections-this-term columns.
+    Programme, degree and activity are the student's **sections'** (Amendment 1), listed distinct.
+  - **Built:** an open-requests count, shown only to a caller with `support.view`, never to an
+    instructor (FR-142). The figure uses `--text-warning`, not v2's `amber-600`, which A11Y-04 corrects.
+  - **Built:** search by name or University ID prefix; branch, section and programme filters that
+    narrow inside the caller's scope (a coordinator naming another branch gets nothing); and a result
+    count. The branch filter appears only when more than one branch is visible. For a college-wide
+    caller, the section list waits for a branch.
+  - **Built** (`students/show`): the enrollments table gains programme, degree and activity.
+  - The page costs a fixed number of queries. A mutant without the eager load fails the test.
+    `StudentsAdminListTest` has 10 tests, and axe on both screens is clean in both locales at 1440 and
+    390.
+  - **Not built**, by C-19 (retired) and C-23 (blocked):
+    - the email, phone and password-state columns;
+    - reset password and deactivate;
+    - `StudentDialog` (New and Edit, which require an email and phone).
+  - **Raised: C-24** in ui-conflicts.md. `StudentImportDialog` takes a flat student list with email,
+    phone and a per-student programme. It fits none of the five modes: without a section the students
+    would be visible to nobody (FR-043), and the programme belongs to sections. Options A–C are there;
+    A, drop it, is recommended. No sixth mode was added.
+  - The initiatives column and filter wait for the initiatives feature.
+  - The ui-conflicts "compatible in v2" table claimed full adoption. It now says what was adopted.
+- **T469: done 2026-10-13, approved by the owner.**
+  - Exactly two `us4.spec.ts` tests were run with `--update-snapshots` ("the students list" and "a
+    withdrawn enrollment keeps its row") on all eight screenshot projects: 18 passed and 6 skipped.
+  - Exactly **18** baseline files changed, all `*-students.png` and `ar-student-detail.png`, and no
+    other baseline.
+  - Checked by eye: Arabic and English at 1440 show the new columns, the filter bar and count, the
+    warning-coloured open request, and the corrected sidebar icons (T465). At 390 the list becomes
+    stacked cards. The detail page shows programme, degree and activity, with the date masked by the
+    test.
+  - "Every other baseline still matches" is the full Playwright run, which T461 still holds open.
+  - **Found while doing it:** Playwright writes a *missing* baseline automatically, even without
+    `--update-snapshots`. The full run stopped at 448 in Phase 25 therefore left **28 unapproved baseline
+    files**, untracked, written at about 09:10: `programs.spec.ts` (10), `us8.spec.ts` (4),
+    `us5-registrar.spec.ts` (5), `support-public-form.spec.ts` (3), `support-staff.spec.ts` (3) and
+    `support-status.spec.ts` (2), for ar-1280 and ar-1440 only. They are not approved. They are left for
+    the owner to approve or delete.
+
+**Code review fixes (2026-10-14).** The Phase 26 review found ten issues, and all ten are fixed:
+
+1. **Real student data, copied.** All four roster names, in both folders, are one git object
+   (`367236b9`), present since the initial commit, so Phase 26 adds names, not data. The repository
+   answers 404 to an anonymous request, so it is private. The registrar pin now records the content
+   hash and the count, not the four paths, so duplicates can be removed without editing tests.
+   `design-system/VENDORED.md` records all of this. **Owner decision:** whether real student data stays
+   in the repository at all.
+2. **"Open" requests left out Resolved.** The count now uses `SupportRequestStatus::isOpen()`, so
+   Resolved counts, as it does in the queue. Tested with resolved, closed and rejected; a mutant with
+   the old list fails it.
+3. **LIKE wildcards.** Backslash escaping without an ESCAPE clause does nothing on SQLite, and ESCAPE
+   would be raw SQL, which PHPStan refuses under the constitution's security floor. So instead:
+   - `university_id` takes **digits only**, in either script, and so cannot carry a wildcard;
+   - a name search drops `%`, `_` and `\`, which no name contains;
+   - a search of wildcards alone matches **nobody**.
+
+   Tests cover each of these, and a mutant without the stripping fails 3 of 4.
+4. **Wasted work.** The unused `withCount('enrollments')` is gone. The eager loads and the open-requests
+   count run for the screen only. A test checks that the API's rows touch neither `support_requests` nor
+   `programs`, and carry exactly the four record fields.
+5. **A full scan for every number typed.** An all-digit search, Arabic-Indic digits included, now uses
+   only the indexed `university_id` prefix. Names are searched only when the input is not a number.
+6. **The programme filter offered the whole catalogue.** It now lists the programmes of the caller's
+   current sections. A test checks that a coordinator is not offered, and does not reach, another
+   branch's programme.
+7. **Hidden truncation, and a stale section.** The section list fetches one more than its cap of 500 and
+   tells the user, in the select's hint, when it was cut. A `section_id` outside the chosen branch is
+   dropped, so the branch decides.
+8. **Tests.** `StudentsAdminListTest` grows to 28 tests. New: another branch's section or programme,
+   Resolved counted as open, wildcards, wildcards around a name, digit search in both scripts, the
+   legacy filter's validation and prefix, a student in sections of two programmes listing each once, a
+   withdrawn enrollment, a stale section, and the API's lean rows.
+9. **Sprite coverage.** `NavigationIconsInSpriteTest` now also requires the built sprite to be
+   **exactly** the list in `scripts/build-icons.mjs`; against the stale sprite it fails with "run
+   `npm run build:icons`". It also checks every icon named literally in a view or in `app/` (49 names),
+   with a control that the scan reaches them.
+10. **Non-roster spreadsheets.** `vendoredRegistrarExports()` keeps only files with the registrar
+    signature (a block starting «المقر», then a header with «رقم الطالب»). A new test proves the
+    signature tells a roster from a block-less sheet and from a non-spreadsheet.
+
+Gate after the fixes: `pint --test` pass, `phpstan analyse` 0 errors, full `php artisan test` 1,678 of 1,680 passed, 1 skipped, and 1 failed. The failure was `ResponseTimeFloorTest` (249.36 ms against a 250 ms floor). It is not Phase 26 code but a real gap: Windows `usleep` can wake early, and it failed one run in five. `ConstantResponseTime` now tops up once when a real sleep came up short; a faked Sleep is untouched. After the fix it passes 8 runs of 8, and the padding, enumeration and throttle suites pass 91/91.
+
+Gate: `pint --test` pass, `phpstan analyse` 0 errors, full `php artisan test` 1,657 of 1,659 passed, 1 skipped, and 1 failed. The failure was `NoHardcodedBranchesTest`, set off by a campus name used as an example in a code comment. The comment was reworded, and that test plus `tests/Feature/Students` pass (25/25).
 
 ---
 
@@ -1861,38 +2575,170 @@ and replaces it. Sequence T023 before T471, which the phase ordering guarantees.
 
 ### Tests — runs with Phase 7
 
-- [ ] T474 [P] [US4] Write `tests/Feature/Sections/CreatorDecidesApprovalTest.php` asserting a Super Admin's section is `active` immediately while an instructor's and a coordinator's are `pending`, and that the initial status is derived from the **authenticated user's role** and cannot be set from a request field (FR-171, FR-172, SC-039)
-- [ ] T475 [P] [US4] Write `tests/Feature/Sections/NoSelfApprovalTest.php` asserting a creator cannot decide their own section, and a coordinator cannot decide a section created by a coordinator of the **same branch** — both refused with **403**, not 404, because the caller can see it and merely may not decide it (FR-178, SC-040)
-- [ ] T476 [P] [US4] Write `tests/Feature/Sections/ApprovalScopeTest.php` asserting a coordinator's queue shows only **instructors'** pending sections from their own branches, and a Super Admin's shows every pending section (FR-177, FR-184)
-- [ ] T477 [P] [US4] Write `tests/Feature/Sections/RejectionReleasesNumberTest.php` asserting that after a rejection the same term, branch, course, and number can be used again, that two non-rejected sections with that combination are still refused, and that several rejected ones coexist (FR-176, SC-041)
-- [ ] T478 [P] [US4] Write `tests/Feature/Sections/ApprovalStateMachineTest.php` asserting every permitted transition in [data-model.md](./data-model.md) Group 8 succeeds and every other is refused, explicitly including that **`rejected` is terminal** and that no decision can be made on an `active` section (FR-180)
-- [ ] T479 [P] [US4] Write `tests/Feature/Sections/ReturnAndResubmitTest.php` asserting a return requires a reason of at least 10 characters, makes the section editable by its creator, shows the reason to them, and that resubmission returns it to `pending` (FR-179, FR-183)
-- [ ] T480 [P] [US4] Write `tests/Feature/Sections/PendingNotTargetableTest.php` asserting a pending, returned, or rejected section never appears in an initiative targeting preview, never receives an assignment, and never enters a completion denominator (FR-174). **This is the most consequential test in the phase** — a pending section leaking into targeting would corrupt completion figures
-- [ ] T481 [P] [US4] Write `tests/Feature/Sections/PendingHoldsEnrollmentsTest.php` asserting a creator can attach a roster at creation and that those enrollments survive both approval and rejection (FR-175)
-- [ ] T482 [P] [US4] Write `tests/Feature/Sections/RejectedExcludedFromListsTest.php` asserting rejected sections are absent from default lists but present when `status=rejected` is requested, and that pending and returned ones are present and badged (FR-181, FR-183)
-- [ ] T483 [P] [US4] Write `tests/Authorization/SectionApprovalEndpointsTest.php` with an allow case and a deny case for the four new routes, plus an out-of-scope 404 test and an instructor-denied test for the queue and the decision route
-- [ ] T484 [P] [US4] Write `tests/Feature/Sections/ApprovalAuditTest.php` asserting exactly one entry per decision from the five new action keys, each carrying the previous and new status and the reason where given (FR-182)
-- [ ] T485 [P] [US4] Write `tests/Feature/Sections/ApprovalVocabularyTest.php` asserting no interface string and no audit label renders a bare "approved" where both section approval and assignment review could be meant, and that the two vocabularies do not share a state name in the same view (FR-185, SC-043)
+- [X] T474 [P] [US4] Write `tests/Feature/Sections/CreatorDecidesApprovalTest.php` asserting a Super Admin's section is `active` immediately while an instructor's and a coordinator's are `pending`, and that the initial status is derived from the **authenticated user's role** and cannot be set from a request field (FR-171, FR-172, SC-039)
+- [X] T475 [P] [US4] Write `tests/Feature/Sections/NoSelfApprovalTest.php` asserting a creator cannot decide their own section, and a coordinator cannot decide a section created by a coordinator of the **same branch** — both refused with **403**, not 404, because the caller can see it and merely may not decide it (FR-178, SC-040)
+- [X] T476 [P] [US4] Write `tests/Feature/Sections/ApprovalScopeTest.php` asserting a coordinator's queue shows only **instructors'** pending sections from their own branches, and a Super Admin's shows every pending section (FR-177, FR-184)
+- [X] T477 [P] [US4] Write `tests/Feature/Sections/RejectionReleasesNumberTest.php` asserting that after a rejection the same term, branch, course, and number can be used again, that two non-rejected sections with that combination are still refused, and that several rejected ones coexist (FR-176, SC-041)
+- [X] T478 [P] [US4] Write `tests/Feature/Sections/ApprovalStateMachineTest.php` asserting every permitted transition in [data-model.md](./data-model.md) Group 8 succeeds and every other is refused, explicitly including that **`rejected` is terminal** and that no decision can be made on an `active` section (FR-180)
+- [X] T479 [P] [US4] Write `tests/Feature/Sections/ReturnAndResubmitTest.php` asserting a return requires a reason of at least 10 characters, makes the section editable by its creator, shows the reason to them, and that resubmission returns it to `pending` (FR-179, FR-183)
+- [X] T480 [P] [US4] Write `tests/Feature/Sections/PendingNotTargetableTest.php` asserting a pending, returned, or rejected section never appears in an initiative targeting preview, never receives an assignment, and never enters a completion denominator (FR-174). **This is the most consequential test in the phase** — a pending section leaking into targeting would corrupt completion figures
+- [X] T481 [P] [US4] Write `tests/Feature/Sections/PendingHoldsEnrollmentsTest.php` asserting a creator can attach a roster at creation and that those enrollments survive both approval and rejection (FR-175)
+- [X] T482 [P] [US4] Write `tests/Feature/Sections/RejectedExcludedFromListsTest.php` asserting rejected sections are absent from default lists but present when `status=rejected` is requested, and that pending and returned ones are present and badged (FR-181, FR-183)
+- [X] T483 [P] [US4] Write `tests/Authorization/SectionApprovalEndpointsTest.php` with an allow case and a deny case for the four new routes, plus an out-of-scope 404 test and an instructor-denied test for the queue and the decision route
+- [X] T484 [P] [US4] Write `tests/Feature/Sections/ApprovalAuditTest.php` asserting exactly one entry per decision from the five new action keys, each carrying the previous and new status and the reason where given (FR-182)
+- [X] T485 [P] [US4] Write `tests/Feature/Sections/ApprovalVocabularyTest.php` asserting no interface string and no audit label renders a bare "approved" where both section approval and assignment review could be meant, and that the two vocabularies do not share a state name in the same view (FR-185, SC-043)
 - [ ] T486 [P] [US4] Write `tests/Visual/section-approval.spec.ts` screenshotting the approval queue, the decision dialog, the return-reason dialog, and a badged pending section in the list, in both locales at all four widths, against v2's `ApprovalsScreen` and `ApprovalDialog` references
 
 ### Implementation — runs with Phase 7
 
-- [ ] T487 [US4] Extend `app/Models/Section.php` with the `status` cast, the `creator`, `reviewer`, and `approvalHistory` relations, a `scopeActive()`, and a `scopeAwaitingDecisionBy(User $u)` implementing the asymmetric rule in FR-177 and FR-178
-- [ ] T488 [US4] Extend `app/Modules/Sections/Actions/CreateSection.php` to derive `status` and `requires_approval` **from the authenticated user's role**, never from the request, write the first `section_approval_history` row, and audit `section.created` plus `section.submitted_for_approval` when pending
-- [ ] T489 [US4] Implement `app/Modules/Sections/Actions/DecideSectionApproval.php` extending `TransactionalAction` — approve, return, reject — enforcing the state machine, requiring a reason for return and reject, appending history, and auditing the matching action key
-- [ ] T490 [US4] Implement `app/Modules/Sections/Actions/ResubmitSection.php`, permitted only to the creator and only from `returned`, auditing `section.resubmitted`
-- [ ] T491 [US4] Extend `app/Modules/Sections/Policies/SectionPolicy.php` with the `approve` ability implementing FR-178: refuse when the actor is the creator, and refuse when the actor is a coordinator and the creator is a coordinator of the same branch. Both refusals are **403**
-- [ ] T492 [US4] Implement `GET /api/v1/sections/approvals` in `app/Modules/Sections/Http/Controllers/SectionApprovalController.php`, scoped by `scopeAwaitingDecisionBy`, ordered oldest-waiting-first, returning the creator with their role and the waiting time
-- [ ] T493 [US4] Implement `PATCH /api/v1/sections/{id}/approval` and `PATCH /api/v1/sections/{id}/resubmit` in the same controller, plus `GET /api/v1/sections/{id}/approval-history`
-- [ ] T494 [US4] Amend `POST /api/v1/sections` to accept an optional `roster` file and route it through the **existing** section import mode rather than a parallel path, and amend `GET /api/v1/sections` to exclude `rejected` by default while including pending and returned
-- [ ] T495 [US4] Apply the `active`-only constraint to initiative targeting as a **global scope on the targeting query**, not a filter at each call site, so a later endpoint cannot forget it (FR-174)
-- [ ] T496 [P] [US4] Build `resources/views/sections/approvals.blade.php` to v2's `ApprovalsScreen` reference — `x-track-data-table` with the creator, their role, the course, the branch, the enrollment count, the waiting time, and an `x-track-status-badge` per state
-- [ ] T497 [P] [US4] Build `resources/views/sections/_approval-dialog.blade.php` to v2's `ApprovalDialog` reference — the three decisions, with the reason textarea **required** for return and reject and an `x-track-dialog` danger variant for reject that restates that rejection is final
-- [ ] T498 [P] [US4] Add the status badge to the section list and detail views, and a return-reason `x-track-alert` on a returned section visible to its creator with a resubmit action (FR-183)
-- [ ] T499 [P] [US4] Add the `approvals` entry to `config/navigation.php` for `SUPER_ADMIN` and `BRANCH_COORDINATOR` with the `clipboard-check` icon — the entry T466 seeded and left hidden — and **not** for `INSTRUCTOR`
-- [ ] T500 [P] [US4] Add the section-approval translation keys to `lang/ar/sections.php` and `lang/en/sections.php`, taking the Arabic status vocabulary verbatim from v2: بانتظار الاعتماد · معادة للتعديل · مرفوضة · معتمدة — and the five new audit `action_label` entries
+- [X] T487 [US4] Extend `app/Models/Section.php` with the `status` cast, the `creator`, `reviewer`, and `approvalHistory` relations, a `scopeActive()`, and a `scopeAwaitingDecisionBy(User $u)` implementing the asymmetric rule in FR-177 and FR-178
+- [X] T488 [US4] Extend `app/Modules/Sections/Actions/CreateSection.php` to derive `status` and `requires_approval` **from the authenticated user's role**, never from the request, write the first `section_approval_history` row, and audit `section.created` plus `section.submitted_for_approval` when pending
+- [X] T489 [US4] Implement `app/Modules/Sections/Actions/DecideSectionApproval.php` extending `TransactionalAction` — approve, return, reject — enforcing the state machine, requiring a reason for return and reject, appending history, and auditing the matching action key
+- [X] T490 [US4] Implement `app/Modules/Sections/Actions/ResubmitSection.php`, permitted only to the creator and only from `returned`, auditing `section.resubmitted`
+- [X] T491 [US4] Extend `app/Modules/Sections/Policies/SectionPolicy.php` with the `approve` ability implementing FR-178: refuse when the actor is the creator, and refuse when the actor is a coordinator and the creator is a coordinator of the same branch. Both refusals are **403**
+- [X] T492 [US4] Implement `GET /api/v1/sections/approvals` in `app/Modules/Sections/Http/Controllers/SectionApprovalController.php`, scoped by `scopeAwaitingDecisionBy`, ordered oldest-waiting-first, returning the creator with their role and the waiting time
+- [X] T493 [US4] Implement `PATCH /api/v1/sections/{id}/approval` and `PATCH /api/v1/sections/{id}/resubmit` in the same controller, plus `GET /api/v1/sections/{id}/approval-history`
+- [X] T494 [US4] Amend `POST /api/v1/sections` to accept an optional `roster` file and route it through the **existing** section import mode rather than a parallel path, and amend `GET /api/v1/sections` to exclude `rejected` by default while including pending and returned
+- [X] T495 [US4] Apply the `active`-only constraint to initiative targeting as a **global scope on the targeting query**, not a filter at each call site, so a later endpoint cannot forget it (FR-174)
+- [X] T496 [P] [US4] Build `resources/views/sections/approvals.blade.php` to v2's `ApprovalsScreen` reference — `x-track-data-table` with the creator, their role, the course, the branch, the enrollment count, the waiting time, and an `x-track-status-badge` per state
+- [X] T497 [P] [US4] Build `resources/views/sections/_approval-dialog.blade.php` to v2's `ApprovalDialog` reference — the three decisions, with the reason textarea **required** for return and reject and an `x-track-dialog` danger variant for reject that restates that rejection is final
+- [X] T498 [P] [US4] Add the status badge to the section list and detail views, and a return-reason `x-track-alert` on a returned section visible to its creator with a resubmit action (FR-183)
+- [X] T499 [P] [US4] Add the `approvals` entry to `config/navigation.php` for `SUPER_ADMIN` and `BRANCH_COORDINATOR` with the `clipboard-check` icon — the entry T466 seeded and left hidden — and **not** for `INSTRUCTOR`
+- [X] T500 [P] [US4] Add the section-approval translation keys to `lang/ar/sections.php` and `lang/en/sections.php`, taking the Arabic status vocabulary verbatim from v2: بانتظار الاعتماد · معادة للتعديل · مرفوضة · معتمدة — and the five new audit `action_label` entries
 
 **Checkpoint**: instructors and coordinators can set up their own sections without queueing behind the central office, nothing enters an initiative until it is approved, and no one approves their own work.
+
+**Implementation notes (2026-10-14).** T474–T485 and T487–T500 are done. **T486 is open for the owner**:
+its spec is written and runs, and its baselines need approving.
+
+- **A bug fixed on the way in: coordinators' sections were born active.** The existing create path read
+  `section.approve`, which a coordinator holds, so FR-172's Super Admin approval was skipped.
+  `CreateSection` (T488) derives the status from the role, through `scope.bypass_all`, never from a
+  permission or a request field. `CreatorDecidesApprovalTest` pins all three roles, and that a posted
+  `status`, `requires_approval` or `created_by` is ignored.
+- **Model (T487).**
+  - `SectionStatus` holds the state machine: `decisions()`, `canBecome()`, `canResubmit()`, the decision
+    → state mapping, the audit key, and the label key.
+  - The column stays a string, because a lot of earlier code compares it as one.
+  - New: `scopeActive()`, `scopeAwaitingDecisionBy(User)` (FR-177 and FR-178's asymmetry, through the creator's
+    `section.approve`), and
+    `approvalHistory()`.
+  - A `saving` guard refuses `returned` or `rejected` without a reason.
+  - `SectionApprovalHistory` is append-only: an update or a delete throws.
+  - `section.created` now carries `creator_role` and `created_by`.
+- **Actions (T488–T490).**
+  - `DecideSectionApproval` and `ResubmitSection` re-read the section under a lock, save quietly, and
+    write one named entry each, so no generic `section.updated` appears beside it (T484).
+  - A resubmission records only the fields that actually changed.
+  - The roster (T494) goes through the **existing** `UploadImport` in section mode, inside the create
+    transaction, so a refused file refuses the section too. The response carries `import_job_id`.
+- **Policy (T491).** `approve(User, ?Section)` refuses with **403** the creator, and a coordinator
+  whenever the creator could approve sections themselves (a fellow coordinator, or one who also teaches).
+  Those go to the Super Admin. `resubmit` admits the creator only.
+  - "Could approve" is the creator's own `section.approve`, **never a role name**. The first version
+    tested the `INSTRUCTOR` role, and `NewRoleNeedsNoCodeChangeTest` (FR-020) refused it. The permission
+    rule also covers a mixed-role creator without a special case.
+- **Routes (T492, T493).** The queue, the decision, the resubmission and the history, plus the queue
+  screen at `/sections/approvals`. Each is named, in the `UserEndpointsTest` matrix, and has allow and
+  deny pairs in `SectionApprovalEndpointsTest` (T483).
+  - Binding runs before `can:`, so a caller who cannot see the section gets a **404**, not a 403. That is
+    the platform's scope-before-policy rule, and it is asserted.
+- **Lists (T494).** A rejected section is out of every default list and the export; `status=rejected`
+  asks for it. An unknown status matches nothing. `created_by` filters.
+- **Scope change, recorded in data-model.md "Scoping and visibility".** An instructor's accessible
+  sections now include those they **created** (FR-183): otherwise one created without naming themselves
+  instructor was invisible to them, return reason included.
+  - The first version applied this to coordinators too. That switched SectionScope on for them, and a
+    coordinator who had created one section saw only that section in their branch. `ApprovalScopeTest`
+    found it, and the rule now applies only to callers the branch scope does not govern.
+- **T480, T495: deviation, because initiative targeting is not built in this release.** There is no
+  preview, assignment or denominator to filter.
+  - `TargetableSection` is the sanctioned targeting query: a read-only `Section` whose **global scope**
+    admits `active` only.
+  - `PendingNotTargetableTest` proves that pending, returned and rejected sections never appear, that
+    an approval makes a section appear, that writes are refused, and that no code in `app/`, `routes/` or
+    views touches `initiative_sections` or `initiative_targets` any other way.
+  - The preview, assignment and denominator assertions land with the initiatives feature.
+- **Screens (T496–T498).**
+  - `sections/approvals`, the queue, has a fixed number of queries per page (tested).
+  - `_approval-dialog` holds approve-or-return with an optional reason, plus a separate reject danger
+    confirmation that restates finality and requires the reason.
+  - The section number is badged in the list for non-active states. Active rows are unchanged, so the
+    existing list baselines hold where nothing is pending.
+  - The detail page shows the badge, the return or rejection reason, and the decision and resubmit
+    actions.
+  - **Found on the way:** `x-track-page-header` never rendered its default slot, so the section detail's
+    FR-026 "shared" badge had never appeared. Fixed, with `.track-page-header__badges`.
+- **Nav (T499).** `approvals` uses `clipboard-check`, for SUPER_ADMIN and BRANCH_COORDINATOR, after
+  `sections` as v2 has it, and never for INSTRUCTOR. The icon joined `build-icons.mjs` and the sprite was
+  rebuilt (86 symbols). T466's test now pins `myinitiatives` alone as absent.
+- **Vocabulary (T500).**
+  - The Arabic states are v2's verbatim: بانتظار الاعتماد · معادة للتعديل · مرفوضة · معتمدة.
+  - The English names the section every time ("Section approved", not v2's bare "Approved"), per
+    FR-185.
+  - There are five audit labels per locale.
+  - `contracts/audit.md` gains the five keys, and `ActionCoverageTest` performs each through its
+    endpoint: 48 keys.
+- **T486: open.** `tests/Visual/section-approval.spec.ts` covers the queue, the decision dialog, the
+  reject confirmation, the returned section with its reason, and the badged list, in both locales at
+  every width.
+  - `UiFixtureSeeder::seedApprovalSections` adds section 20 (pending) and 21 (returned), both instructor
+    5's.
+  - It was run at 1440 in both locales with `--update-snapshots=none`, so **no baseline was written**.
+    All nine flows reach their screenshot step and stop only at the missing baselines.
+  - The two new fixture sections also appear in the existing section lists, so those baselines change
+    as well. Approving them is the owner's call.
+
+Gate: `pint` pass, `phpstan analyse` 0 errors, full `php artisan test` **1,770 passed, 1 skipped, 0 failed** (1,771 total). Two earlier full runs found five problems, all fixed:
+  - a role name in the policy (FR-020);
+  - the new screen missing from the screen registry;
+  - a spike table named in a comment;
+  - an older schema test rejecting without a reason;
+  - the `gender()` accessor, deleted by my own edit and restored from git.
+
+  `ChallengeTest` failed once in one of those runs and passed 3 runs of 3 alone, so it is timing-flaky and unrelated.
+
+**Code review fixes (2026-10-14).** The Phase 27 review found ten issues. All ten are fixed, each with a
+test in `ApprovalReviewRegressionsTest` (15 tests):
+
+1. **Creators kept reading sections they did not teach (student data).** `accessibleSectionIds()` gave
+   an instructor every section they had created, permanently. Every scoped model shares that list, so a
+   creator kept reading the roster, students and support requests of a colleague's approved section.
+   The `created` set now holds **non-active** sections only: the creator's claim lasts while the section
+   awaits a decision or was refused. A mutant without the limit fails the test.
+2. **Roster at creation.**
+   - An instructor who left `instructor_id` empty was refused. `SectionPolicy::importRoster` now admits
+     the creator of a section still awaiting approval.
+   - A coordinator holds **no import permission at all** (`import.view` only), so their roster is now
+     refused with a 422 **before** the section is created, not by rolling it back.
+   - **Owner decision:** whether coordinators should hold `import.section.run`, which FR-175 implies.
+     It would take the permission set past 47.
+3. **The reason guard was skipped.** `saveQuietly()` suppresses the model's `saving` guard. The decision
+   action now refuses a return or reject with a reason under 10 characters itself, whoever calls it. A
+   mutant without the check fails all 3 cases.
+4. **Queue and policy disagreed on a deleted creator.** `Section::creator()` is now `withTrashed()`, so
+   both see the same creator, and a deleted instructor's request stays decidable.
+5. **Rejected sections were still counted.**
+   - The home dashboard tile now excludes rejected sections, and its enrollment counts exclude their
+     enrollments.
+   - The students list's "current sections", behind its filters, are **active** only, matching
+     `currentlyHeld()`.
+6. **A transaction was held across the spreadsheet parse.** `UploadImport` has a `stage()` step
+   (validate, store, header, hash) and an `executeStaged()` insert. `CreateSection` stages the roster
+   **before** its transaction, so the new section's row is locked for two inserts only. A refused or
+   abandoned roster leaves no stored file (tested). `execute()` is unchanged for every other caller.
+7. **A returned section could not be corrected on screen.** `_resubmit-dialog` lets the creator correct
+   the course, programme, number, degree and activity, prefilled, through the same form request.
+   Options are built only for the creator of a returned section. Term and branch stay, because changing
+   either is a new section.
+8. **A raced duplicate number gave a 500.** `CreateSection` and `ResubmitSection` turn the index's
+   unique violation into the same 422 on `section_number` that the form request gives.
+9. **The targeting guard missed indirect references.** It now matches the bare table name anywhere,
+   plus a concatenated `'initiative_'.`, and a probe proves raw SQL, concatenation and a variable are
+   caught.
+10. **An array status gave a 500.** `status[]=` and any non-string status match nothing, never a 500.
+
+Gate after the fixes: `pint` pass, `phpstan analyse` 0 errors, full `php artisan test` **1,785 passed, 1 skipped, 0 failed** (1,786 total).
 
 ---
 
@@ -1907,8 +2753,9 @@ constitution's PDPL minimisation rule.
 - [ ] T-C02 If a contact can be supplied and is accepted, add it to a `student_contacts` table rather
   than to `students`, keeping the minimisation rule and T105 intact, and record the PDPL basis and
   retention period
-- [ ] T-C03 Extend the registrar import to carry the contact if the export gains the column — the three
-  real exports currently in hand have four columns and none is a contact
+- [ ] T-C03 Extend the registrar import to carry the contact if the export gains the column. The export
+  in hand has four columns and none is a contact. *Corrected 2026-10-13 (T467): it is **one** export,
+  not three; v2's "further" exports are the same file under other names (by SHA-1)*
 
 
 ## Dependencies & Execution Order

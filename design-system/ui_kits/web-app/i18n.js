@@ -95,5 +95,7 @@ function lbl(lang,prefix,code){const d=EXTRA[lang]||EXTRA.ar;const k=prefix+'.'+
 function t(lang,key,p){let s=(I18N[lang]||I18N.ar)[key];if(s==null)s=key;if(p)for(const k in p)s=s.split('{'+k+'}').join(p[k]);return s;}
 function fmtDate(iso){if(!iso)return '—';const d=iso.slice(0,10).split('-');return d[2]+'/'+d[1]+'/'+d[0];}
 function fmtDateTime(iso){if(!iso)return '—';return fmtDate(iso)+' '+iso.slice(11,16);}
+Object.assign(I18N.ar,{nav_support:'طلبات الدعم الفني',nav_studentsadmin:'الطلبة',nav_approvals:'اعتماد الشعب',nav_myinitiatives:'مبادراتي',role_STUDENT:'طالب'});
+Object.assign(I18N.en,{nav_support:'Support requests',nav_studentsadmin:'Students',nav_approvals:'Section approvals',nav_myinitiatives:'My initiatives',role_STUDENT:'Student'});
 window.TRACK_I18N={I18N,t,fmtDate,fmtDateTime,lbl};
 })();

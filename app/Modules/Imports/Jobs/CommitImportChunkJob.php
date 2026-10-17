@@ -16,6 +16,7 @@ use App\Modules\Imports\Notifications\ImportFinished;
 use App\Modules\Imports\Pipeline\ImportReasons;
 use App\Modules\Imports\Pipeline\Resolver;
 use App\Modules\Imports\Policies\ImportJobPolicy;
+use App\Modules\Imports\Support\ImportFiles;
 use Closure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -287,6 +288,13 @@ final class CommitImportChunkJob implements ShouldQueue
             'finished_at' => now(),
             'heartbeat_at' => now(),
         ])->save();
+
+        /*
+         * SEC-062 (G-05): the rows are staged and committed, so the uploaded roster is no longer
+         * read by anything. After the commit, never inside it: a rollback must not lose the file
+         * of an import that did not, in the end, complete.
+         */
+        DB::afterCommit(static fn (): bool => ImportFiles::discard($job, 'completed'));
 
         app(Auditor::class)->record('import.committed', $job, [], [
             'file' => $job->original_filename,

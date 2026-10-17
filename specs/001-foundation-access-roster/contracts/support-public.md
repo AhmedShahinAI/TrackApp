@@ -2,15 +2,27 @@
 
 Conventions and the binding **anti-enumeration contract**: [README.md](./README.md).
 
-These five routes are the entire public surface of the TRACK platform — two that act and three that
+These five entries are the entire public surface of the TRACK platform — two that act and three that
 serve them. They live in `routes/public.php`, outside the `auth:sanctum` stack, and are bounded by
-`tests/Architecture/PublicSurfaceBoundedTest.php`.
+`tests/Architecture/PublicSurfaceBoundedTest.php`. That makes **six routes**: `POST /support/status`
+also has the page it is posted from, `GET /support/status` (Phase 22), documented in the same entry.
+The bound pins all six by method and URI, and maps each one to the entry that documents it (Phase 25,
+T456).
 
 Every route here:
 
 - creates no account, credential, or session (FR-124);
 - exposes no record belonging to anyone other than the caller's own request (FR-134);
-- is padded to `support_min_response_ms` (FR / [research.md](../research.md) R-10);
+- **when it takes an identifier** (`POST /support`, and the status lookup in Phase 22), is padded to
+  `support_min_response_ms` (FR / [research.md](../research.md) R-10) — **except a 429**,
+  which returns at once: its status already says "refused", and padding it would let a refused flood
+  hold the PHP workers (Phase 19 review). The page views — the form, the challenge, the confirmation —
+  are not padded: they take no identifier, so there is no timing to hide, and padding them would only
+  park workers in a sleep (Phase 20 review);
+- refuses every rate limit — the `public` floor, the address limit, the identifier limit — with one
+  body and no `X-RateLimit-*` header (on **any** response, not only refusals: Phase 20,
+  `HideRateLimitState`), and the two submission limits with one `Retry-After`: the longer
+  configured window, never the time left on whichever counter fired (FR-130);
 - carries CSRF protection — Laravel's guest session cookie supplies the token, and a public form is not
   an excuse to disable it.
 
@@ -122,15 +134,22 @@ rejection reason where present, and every staff response with its date.
 identifier echoed back, the originating IP, and anything belonging to any other student.
 
 **422** with **one body, identical** whether the reference does not exist or the University ID does not
-match it (FR-135):
+match it (FR-135). It names both fields (Phase 22 review): a student with the right reference and a
+mistyped ID was sent back to re-check the reference.
 
 ```json
-{ "message": "لم يتم العثور على طلب بهذا الرقم المرجعي." }
+{ "message": "لا يوجد طلب يطابق هذا الرقم المرجعي والرقم الجامعي معًا. تحقّق منهما وحاول مرة أخرى." }
 ```
 
 **429** per `support_status_throttle_ip`, which is tighter than submission because this endpoint is the
 guessing surface: an attacker holding a stolen reference would otherwise brute-force the University ID
 against it (FR-131).
+
+*As built (Phase 22 review):* two counters, both counted on arrival and both refunded when the lookup
+finds its request, so only failures stay counted. One is per address (an IPv6 address by its /64), and
+one per reference typed (`support_status_throttle_reference`), which counts real and invented references
+alike. The 429 carries the longer window, whichever counter fired. A failed lookup re-renders the form
+without echoing either field, and an empty field does not flash the other back either.
 
 **Not audited.** A read that exposes only the caller's own request, with no state change, does not meet
 the constitution's definition of a sensitive action. Recording every status poll would fill the audit log

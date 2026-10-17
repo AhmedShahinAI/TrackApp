@@ -117,7 +117,7 @@ function ImportWizard({params,notify}){
         :<><div style={{font:'700 15px var(--font-sans)'}}>{t('drop')}</div><div style={{font:'400 13px var(--font-sans)',color:'var(--text-secondary)',marginTop:4}}>{t('drop_hint')}</div></>}
         <div style={{display:'flex',gap:8,justifyContent:'center',marginTop:16,flexWrap:'wrap'}}>
           <input ref={fileRef} type="file" accept=".xlsx,.csv" onChange={onFile} style={{display:'none'}}/>
-          <Button variant="secondary" icon="download" onClick={()=>downloadTemplate(mode==='central'?'track_central_roster_template.csv':'track_section_roster_template.csv',mode==='central'?[CENTRAL_HEADERS,sampleCentral(st)[0].slice(0,CENTRAL_HEADERS.length)]:[['تسلسل','رقم الطالب','اسم الطالب','الحالة'],['1','442104959','اسم الطالب الرباعي','منتظم']])}>{lang==='en'?'Download template':'تنزيل القالب'}</Button>
+          <Button variant="secondary" icon="download" onClick={()=>downloadTemplate(mode==='central'?'track_central_roster_template.csv':'track_section_roster_template.csv',mode==='central'?[CENTRAL_HEADERS,sampleCentral(st)[0].slice(0,CENTRAL_HEADERS.length)]:[['تسلسل','رقم الطالب','اسم الطالب','الحالة'],['1','999000001','اسم الطالب الرباعي','منتظم']])}>{lang==='en'?'Download template':'تنزيل القالب'}</Button>
           <Button variant="secondary" icon="folder-open" onClick={()=>fileRef.current&&fileRef.current.click()}>{t('choose')}</Button>
           <Button variant="ghost" size="sm" icon="file-spreadsheet" onClick={()=>pickSample()}>{t('use_sample')}</Button>
           <Button variant="ghost" size="sm" onClick={()=>pickSample('big')}>{lang==='en'?'Try 25 MB file':'تجربة ملف 25MB'}</Button>

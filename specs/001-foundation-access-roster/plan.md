@@ -187,7 +187,8 @@ app/
 │   ├── Audit/                 # Auditor service, observers, audit log query & export
 │   ├── AcademicTerms/         # term CRUD, lifecycle, current-term flag
 │   ├── AcademicStructure/     # branches, courses, programs (Amendment 1)
-│   ├── Sections/              # sections, instructor change + history, access grants
+│   ├── Sections/              # sections, instructor change + history, access grants; Amendment 4:
+│   │                          #   CreateSection, DecideSectionApproval, ResubmitSection, SectionStatus
 │   ├── Students/              # students, enrollments, withdrawal
 │   ├── Imports/               # 6-step wizard, 5 modes, jobs, readers, validators, error report
 │   │   ├── Jobs/              # ValidateImportJob, CommitImportChunkJob
@@ -199,7 +200,8 @@ app/
 │   ├── Support/               # Amendment 2 — public form, status check, staff queue
 │   │   ├── Http/Controllers/Public/  # the only unauthenticated controllers in the platform
 │   │   ├── Services/          # VerifyStudentIdentity, ReferenceGenerator, Challenge/
-│   │   └── Actions/           # Submit, Respond, Transition, AnonymiseExpired
+│   │   ├── Actions/           # Submit, Respond, Transition, Reassign, AnonymiseExpiredRequests
+│   │   └── Jobs/              # AnonymiseExpiredRequestsJob — the daily retention sweep (Phase 25)
 │   └── Shared/                # base controller, API envelope, pagination, audit contract
 ├── Models/                    # Eloquent models (shared across modules)
 └── Providers/                 # ModuleServiceProvider registering each module
@@ -497,8 +499,13 @@ constitution v1.1.0's "Public endpoints" subsection as well as the eight princip
   audited with a **null actor** plus `channel: public` and the IP — the `user_id` column is already
   nullable, so the entry is honest about having no authenticated author rather than inventing a system
   user. **PASS**.
-- **IV (Configuration over code)**: seven new settings keys — categories, the description limit, three
-  throttle thresholds, the timing floor, and the retention period. `status` stays a database enum
+- **I (Branch scope), Phase 23**: the support queue's branch column and filter are shown to the Super
+  Admin and to coordinators of several branches (narrowing within their own), hidden for a
+  single-branch coordinator — a widening of T442's "Super Admin-only", recorded in
+  contracts/support-staff.md. **PASS**.
+- **IV (Configuration over code)**: nine new settings keys — categories, the description limit, three
+  throttle thresholds, the timing floor, the retention period, and (Phases 19–20) the challenge
+  difficulty, the `public` group's flood floor and the form's minimum elapsed time. `status` stays a database enum
   because it is a workflow contract the audit log depends on; `category` does not, because it is a
   label the Super Admin may extend. **PASS**.
 - **V (Historical integrity)**: retention **anonymises** rather than deletes, clearing exactly three

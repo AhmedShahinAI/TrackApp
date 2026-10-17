@@ -82,6 +82,11 @@ test('no screen ships an inline script or style element the policy would block',
     expect($scripts[0])->toBe([])->and($styles[0])->toBe([]);
 })->with(array_keys(screens()));
 
-test('the health probe is outside the web group and its policy', function (): void {
-    expect($this->getJson('/health')->headers->has('Content-Security-Policy'))->toBeFalse();
+test('the health probe is outside the web group, and still carries the policy', function (): void {
+    // Outside `web`: no session, no cookies, no CSRF for a probe that runs every few seconds (T276).
+    $route = collect(Illuminate\Support\Facades\Route::getRoutes()->getRoutes())->first(fn ($r) => $r->getName() === 'health');
+    expect($route->gatherMiddleware())->not->toContain('web');
+
+    // But not outside the headers: SEC-071 (G-06) gives it the same set through EnsureSecurityHeaders.
+    expect($this->getJson('/health')->headers->has('Content-Security-Policy'))->toBeTrue();
 });

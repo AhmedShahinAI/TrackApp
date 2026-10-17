@@ -61,10 +61,21 @@ final class AuditLogResource extends JsonResource
             'entity_label' => $this->entityLabel(),
             'old_values' => $this->old_values,
             'new_values' => $this->new_values,
-            'ip_address' => $this->ip_address,
-            'user_agent' => $this->user_agent,
+            /*
+             * SEC-064 — the owner's decision D-5 (security plan G-13): another person's network
+             * address and browser are the Super Admin's to see, not a coordinator's. The keys stay,
+             * null, so a client sees one shape whoever asks.
+             */
+            'ip_address' => $this->showsNetworkDetails($request) ? $this->ip_address : null,
+            'user_agent' => $this->showsNetworkDetails($request) ? $this->user_agent : null,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
+    }
+
+    /** D-5: only whoever holds scope.bypass_all — the Super Admin — sees addresses and browsers. */
+    private function showsNetworkDetails(Request $request): bool
+    {
+        return (bool) $request->user()?->can('scope.bypass_all');
     }
 
     /**

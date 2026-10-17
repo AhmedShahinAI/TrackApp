@@ -43,6 +43,7 @@
             ?? __('sections.unassigned'),
         'enrollments' => $section->active_enrollments ?? 0,
         'shared' => $section->shared_access,
+        'approval' => $section->status,
     ])->all();
 
     // Declared outside the attribute. A nested array literal inside a double-quoted Blade attribute
@@ -70,8 +71,20 @@
      *      screen's baseline without complaint.
      */
     $renderers = [
+        /*
+         * T498 — FR-183: a pending, returned or rejected section is badged beside its number, in the
+         * section vocabulary (FR-185), so its creator sees its state in the list they already use. An
+         * approved one shows the number alone: active is the ordinary case, and badging every row
+         * would make the exceptions harder to see.
+         */
         'section_number' => fn (array $row) => new Illuminate\Support\HtmlString(
             '<span dir="ltr" class="track-code">'.e((string) $row['section_number']).'</span>'
+            .($row['approval'] !== App\Modules\Sections\Enums\SectionStatus::Active->value
+                ? ' '.Illuminate\Support\Facades\Blade::render(
+                    '<x-track-status-badge :status="$status">{{ $label }}</x-track-status-badge>',
+                    ['status' => $row['approval'], 'label' => __('sections.approval.status.'.$row['approval'])],
+                )
+                : '')
         ),
 
         'shared' => fn (array $row) => $row['shared']

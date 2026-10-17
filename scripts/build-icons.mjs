@@ -67,6 +67,15 @@ const ICONS = {
         // US5's upload drop zone (T241).
         'cloud-upload',
     ],
+    support: [
+        // Amendment 2: the staff queue's sidebar entry (T421) and the public form's submit (T395),
+        // which rendered no icon until this list knew it — an unknown name draws nothing.
+        'life-buoy', 'send', 'message-square', 'user-check',
+    ],
+    approval: [
+        // Amendment 4: the section approval queue's sidebar entry (T499).
+        'clipboard-check',
+    ],
 };
 
 try {

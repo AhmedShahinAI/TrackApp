@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Support\Policies;
 
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 /**
  * T373 — who may do what to a support request (data-model.md Group 7 "Permissions").
@@ -28,9 +29,14 @@ use App\Models\User;
  */
 final class SupportRequestPolicy
 {
-    public function viewAny(User $actor): bool
+    /**
+     * The queue. Refused **as not found** (Phase 23, SC-038): an instructor "has no route to any
+     * request", and a 403 on the queue tells them there is one they are kept from. Every bound support
+     * address already answers them 404 through the scope; this makes the one unbound address agree.
+     */
+    public function viewAny(User $actor): Response
     {
-        return $actor->can('support.view');
+        return $actor->can('support.view') ? Response::allow() : Response::denyAsNotFound();
     }
 
     public function view(User $actor): bool

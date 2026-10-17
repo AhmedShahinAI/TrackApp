@@ -23,6 +23,9 @@
 @php
     $locale = app()->getLocale();
 
+    // SEC-064 (D-5): addresses are the Super Admin's to see, not a coordinator's.
+    $showsNetwork = (bool) auth()->user()?->can('scope.bypass_all');
+
     $rows = $entries->map(fn ($entry) => [
         'id' => $entry->id,
         'when' => Format::dateTime($entry->created_at),
@@ -32,7 +35,7 @@
         'entity' => $entry->entity_type === null
             ? '—'
             : __('audit.entities.'.$entry->entity_type).($entry->entity_id ? ' #'.$entry->entity_id : ''),
-        'ip' => $entry->ip_address,
+        'ip' => $showsNetwork ? $entry->ip_address : null,
         'old' => $entry->old_values,
         'new' => $entry->new_values,
     ])->all();
@@ -173,14 +176,14 @@
             :caption="__('nav.audit')"
             :empty="__('audit.empty')"
             empty-icon="shield-check"
-            :columns="[
+            :columns="array_values(array_filter([
                 ['key' => 'when', 'label' => __('audit.fields.created_at'), 'numeric' => true],
                 ['key' => 'actor', 'label' => __('audit.fields.user')],
                 ['key' => 'action', 'label' => __('audit.fields.action')],
                 ['key' => 'entity', 'label' => __('audit.fields.entity_type'), 'numeric' => true],
-                ['key' => 'ip', 'label' => __('audit.fields.ip_address'), 'numeric' => true],
+                $showsNetwork ? ['key' => 'ip', 'label' => __('audit.fields.ip_address'), 'numeric' => true] : null,
                 ['key' => 'diff', 'label' => __('audit.details'), 'sortable' => false],
-            ]"
+            ]))"
             :rows="$rows"
             :renderers="$renderers"
         />

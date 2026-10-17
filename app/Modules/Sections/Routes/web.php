@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Sections\Http\Controllers\SectionApprovalController;
 use App\Modules\Sections\Http\Controllers\SectionController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,10 +17,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
+Route::middleware(['auth', 'active', 'session.auth', 'password.own'])->group(function (): void {
     Route::get('/sections', [SectionController::class, 'index'])
         ->middleware('can:section.view')
         ->name('sections.index');
+
+    // T496 — the approval queue screen. Before `/sections/{section}`, which would bind "approvals".
+    Route::get('/sections/approvals', [SectionApprovalController::class, 'index'])
+        ->middleware('can:section.approve')
+        ->name('sections.approvals');
 
     Route::get('/sections/{section}', [SectionController::class, 'show'])
         ->middleware('can:section.view')

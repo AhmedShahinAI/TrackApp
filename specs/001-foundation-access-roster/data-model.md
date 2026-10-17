@@ -405,12 +405,14 @@ Group 1–6 schema.
 | `status` | enum(`new`,`in_progress`,`resolved`,`closed`,`rejected`) | The one fixed vocabulary in this feature — the audit log depends on it |
 | `rejection_reason` | varchar(500) nullable | Mandatory when `status` becomes `rejected` (FR-149). Visible to the student |
 | `assigned_to` | FK → `users.id` nullable | |
-| `submitted_ip` | varchar(45) | IPv6-capable. Recorded on every accepted request (FR-123). Cleared on anonymisation |
+| `submitted_ip` | varchar(45) nullable | IPv6-capable. Nullable only so retention can clear it (Phase 25 migration). Recorded on every accepted request (FR-123). Cleared on anonymisation |
 | `anonymised_at` | timestamp nullable | Stamped by the retention sweep |
 
 **Indexes**: `reference` unique · `(status, created_at)` for the queue's default ordering ·
 `(student_id)` for the branch-scope join · `(category, created_at)` for filtering · `(assigned_to)` ·
-`(created_at)` for the retention sweep.
+`(created_at)` for the date filters · `(anonymised_at, created_at)` for the retention sweep and the
+monitor's overdue check. *Added by the Phase 25 review: with `created_at` alone, both read every request
+already anonymised, and those are never deleted.*
 
 ### Why `status` is a database enum while `category` is not
 
@@ -487,7 +489,7 @@ college-wide view. An instructor holds none of the four (FR-142).
 
 ## Settings
 
-Eight new keys, all read through feature 001's existing cached facade (`SupportSettingSeeder`, T367). None
+Twelve new keys, all read through feature 001's existing cached facade (`SupportSettingSeeder`, T367). None
 of these values appears as a literal anywhere in code. A rate limit is **one** row holding
 `{max_attempts, decay_minutes}`, read with `Settings::limit()`, so a count and its window cannot be edited
 out of step.
@@ -498,10 +500,14 @@ out of step.
 | `support_description_max` | 2000 | FR-121 |
 | `support_throttle_ip` | 5 per hour | FR-126 |
 | `support_throttle_identifier` | 3 per hour | FR-127 |
-| `support_status_throttle_ip` | 10 per hour | FR-131 |
+| `support_status_throttle_ip` | 4 failed lookups per hour | FR-131. *Phase 22 review: was 10 — looser than submission's 5, contrary to T426. Counts failures only (a found request is refunded)* |
+| `support_status_throttle_reference` | 5 failed lookups per hour | FR-131. *Added by the Phase 22 review: per reference, from any number of addresses, so a botnet cannot walk University IDs against one stolen reference* |
 | `support_min_response_ms` | 400 | [research.md](./research.md) R-10 timing floor |
 | `support_retention_months` | 24 | FR-159 |
 | `support_challenge_difficulty` | 16 | [research.md](./research.md) R-08 — leading zero bits the proof-of-work must reach. *Added in Phase 19: T370 reads the difficulty "from settings" and no key existed* |
+| `support_min_elapsed_seconds` | 3 | contracts/support-public.md `_issued_at` — the minimum age of a submitted form. *Added in Phase 20: the contract names the check and no key held it* |
+| `support_channel_enabled` | false | FR-114 — whether the sign-in screen links to `/support`. *Added in Phase 25 (T463)* |
+| `public_throttle` | 60 per minute | The flood floor under every `public`-group route, per IP. *Added by the Phase 19 review: it was a literal in AppServiceProvider* |
 
 ---
 
@@ -699,6 +705,12 @@ Each carries the previous and new status, and the reason where one was given (FR
   pending sections from their branches, a Super Admin sees all (FR-184). No new scope type.
 - **Default section lists exclude `rejected`** (FR-181). Pending and returned sections appear, badged, so
   a creator can see their own state without a separate screen (FR-183).
+- **An instructor's scope includes the sections they created, until approved** (Phase 27; limited to non-active sections by the Phase 27 review, because the scope is shared by every scoped model, and a permanent claim exposed a colleague's roster). It was "taught plus granted",
+  so an instructor who created a section without naming themselves its instructor could not see it again,
+  nor read a return's reason or resubmit it. This widens nothing, because an instructor creates only in a
+  branch they already teach in. It applies **only** to callers the branch scope does not govern:
+  SectionScope stands aside for a coordinator only while their section list is empty, so counting a
+  coordinator's creations switched it on and narrowed their whole branch to one section.
 - **Initiative targeting selects `active` only** (FR-174). This is the most important integration point:
   a pending section must never enter a targeting preview, an assignment, or a completion denominator.
 

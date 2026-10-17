@@ -51,8 +51,8 @@ function us1Endpoints(): array
             'permission' => 'authenticated',
             'payload' => [
                 'current_password' => 'Track2026',
-                'password' => 'NewPass2027',
-                'password_confirmation' => 'NewPass2027',
+                'password' => 'NewPass2027-Own',
+                'password_confirmation' => 'NewPass2027-Own',
             ],
         ],
         'list users' => [
@@ -69,7 +69,7 @@ function us1Endpoints(): array
                 'name_ar' => 'اسم',
                 'name_en' => 'Name',
                 'email' => 'matrix@mu.edu.sa',
-                'password' => 'Track2026',
+                'password' => 'Track2026-Own',
                 'role' => 'INSTRUCTOR',
             ],
         ],
@@ -89,7 +89,7 @@ function us1Endpoints(): array
             'method' => 'postJson',
             'uri' => fn () => '/api/v1/users/'.aUser('INSTRUCTOR')->id.'/reset-password',
             'permission' => 'user.reset_password',
-            'payload' => ['password' => 'Reset2027x'],
+            'payload' => ['password' => 'Reset2027x-Long'],
         ],
     ];
 }
@@ -180,10 +180,16 @@ test('every api/v1 route in this feature appears in the matrix above', function 
         'GET|HEAD api/v1/programs',
         'GET|HEAD api/v1/programs/{program}',
         'GET|HEAD api/v1/sections',
+        // Amendment 4 — section approval. Pairs for all four are in SectionApprovalEndpointsTest.
+        'GET|HEAD api/v1/sections/approvals',
         'GET|HEAD api/v1/sections/export',
         'GET|HEAD api/v1/sections/{section}',
+        'GET|HEAD api/v1/sections/{section}/approval-history',
         'GET|HEAD api/v1/students',
         'GET|HEAD api/v1/students/{student}',
+        // Amendment 2, US10 — the support queue. Pairs for all five are in SupportEndpointsTest.
+        'GET|HEAD api/v1/support-requests',
+        'GET|HEAD api/v1/support-requests/{supportRequest}',
         'GET|HEAD api/v1/terms',
         'GET|HEAD api/v1/users',
         // US3 — one entity's history. Its allow/deny pairs are in AuditEndpointsTest.
@@ -191,7 +197,11 @@ test('every api/v1 route in this feature appears in the matrix above', function 
         // US4 — the academic structure. Pairs are in AcademicEndpointsTest, and the five section
         // and enrollment writes in SectionEndpointsTest, which needs a built section to drive them.
         'PATCH api/v1/enrollments/{enrollment}/withdraw',
+        'PATCH api/v1/sections/{section}/approval',
         'PATCH api/v1/sections/{section}/instructor',
+        'PATCH api/v1/sections/{section}/resubmit',
+        'PATCH api/v1/support-requests/{supportRequest}/assignee',
+        'PATCH api/v1/support-requests/{supportRequest}/status',
         'PATCH api/v1/terms/{term}/set-current',
         'PATCH api/v1/terms/{term}/status',
         'PATCH api/v1/users/{user}/deactivate',
@@ -214,6 +224,7 @@ test('every api/v1 route in this feature appears in the matrix above', function 
         // US6 — the instructor's section upload. Pairs in ImportEndpointsTest and
         // tests/Scope/InstructorCannotImportForeignSectionTest.
         'POST api/v1/sections/{section}/imports',
+        'POST api/v1/support-requests/{supportRequest}/responses',
         'POST api/v1/terms',
         'POST api/v1/users',
         'POST api/v1/users/{user}/reset-password',

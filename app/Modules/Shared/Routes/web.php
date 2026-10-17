@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
+Route::middleware(['auth', 'active', 'session.auth', 'password.own'])->group(function (): void {
     Route::get('/home', function () {
         $user = request()->user();
 
@@ -43,13 +43,20 @@ Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
             default => $user->accessibleSectionIds(),
         };
 
-        $scopedSections = fn () => $sectionIds === null
-            ? Section::query()
-            : Section::query()->whereIn('id', $sectionIds);
+        /*
+         * FR-181 (Phase 27 review): a rejected section is out of every default count as it is out of every
+         * default list, and so are its enrollments, which it keeps but which are not anyone's current
+         * enrollment. Pending and returned sections are counted, as the list shows them.
+         */
+        $notRejected = fn () => Section::query()->withoutGlobalScopes()->where('status', '!=', 'rejected')->select('id');
 
-        $scopedEnrollments = fn () => $sectionIds === null
+        $scopedSections = fn () => ($sectionIds === null
+            ? Section::query()
+            : Section::query()->whereIn('id', $sectionIds))->where('status', '!=', 'rejected');
+
+        $scopedEnrollments = fn () => ($sectionIds === null
             ? SectionEnrollment::query()
-            : SectionEnrollment::query()->whereIn('section_id', $sectionIds);
+            : SectionEnrollment::query()->whereIn('section_id', $sectionIds))->whereIn('section_id', $notRejected());
 
         $stats = [
             'branches' => $isAdmin
@@ -105,5 +112,9 @@ Route::middleware(['auth', 'active', 'session.auth'])->group(function (): void {
  * The AR/EN switch (FR-074). Outside the auth group on purpose: the sign-in screen carries the
  * switch too, and a guest has to be able to read the login page in their own language before they
  * have an account to store a preference on.
+ *
+ * SEC-034 (G-17): `active` passes a guest straight through, but stops a deactivated account writing
+ * `users.locale` with a session it should no longer have; the throttle bounds a write any visitor can
+ * make. 30 a minute is far above any person's use of a two-language switch.
  */
-Route::middleware('web')->post('/locale', LocaleController::class)->name('locale.update');
+Route::middleware(['web', 'active', 'throttle:30,1'])->post('/locale', LocaleController::class)->name('locale.update');

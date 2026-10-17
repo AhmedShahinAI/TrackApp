@@ -6,6 +6,7 @@ namespace App\Modules\Authentication\Http\Controllers;
 
 use App\Models\User;
 use App\Modules\Audit\Services\Auditor;
+use App\Modules\Support\Services\SupportLimits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,19 @@ use Throwable;
  */
 final class LoginController
 {
+    /** FR-010's floor: failures per email AND address, and the window they are counted in. */
+    public const ADDRESS_ATTEMPTS = 5;
+
+    public const ADDRESS_DECAY_SECONDS = 60;
+
+    /**
+     * SEC-041 (G-03): failures per email from anywhere, and how long the account then stays shut.
+     * The floor alone bounds nothing for an attacker with many addresses; this does.
+     */
+    public const ACCOUNT_ATTEMPTS = 20;
+
+    public const ACCOUNT_DECAY_SECONDS = 900;
+
     /**
      * A hash to verify against when no user matched, so the work done is the same either way.
      * Generated once per process from a value nothing can authenticate with.
@@ -63,12 +77,23 @@ final class LoginController
 
         $email = mb_strtolower(trim((string) $credentials['email']));
         $key = $this->throttleKey($email, $request);
+        $accountKey = self::accountThrottleKey($email);
 
-        // FR-010 — checked first, so the sixth attempt costs an attacker nothing to learn.
-        if (RateLimiter::tooManyAttempts($key, 5)) {
-            $seconds = RateLimiter::availableIn($key);
+        /*
+         * FR-010 — checked first, so the sixth attempt costs an attacker nothing to learn. Two limits
+         * (SEC-041): the floor per email and address, and the account's own across every address.
+         * Whichever trips, the caller sees the same refusal; only the audit entry says which.
+         */
+        $tripped = match (true) {
+            RateLimiter::tooManyAttempts($accountKey, self::ACCOUNT_ATTEMPTS) => ['account', $accountKey],
+            RateLimiter::tooManyAttempts($key, self::ADDRESS_ATTEMPTS) => ['address', $key],
+            default => null,
+        };
 
-            app(Auditor::class)->record('auth.login_blocked', null, [], ['email' => $email]);
+        if ($tripped !== null) {
+            $seconds = RateLimiter::availableIn($tripped[1]);
+
+            app(Auditor::class)->record('auth.login_blocked', null, [], ['email' => $email, 'limit' => $tripped[0]]);
 
             return $this->fail(
                 $request,
@@ -94,7 +119,8 @@ final class LoginController
         $passwordMatches = Hash::check((string) $credentials['password'], $hashToVerify);
 
         if ($user === null || ! $passwordMatches) {
-            RateLimiter::hit($key, 60);
+            RateLimiter::hit($key, self::ADDRESS_DECAY_SECONDS);
+            RateLimiter::hit($accountKey, self::ACCOUNT_DECAY_SECONDS);
 
             app(Auditor::class)->record('auth.login_failed', $user, [], ['email' => $email]);
 
@@ -110,6 +136,7 @@ final class LoginController
         }
 
         RateLimiter::clear($key);
+        RateLimiter::clear($accountKey);
 
         /*
          * The guard is named, never inferred. This platform authenticates with the session guard,
@@ -236,13 +263,22 @@ final class LoginController
     }
 
     /**
-     * FR-010 — five attempts per email AND IP. Both axes in one key: it stops one address grinding
-     * one account, and one account being ground from one address. A distributed attack on a single
-     * account is the account lockout's job, not the limiter's.
+     * FR-010 — five attempts per email AND address. Both axes in one key: it stops one address
+     * grinding one account, and one account being ground from one address. A distributed attack on
+     * a single account is accountThrottleKey()'s job.
+     *
+     * The address is bucketed as the support channel buckets it (SEC-042): an IPv6 /64 is one
+     * address, because one host is routinely given a whole /64 and could otherwise rotate through it.
      */
     private function throttleKey(string $email, Request $request): string
     {
-        return 'login|'.$email.'|'.($request->ip() ?? 'unknown');
+        return 'login|'.$email.'|'.SupportLimits::addressBucket($request->ip());
+    }
+
+    /** SEC-041 — one account, from anywhere. Public so track:login-unblock clears the same key. */
+    public static function accountThrottleKey(string $email): string
+    {
+        return 'login-account|'.mb_strtolower(trim($email));
     }
 
     /**

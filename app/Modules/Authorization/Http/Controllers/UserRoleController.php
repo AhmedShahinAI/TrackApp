@@ -22,6 +22,9 @@ final class UserRoleController extends Controller
 {
     public function update(Request $request, User $user): JsonResponse
     {
+        // SEC-052 (G-15): another organization's account is not found here, as in UserController.
+        abort_unless((int) $user->organization_id === (int) $request->user()?->organization_id, 404);
+
         $validated = $request->validate([
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', Rule::exists('roles', 'name')],

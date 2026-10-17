@@ -78,6 +78,26 @@ class SectionEnrollment extends Model implements ConstrainableToBranches, Constr
     }
 
     /**
+     * Amendment 2 (Phase 23 review) — an enrollment the student holds NOW: active, not withdrawn by the
+     * registrar (`academic_status`), in an active section (not pending, returned or rejected).
+     *
+     * The one definition the support channel's visibility rests on. It was written out three times —
+     * the branch scope, the reassignment check, the queue's branch column — and they drifted: the column
+     * named branches that granted no visibility. Each now calls this.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeCurrentlyHeld(Builder $query): Builder
+    {
+        return $query
+            ->where($this->qualifyColumn('status'), 'active')
+            ->where(fn (Builder $q) => $q->whereNull($this->qualifyColumn('academic_status'))
+                ->orWhere($this->qualifyColumn('academic_status'), '!=', 'withdrawn'))
+            ->whereIn($this->qualifyColumn('section_id'), Section::query()->withoutGlobalScopes()->where('status', 'active')->select('id'));
+    }
+
+    /**
      * The action key distinguishes an enrollment from a withdrawal, which the generic `.updated` key
      * would not (contracts/audit.md lists `enrollment.created` and `enrollment.withdrawn`).
      */

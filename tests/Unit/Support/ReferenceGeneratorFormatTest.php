@@ -111,3 +111,23 @@ test('what a person types is forgiven: case, hyphens, spaces and the confusable 
 test('anything else is not a reference', function (string $typed): void {
     expect(ReferenceGenerator::normalise($typed))->toBeNull();
 })->with(['', 'K7Q2-M9XV-T3', 'K7Q2M9XVT3XX', 'U123456789A', '٠١٢٣٤٥٦٧٨٩A', '0123456789*']);
+
+test('what an Arabic page puts in the way is forgiven: bidi marks, Unicode dashes, Arabic-Indic digits', function (): void {
+    $reference = '0123456789'.ReferenceGenerator::checkCharacter('0123456789');
+    $shown = ReferenceGenerator::format($reference);
+
+    $arabicDigits = strtr($shown, ['0' => '٠', '1' => '١', '2' => '٢', '3' => '٣', '4' => '٤', '5' => '٥', '6' => '٦', '7' => '٧', '8' => '٨', '9' => '٩']);
+    $persianDigits = strtr($shown, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳']);
+
+    foreach ([
+        "\u{200F}{$shown}\u{200E}",                // copied out of an RTL paragraph
+        "\u{2066}{$shown}\u{2069}",                // isolate marks around an LTR run
+        str_replace('-', "\u{2010}", $shown),       // Unicode hyphen
+        str_replace('-', "\u{2013}", $shown),       // en dash
+        str_replace('-', "\u{00A0}", $shown),       // no-break space
+        $arabicDigits,
+        $persianDigits,
+    ] as $typed) {
+        expect(ReferenceGenerator::normalise($typed))->toBe($reference, bin2hex($typed));
+    }
+});

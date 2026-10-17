@@ -85,15 +85,16 @@ support channel — data-model.md Group 7 "Audit actions").
 
 | Area | Action keys |
 |---|---|
-| Authentication | `auth.login`, `auth.logout`, `auth.login_failed`, `auth.login_blocked` |
+| Authentication | `auth.login`, `auth.logout`, `auth.login_failed`, `auth.login_blocked`, `auth.login_unblocked` (security plan SEC-044: `track:login-unblock`, console channel) |
 | Accounts | `user.created`, `user.updated`, `user.deactivated`, `user.password_changed`, `user.password_reset`, `user.roles_changed`, `user.branches_changed` |
 | Authorization | `access.denied`, `section.access_granted` |
 | Terms | `term.created`, `term.updated`, `term.status_changed`, `term.set_current` |
 | Structure | `branch.created`, `branch.updated`, `branch.deactivated`, `course.created`, `course.updated` |
 | Programs *(Amendment 1)* | `program.created`, `program.updated`, `program.deactivated`, `program.courses_changed` |
-| Sections | `section.created`, `section.updated`, `section.instructor_changed` |
+| Sections | `section.created` (Amendment 4: with the creator's role and the resulting status), `section.updated`, `section.instructor_changed`, `section.exported` (security plan SEC-061: the CSV export, with its filters and row count) |
+| Section approval *(Amendment 4)* | `section.submitted_for_approval`, `section.approved`, `section.returned`, `section.rejected`, `section.resubmitted` — each with the previous and new status, and the reason where one was given (FR-182). Each names the section, never a bare "approved" (FR-185) |
 | Students | `student.created`, `student.updated`, `enrollment.created`, `enrollment.withdrawn` |
-| Imports | `import.uploaded`, `import.committed`, `import.resumed`, `import.error_report_downloaded` — each carrying the `mode`, which Amendment 1 extended to five values |
+| Imports | `import.uploaded`, `import.committed`, `import.resumed`, `import.error_report_downloaded`, `import.file_discarded` (security plan SEC-062/063: the uploaded file deleted on completion or by retention; system channel, no contents) — each carrying the `mode`, which Amendment 1 extended to five values |
 | Audit | `audit.exported` |
 | Student support *(Amendment 2)* | `support.request_created` (actor null, `channel: public`), `support.responded`, `support.status_changed`, `support.reassigned`, `support.anonymised` (actor null, `channel: system`) |
 

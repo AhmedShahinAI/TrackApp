@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Sections\Http\Controllers\SectionApprovalController;
 use App\Modules\Sections\Http\Controllers\SectionController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,11 @@ Route::prefix('sections')->name('sections.')->group(function (): void {
         ->middleware('can:section.view')
         ->name('export');
 
+    // Amendment 4 (T492). Before `{section}`, for the same reason as `export`.
+    Route::get('approvals', [SectionApprovalController::class, 'index'])
+        ->middleware('can:section.approve')
+        ->name('approvals');
+
     Route::get('{section}', [SectionController::class, 'show'])
         ->middleware('can:section.view')
         ->name('show');
@@ -45,4 +51,18 @@ Route::prefix('sections')->name('sections.')->group(function (): void {
     Route::patch('{section}/instructor', [SectionController::class, 'changeInstructor'])
         ->middleware('can:section.change_instructor')
         ->name('instructor');
+
+    // Amendment 4 (T493). The route asks the permission; the controller asks the policy with the
+    // section, whose refusals are 403s (FR-178).
+    Route::patch('{section}/approval', [SectionApprovalController::class, 'decide'])
+        ->middleware('can:section.approve')
+        ->name('approval');
+
+    Route::patch('{section}/resubmit', [SectionApprovalController::class, 'resubmit'])
+        ->middleware('can:section.create')
+        ->name('resubmit');
+
+    Route::get('{section}/approval-history', [SectionApprovalController::class, 'history'])
+        ->middleware('can:section.view')
+        ->name('approval-history');
 });

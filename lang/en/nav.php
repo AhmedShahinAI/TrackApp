@@ -20,11 +20,16 @@ return [
     'terms' => 'Academic terms',
     'imports' => 'Imports',
     'audit' => 'Audit log',
+    'support' => 'Support requests',
+
+    // T466 — v2's new navigation keys (i18n.js). See lang/ar/nav.php for why two have no entry yet.
+    'approvals' => 'Section approvals',
+    'myinitiatives' => 'My initiatives',
+    'studentsadmin' => 'Students',
     'reports' => 'Reports',
     'settings' => 'Settings',
     'students' => 'Students',
     'instructors' => 'Instructors',
-    'support' => 'Support',
     'groups' => [
         'overview' => 'Overview',
         'academic' => 'Academic structure',

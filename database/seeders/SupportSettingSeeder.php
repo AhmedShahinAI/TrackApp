@@ -19,7 +19,19 @@ use Illuminate\Database\Seeder;
  * firstOrCreate, for SettingSeeder's reason: the seeder owns the defaults, not the live values, and
  * re-running it on deploy must not undo a Super Admin's edit.
  *
- * ## Eight keys, not the seven T367 lists
+ * ## Twelve keys, not the seven T367 lists
+ *
+ * `support_status_throttle_reference` (Phase 22 review) caps failed lookups against one reference from
+ * any number of addresses; an address limit alone let a botnet walk a cohort's University IDs.
+ *
+ * `support_channel_enabled` (Phase 25, T463) puts the link to /support on the sign-in screen, off by
+ * default.
+ *
+ * `support_min_elapsed_seconds` (Phase 20) is the contract's "configured minimum age" of a form: the
+ * contract names the check and no key held its value.
+ *
+ * `public_throttle` is the `public` route group's flood floor, moved here from a literal in
+ * AppServiceProvider by the Phase 19 review (constitution IV).
  *
  * `support_challenge_difficulty` is added. T370 says the challenge's difficulty comes "from
  * settings" and data-model.md lists no key for it; a literal in ChallengeService would be the
@@ -51,9 +63,16 @@ class SupportSettingSeeder extends Seeder
             Settings::SUPPORT_DESCRIPTION_MAX => 2000,
 
             // FR-126, FR-127, FR-131. Status retrieval is tighter: it is the guessing surface.
+            //
+            // Phase 22 review: the lookup limits count FAILED lookups only (a successful one is refunded),
+            // so they can be tight without locking out students who share an address — 4 an hour per
+            // address, below submission's 5, where data-model.md first had 10, which was looser. And a
+            // second counter per reference: 5 failed guesses an hour against one reference, from any
+            // number of addresses.
             Settings::SUPPORT_THROTTLE_IP => ['max_attempts' => 5, 'decay_minutes' => 60],
             Settings::SUPPORT_THROTTLE_IDENTIFIER => ['max_attempts' => 3, 'decay_minutes' => 60],
-            Settings::SUPPORT_STATUS_THROTTLE_IP => ['max_attempts' => 10, 'decay_minutes' => 60],
+            Settings::SUPPORT_STATUS_THROTTLE_IP => ['max_attempts' => 4, 'decay_minutes' => 60],
+            Settings::SUPPORT_STATUS_THROTTLE_REFERENCE => ['max_attempts' => 5, 'decay_minutes' => 60],
 
             // R-10. Above the slowest verification path, so every response leaves at the same moment.
             Settings::SUPPORT_MIN_RESPONSE_MS => 400,
@@ -63,6 +82,18 @@ class SupportSettingSeeder extends Seeder
 
             // R-08, T370. See the class docblock.
             Settings::SUPPORT_CHALLENGE_DIFFICULTY => 16,
+
+            // Phase 20, contracts/support-public.md `_issued_at`: a form submitted sooner than this
+            // after it was served was not read and typed by a person.
+            Settings::SUPPORT_MIN_ELAPSED_SECONDS => 3,
+
+            // T463, FR-114. The sign-in screen's link to /support. Off by default: the channel is opened to
+            // students deliberately, once the people who answer it are ready, not by the deploy that ships it.
+            Settings::SUPPORT_CHANNEL_ENABLED => false,
+
+            // The flood floor under every `public`-group route (T355). Per IP, per minute: well above
+            // what a student filling one form needs, well below what a page-minting script wants.
+            Settings::PUBLIC_THROTTLE => ['max_attempts' => 60, 'decay_minutes' => 1],
         ];
 
         foreach ($settings as $key => $value) {

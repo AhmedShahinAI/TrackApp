@@ -11,10 +11,12 @@ use App\Models\SupportRequest;
 use App\Modules\Settings\Settings;
 use App\Modules\Support\Http\Middleware\ConstantResponseTime;
 use App\Modules\Support\Http\Middleware\SupportSubmissionThrottle;
+use App\Modules\Support\Http\SupportLimitReached;
 use App\Modules\Support\Services\Challenge\ChallengeService;
 use App\Modules\Support\Services\Challenge\ChallengeUnavailable;
 use App\Modules\Support\Services\Challenge\ProofOfWork;
 use App\Modules\Support\Services\ReferenceGenerator;
+use App\Modules\Support\Services\SupportLimits;
 use App\Modules\Support\Services\VerifyStudentIdentity;
 use Database\Seeders\SettingSeeder;
 use Illuminate\Contracts\Cache\Repository;
@@ -57,16 +59,20 @@ function solveChallenge(string $challenge, int $difficulty): string
 
 // ── Settings and permissions (T366, T367) ─────────────────────────────────────────────────────────
 
-test('the eight support settings are seeded and readable', function (): void {
+test('the support settings are seeded and readable', function (): void {
     expect(Settings::values(Settings::SUPPORT_CATEGORIES))
         ->toBe(['incorrect_data', 'sign_in_problem', 'section_problem', 'general_enquiry', 'other'])
         ->and(Settings::int(Settings::SUPPORT_DESCRIPTION_MAX))->toBe(2000)
         ->and(Settings::limit(Settings::SUPPORT_THROTTLE_IP))->toBe(['max_attempts' => 5, 'decay_minutes' => 60])
         ->and(Settings::limit(Settings::SUPPORT_THROTTLE_IDENTIFIER))->toBe(['max_attempts' => 3, 'decay_minutes' => 60])
-        ->and(Settings::limit(Settings::SUPPORT_STATUS_THROTTLE_IP))->toBe(['max_attempts' => 10, 'decay_minutes' => 60])
+        // Phase 22 review: 4 failed lookups an hour per address (was 10, looser than submission), and
+        // its own per-reference counter.
+        ->and(Settings::limit(Settings::SUPPORT_STATUS_THROTTLE_IP))->toBe(['max_attempts' => 4, 'decay_minutes' => 60])
+        ->and(Settings::limit(Settings::SUPPORT_STATUS_THROTTLE_REFERENCE))->toBe(['max_attempts' => 5, 'decay_minutes' => 60])
         ->and(Settings::int(Settings::SUPPORT_MIN_RESPONSE_MS))->toBe(400)
         ->and(Settings::int(Settings::SUPPORT_RETENTION_MONTHS))->toBe(24)
-        ->and(Settings::int(Settings::SUPPORT_CHALLENGE_DIFFICULTY))->toBe(16);
+        ->and(Settings::int(Settings::SUPPORT_CHALLENGE_DIFFICULTY))->toBe(16)
+        ->and(Settings::limit(Settings::PUBLIC_THROTTLE))->toBe(['max_attempts' => 60, 'decay_minutes' => 1]);
 });
 
 test('a malformed rate-limit setting throws rather than read as zero or unlimited', function (mixed $value): void {
@@ -289,14 +295,26 @@ test('an out-of-range difficulty setting refuses to issue rather than clamp', fu
     expect(fn () => app(ChallengeService::class)->issue())->toThrow(ChallengeUnavailable::class);
 })->with([0, 33, -1, '16']);
 
-// ── SupportSubmissionThrottle (T371) ──────────────────────────────────────────────────────────────
+// ── SupportSubmissionThrottle and SupportLimits (T371) ────────────────────────────────────────────
 
+/**
+ * The submission's limits as T394 will wire them: the throttle outside the padding. The closure
+ * stands in for T391, which counts the identifier once the challenge is verified.
+ */
 function throttleProbe(): void
 {
-    Route::middleware(SupportSubmissionThrottle::class)->post('/__probe/support-throttle', fn () => response('ok'));
+    Route::middleware([SupportSubmissionThrottle::class, ConstantResponseTime::class])
+        ->post('/__probe/support-throttle', function (Illuminate\Http\Request $request) {
+            if ($request->boolean('challenge_ok')) {
+                app(SupportLimits::class)->consumeIdentifier($request->input('university_id'));
+            }
+
+            return response('ok');
+        });
 }
 
 test('the address limit refuses one IP walking many identifiers', function (): void {
+    Sleep::fake();
     setSetting(Settings::SUPPORT_THROTTLE_IP, ['max_attempts' => 3, 'decay_minutes' => 60]);
     throttleProbe();
 
@@ -307,54 +325,114 @@ test('the address limit refuses one IP walking many identifiers', function (): v
     $this->postJson('/__probe/support-throttle', ['university_id' => '441000004'])->assertStatus(429);
 });
 
+test('the address limit decides on the shared atomic count, not a read taken before it', function (): void {
+    setSetting(Settings::SUPPORT_THROTTLE_IP, ['max_attempts' => 3, 'decay_minutes' => 60]);
+    $request = Illuminate\Http\Request::create('/', 'POST', server: ['REMOTE_ADDR' => '10.9.0.1']);
+
+    // The race, frozen: every read says nobody has counted yet (what fifty simultaneous requests all
+    // saw under the first version's check-then-count), while the atomic counter, shared by them all,
+    // returns the fourth hit. A decision taken on the read lets this request through; only one taken
+    // on the count refuses it.
+    RateLimiter::partialMock()->shouldReceive('attempts')->andReturn(0);
+    RateLimiter::partialMock()->shouldReceive('tooManyAttempts')->andReturn(false);
+    RateLimiter::partialMock()->shouldReceive('increment')->andReturn(4);
+
+    expect(fn () => app(SupportLimits::class)->hitAddress($request))->toThrow(SupportLimitReached::class);
+});
+
 test('the identifier limit refuses one identifier from many addresses, independently', function (): void {
+    Sleep::fake();
     setSetting(Settings::SUPPORT_THROTTLE_IDENTIFIER, ['max_attempts' => 2, 'decay_minutes' => 60]);
     throttleProbe();
 
     foreach (['10.0.0.1', '10.0.0.2'] as $ip) {
         $this->withServerVariables(['REMOTE_ADDR' => $ip])
-            ->postJson('/__probe/support-throttle', ['university_id' => '441000009'])->assertOk();
+            ->postJson('/__probe/support-throttle', ['university_id' => '441000009', 'challenge_ok' => 1])->assertOk();
     }
 
-    // A third address, well under its own limit — refused for the identifier alone. The same
-    // identifier in Arabic-Indic digits is the same identifier.
+    // A third address, well under its own limit — refused for the identifier alone, on arrival. The
+    // same identifier in Arabic-Indic digits is the same identifier.
     $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.3'])
-        ->postJson('/__probe/support-throttle', ['university_id' => '٤٤١٠٠٠٠٠٩'])->assertStatus(429);
+        ->postJson('/__probe/support-throttle', ['university_id' => '٤٤١٠٠٠٠٠٩', 'challenge_ok' => 1])->assertStatus(429);
 
     // A different identifier from that address is fine: the limits are separate.
     $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.3'])
-        ->postJson('/__probe/support-throttle', ['university_id' => '441000010'])->assertOk();
+        ->postJson('/__probe/support-throttle', ['university_id' => '441000010', 'challenge_ok' => 1])->assertOk();
 });
 
-test('both refusals read the same, carry Retry-After, and never name the limit (FR-130)', function (): void {
-    setSetting(Settings::SUPPORT_THROTTLE_IP, ['max_attempts' => 1, 'decay_minutes' => 60]);
-    setSetting(Settings::SUPPORT_THROTTLE_IDENTIFIER, ['max_attempts' => 1, 'decay_minutes' => 60]);
+test('a student cannot be locked out by requests that never solved a challenge', function (): void {
+    Sleep::fake();
+    setSetting(Settings::SUPPORT_THROTTLE_IDENTIFIER, ['max_attempts' => 3, 'decay_minutes' => 60]);
     throttleProbe();
 
-    // By address: one IP, two identifiers.
-    $this->withServerVariables(['REMOTE_ADDR' => '10.1.0.1'])->postJson('/__probe/support-throttle', ['university_id' => '441000011']);
-    $byAddress = $this->withServerVariables(['REMOTE_ADDR' => '10.1.0.1'])->postJson('/__probe/support-throttle', ['university_id' => '441000012']);
+    // An attacker names the victim ten times, from ten addresses, with nothing solved.
+    foreach (range(1, 10) as $i) {
+        $this->withServerVariables(['REMOTE_ADDR' => "10.3.0.$i"])
+            ->postJson('/__probe/support-throttle', ['university_id' => '441555555']);
+    }
 
-    // By identifier: one identifier, two IPs.
-    $this->withServerVariables(['REMOTE_ADDR' => '10.2.0.1'])->postJson('/__probe/support-throttle', ['university_id' => '441000013']);
+    // The student, solving their challenge, is still let in.
+    $this->withServerVariables(['REMOTE_ADDR' => '10.4.0.1'])
+        ->postJson('/__probe/support-throttle', ['university_id' => '441555555', 'challenge_ok' => 1])->assertOk();
+});
+
+test('both refusals are identical — body, status and Retry-After — and never name the limit (FR-130)', function (): void {
+    setSetting(Settings::SUPPORT_THROTTLE_IP, ['max_attempts' => 1, 'decay_minutes' => 60]);
+    setSetting(Settings::SUPPORT_THROTTLE_IDENTIFIER, ['max_attempts' => 1, 'decay_minutes' => 30]);
+    throttleProbe();
+
+    // By identifier: one identifier, two addresses — its counter started now.
+    $this->withServerVariables(['REMOTE_ADDR' => '10.2.0.1'])->postJson('/__probe/support-throttle', ['university_id' => '441000013', 'challenge_ok' => 1]);
     $byIdentifier = $this->withServerVariables(['REMOTE_ADDR' => '10.2.0.2'])->postJson('/__probe/support-throttle', ['university_id' => '441000013']);
 
-    $byAddress->assertStatus(429)->assertHeader('Retry-After');
-    $byIdentifier->assertStatus(429)->assertHeader('Retry-After');
+    // By address, with its counter started twenty minutes earlier. An honest remaining time would
+    // differ between the two by exactly that, and say which limit it was.
+    $this->travel(-20)->minutes();
+    $this->withServerVariables(['REMOTE_ADDR' => '10.1.0.1'])->postJson('/__probe/support-throttle', ['university_id' => '441000011']);
+    $this->travelBack();
+    $byAddress = $this->withServerVariables(['REMOTE_ADDR' => '10.1.0.1'])->postJson('/__probe/support-throttle', ['university_id' => '441000012']);
 
-    expect($byAddress->getContent())->toBe($byIdentifier->getContent())
+    $byAddress->assertStatus(429);
+    $byIdentifier->assertStatus(429);
+
+    // The longer of the two configured windows, for either.
+    expect($byAddress->headers->get('Retry-After'))->toBe('3600')
+        ->and($byIdentifier->headers->get('Retry-After'))->toBe('3600')
+        ->and($byAddress->getContent())->toBe($byIdentifier->getContent())
+        ->and($byAddress->headers->has('X-RateLimit-Remaining'))->toBeFalse()
         ->and(strtolower((string) $byAddress->getContent()))->not->toContain('university')
         ->and(strtolower((string) $byAddress->getContent()))->not->toContain('ip');
 });
 
-test('the identifier never appears in a limiter key', function (): void {
+test('a refusal is never padded, wherever it is raised, so a flood cannot hold the workers', function (): void {
+    Sleep::fake();
+    setSetting(Settings::SUPPORT_THROTTLE_IP, ['max_attempts' => 1, 'decay_minutes' => 60]);
+    setSetting(Settings::SUPPORT_THROTTLE_IDENTIFIER, ['max_attempts' => 1, 'decay_minutes' => 60]);
     throttleProbe();
-    $this->postJson('/__probe/support-throttle', ['university_id' => '441777777']);
 
-    // Counted under the keyed hash, and under nothing that holds the raw identifier.
-    $hashed = 'support:submit:id:'.hash_hmac('sha256', '441777777', (string) config('app.key'));
+    $this->withServerVariables(['REMOTE_ADDR' => '10.5.0.1'])->postJson('/__probe/support-throttle', ['university_id' => '441000030']);
+    Sleep::fake();
 
-    expect(RateLimiter::attempts($hashed))->toBe(1)
+    // Refused by the address limit, outside the padding.
+    $this->withServerVariables(['REMOTE_ADDR' => '10.5.0.1'])->postJson('/__probe/support-throttle', ['university_id' => '441000031'])->assertStatus(429);
+
+    // Refused by the identifier count, raised inside the padding (where T391 will raise it).
+    $this->withServerVariables(['REMOTE_ADDR' => '10.5.0.2'])->postJson('/__probe/support-throttle', ['university_id' => '441000032', 'challenge_ok' => 1])->assertOk();
+    Sleep::fake();
+    $this->withServerVariables(['REMOTE_ADDR' => '10.5.0.3'])->postJson('/__probe/support-throttle', ['university_id' => '441000032', 'challenge_ok' => 1])->assertStatus(429);
+
+    Sleep::assertNeverSlept();
+});
+
+test('the identifier never appears in a limiter key, nor any unkeyed hash of it', function (): void {
+    throttleProbe();
+    Sleep::fake();
+    $this->postJson('/__probe/support-throttle', ['university_id' => '441777777', 'challenge_ok' => 1]);
+
+    $hashed = app(SupportLimits::class)->identifierKey('441777777');
+
+    expect($hashed)->not->toContain('441777777')
+        ->and(RateLimiter::attempts((string) $hashed))->toBe(1)
         ->and(RateLimiter::attempts('support:submit:id:441777777'))->toBe(0)
         // A plain SHA-256 of nine digits is reversible by enumeration; the key must not be one.
         ->and(RateLimiter::attempts('support:submit:id:'.hash('sha256', '441777777')))->toBe(0);
@@ -363,6 +441,7 @@ test('the identifier never appears in a limiter key', function (): void {
 test('a browser gets the refusal as a page on the public layout, with no way into the staff side', function (): void {
     setSetting(Settings::SUPPORT_THROTTLE_IP, ['max_attempts' => 1, 'decay_minutes' => 60]);
     throttleProbe();
+    Sleep::fake();
 
     $this->post('/__probe/support-throttle', ['university_id' => '441000020']);
     $page = $this->post('/__probe/support-throttle', ['university_id' => '441000021']);
@@ -380,24 +459,78 @@ test('a browser gets the refusal as a page on the public layout, with no way int
         ->and((string) $page->getContent())->not->toContain('/logout');
 });
 
+test('the public floor reads its setting and refuses in the same shape, without X-RateLimit headers', function (): void {
+    setSetting(Settings::PUBLIC_THROTTLE, ['max_attempts' => 2, 'decay_minutes' => 1]);
+    Route::middleware('public')->get('/__probe/public-floor', fn () => response('ok'));
+
+    $this->getJson('/__probe/public-floor')->assertOk();
+    $this->getJson('/__probe/public-floor')->assertOk();
+    $refused = $this->getJson('/__probe/public-floor');
+
+    // The whole window, never a countdown of this caller's counter (Phase 20 review).
+    $refused->assertStatus(429)
+        ->assertHeader('Retry-After', '60')
+        ->assertJsonStructure(['message']);
+
+    expect($refused->headers->has('X-RateLimit-Limit'))->toBeFalse()
+        ->and($refused->headers->has('X-RateLimit-Remaining'))->toBeFalse()
+        ->and($refused->json('message'))->toBe(trans_choice('support.limit_reached', 1, ['minutes' => 1]));
+});
+
+// ── Trusted proxies (review) ──────────────────────────────────────────────────────────────────────
+
+test('behind a trusted proxy the client address is the forwarded one', function (): void {
+    config(['trustedproxy.proxies' => ['10.200.0.1']]);
+    Route::get('/__probe/ip', fn (Illuminate\Http\Request $request) => response((string) $request->ip()));
+
+    $this->withServerVariables(['REMOTE_ADDR' => '10.200.0.1'])
+        ->withHeader('X-Forwarded-For', '203.0.113.7')
+        ->get('/__probe/ip')->assertSeeText('203.0.113.7');
+
+    // Anyone else's X-Forwarded-For is ignored: a client cannot choose its own address.
+    $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.9'])
+        ->withHeader('X-Forwarded-For', '203.0.113.8')
+        ->get('/__probe/ip')->assertSeeText('198.51.100.9');
+});
+
+test('a wildcard TRUSTED_PROXIES is refused rather than trusting every caller', function (string $value, ?array $expected): void {
+    $_SERVER['TRUSTED_PROXIES'] = $value;
+    $_ENV['TRUSTED_PROXIES'] = $value;
+
+    try {
+        $config = require config_path('trustedproxy.php');
+    } finally {
+        unset($_SERVER['TRUSTED_PROXIES'], $_ENV['TRUSTED_PROXIES']);
+    }
+
+    expect($config['proxies'])->toBe($expected);
+})->with([
+    'wildcard' => ['*', null],
+    'double wildcard' => ['**', null],
+    'empty' => ['', null],
+    'list' => ['10.0.0.0/8, 172.16.0.5', ['10.0.0.0/8', '172.16.0.5']],
+]);
+
 // ── ConstantResponseTime (T372) ───────────────────────────────────────────────────────────────────
 
 test('a fast response is held to the floor', function (): void {
     Sleep::fake();
-    // Far above any render time, so the assertion is about the padding and not about this machine.
-    setSetting(Settings::SUPPORT_MIN_RESPONSE_MS, 5000);
+    // Far above any render time, even on a loaded machine (the clock is faked, so it costs nothing):
+    // the assertion is about the padding, not about this machine.
+    setSetting(Settings::SUPPORT_MIN_RESPONSE_MS, 60000);
     Route::middleware(ConstantResponseTime::class)->get('/__probe/support-floor', fn () => response('ok'));
 
     $this->get('/__probe/support-floor')->assertOk();
 
     Sleep::assertSleptTimes(1);
-    Sleep::assertSlept(fn (Carbon\CarbonInterval $pause): bool => $pause->totalMilliseconds > 4000 && $pause->totalMilliseconds <= 5000);
+    Sleep::assertSlept(fn (Carbon\CarbonInterval $pause): bool => $pause->totalMilliseconds > 50000 && $pause->totalMilliseconds <= 60000);
 });
 
 test('a refusal from inside is padded exactly like a success', function (): void {
     Sleep::fake();
-    // An error page's first render can itself pass 400 ms; the floor here is well clear of it.
-    setSetting(Settings::SUPPORT_MIN_RESPONSE_MS, 5000);
+    // An error page's first render passed even 5,000 ms on a loaded machine; the clock is faked, so a
+    // floor of a minute costs nothing and leaves no race.
+    setSetting(Settings::SUPPORT_MIN_RESPONSE_MS, 60000);
     Route::middleware(ConstantResponseTime::class)->get('/__probe/support-floor-abort', fn () => abort(422));
 
     $this->get('/__probe/support-floor-abort')->assertStatus(422);
@@ -428,4 +561,115 @@ test('settings being unreadable keeps the documented floor rather than none', fu
     $this->get('/__probe/support-floor-default')->assertOk();
 
     Sleep::assertSlept(fn (Carbon\CarbonInterval $pause): bool => $pause->totalMilliseconds > 300);
+});
+
+test('a 429 from anywhere inside is returned at once', function (): void {
+    Sleep::fake();
+    setSetting(Settings::SUPPORT_MIN_RESPONSE_MS, 60000);
+    Route::middleware(ConstantResponseTime::class)->get('/__probe/support-floor-429', fn () => abort(429));
+
+    $this->get('/__probe/support-floor-429')->assertStatus(429);
+
+    Sleep::assertNeverSlept();
+});
+
+test('a floor of zero or less is a broken setting, and the documented floor holds', function (mixed $floor): void {
+    Sleep::fake();
+    setSetting(Settings::SUPPORT_MIN_RESPONSE_MS, $floor);
+    Route::middleware(ConstantResponseTime::class)->get('/__probe/support-floor-zero', fn () => response('ok'));
+
+    $this->get('/__probe/support-floor-zero')->assertOk();
+
+    Sleep::assertSlept(fn (Carbon\CarbonInterval $pause): bool => $pause->totalMilliseconds > 300);
+})->with([0, -5, '400']);
+
+// ── Review additions: verification and seeding ────────────────────────────────────────────────────
+
+test('an enrollment in a section not yet approved, or withdrawn by the registrar, does not verify', function (string $case): void {
+    $term = AcademicTerm::factory()->current()->create();
+    $student = Student::factory()->create(['university_id' => '441808080']);
+
+    $section = match ($case) {
+        'pending' => Section::factory()->pending()->create(['term_id' => $term->id]),
+        'rejected' => Section::factory()->rejected()->create(['term_id' => $term->id]),
+        default => Section::factory()->create(['term_id' => $term->id]),
+    };
+
+    SectionEnrollment::factory()->create([
+        'student_id' => $student->id,
+        'section_id' => $section->id,
+        'academic_status' => $case === 'registrar_withdrawn' ? 'withdrawn' : 'regular',
+    ]);
+
+    expect(app(VerifyStudentIdentity::class)->resolve('441808080'))->toBeNull();
+})->with(['pending', 'rejected', 'registrar_withdrawn']);
+
+test('seeding twice changes nothing, and keeps a Super Admin\'s edit', function (): void {
+    setSetting(Settings::SUPPORT_DESCRIPTION_MAX, 1500);
+    $before = Setting::query()->count();
+
+    (new SettingSeeder)->run();
+    (new Database\Seeders\PermissionSeeder)->run();
+    (new Database\Seeders\RoleSeeder)->run();
+    (new Database\Seeders\PermissionSeeder)->run();
+
+    expect(Setting::query()->count())->toBe($before)
+        ->and(Settings::int(Settings::SUPPORT_DESCRIPTION_MAX))->toBe(1500)
+        ->and(Spatie\Permission\Models\Permission::query()->count())->toBe(47)
+        ->and(Spatie\Permission\Models\Permission::query()->where('name', 'like', 'support.%')->count())->toBe(4)
+        ->and(Spatie\Permission\Models\Role::findByName('INSTRUCTOR')->permissions->pluck('name')->filter(fn (string $n): bool => str_starts_with($n, 'support.'))->all())->toBe([]);
+});
+
+// ── Phase 22 review: the floor's own health, and the cap on sleeping workers ───────────────────────
+
+test('work that outruns the floor is logged, at most once a minute', function (): void {
+    Sleep::fake();
+    $log = Illuminate\Support\Facades\Log::spy();
+    setSetting(Settings::SUPPORT_MIN_RESPONSE_MS, 1);
+    Route::middleware(ConstantResponseTime::class)->get('/__probe/support-floor-outrun', function () {
+        usleep(5000);
+
+        return response('ok');
+    });
+
+    $this->get('/__probe/support-floor-outrun')->assertOk();
+    $this->get('/__probe/support-floor-outrun')->assertOk();
+
+    $log->shouldHaveReceived('warning')
+        ->withArgs(fn (string $message): bool => str_contains($message, 'longer than its response-time floor'))
+        ->once();
+});
+
+test('past the cap, a padded response is refused at once, before any work, and holds no worker', function (): void {
+    Sleep::fake();
+    config(['support.padding_max_concurrent' => 2]);
+    $ran = false;
+    Route::middleware(ConstantResponseTime::class)->get('/__probe/support-floor-cap', function () use (&$ran) {
+        $ran = true;
+
+        return response('ok');
+    });
+
+    // Two requests already sleeping in this minute's bucket.
+    Cache::put('support:padding:'.now()->format('YmdHi'), 2, 120);
+
+    $this->getJson('/__probe/support-floor-cap')
+        ->assertStatus(503)
+        ->assertHeader('Retry-After', '30')
+        ->assertExactJson(['message' => __('support.failures.challenge_unavailable')]);
+
+    expect($ran)->toBeFalse()
+        ->and(Cache::get('support:padding:'.now()->format('YmdHi')))->toBe(2);
+
+    Sleep::assertNeverSlept();
+});
+
+test('under the cap, a padded response takes a slot and gives it back', function (): void {
+    Sleep::fake();
+    config(['support.padding_max_concurrent' => 5]);
+    Route::middleware(ConstantResponseTime::class)->get('/__probe/support-floor-slot', fn () => response('ok'));
+
+    $this->get('/__probe/support-floor-slot')->assertOk();
+
+    expect((int) Cache::get('support:padding:'.now()->format('YmdHi')))->toBe(0);
 });

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Support\Services;
 
 use App\Models\SupportRequest;
+use App\Modules\Shared\Rules\UniversityId;
 use RuntimeException;
 
 /**
@@ -87,10 +88,19 @@ final class ReferenceGenerator
      *
      * Case, hyphens and spaces are forgiven, and so are the three confusable letters: Crockford's
      * decoding rule reads I and L as 1 and O as 0. A wrong check character returns null.
+     *
+     * What an Arabic page puts in the way is forgiven too (Phase 19 review): a reference copied from
+     * a right-to-left page carries invisible direction marks (U+200E, U+200F and the other format
+     * characters, \p{Cf}), its hyphen may come back as any Unicode dash (\p{Pd}) or its space as a
+     * no-break one (\p{Z}), and a student typing on an Arabic keyboard enters ٧ for 7. Each of these
+     * made a correct reference read as "not found", which on the status page is the same generic
+     * failure as a wrong one — the student could not tell their typing from their request.
+     * Arabic-Indic digits fold exactly as UniversityId::normalise folds them.
      */
     public static function normalise(string $typed): ?string
     {
-        $canonical = strtr(strtoupper(preg_replace('/[\s\-]+/u', '', $typed) ?? ''), ['I' => '1', 'L' => '1', 'O' => '0']);
+        $stripped = preg_replace('/[\p{Cf}\p{Pd}\p{Z}\s]+/u', '', $typed) ?? '';
+        $canonical = strtr(strtoupper(UniversityId::normalise($stripped)), ['I' => '1', 'L' => '1', 'O' => '0']);
 
         if (strlen($canonical) !== self::LENGTH || strspn($canonical, self::ALPHABET) !== self::LENGTH) {
             return null;

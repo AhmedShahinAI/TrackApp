@@ -168,7 +168,37 @@
             <x-track-status-badge status="shared" />
         @endif
 
+        {{-- T498 — FR-183: the approval state, in the section vocabulary (FR-185). Active shows none. --}}
+        @if ($section->status !== App\Modules\Sections\Enums\SectionStatus::Active->value)
+            <x-track-status-badge :status="$section->status">{{ __('sections.approval.status.'.$section->status) }}</x-track-status-badge>
+        @endif
+
         <x-slot:actions>
+            {{-- T497 — the decision, for someone the policy lets decide this section (FR-178). --}}
+            @can('approve', $section)
+                @php($approvalFrom = App\Modules\Sections\Enums\SectionStatus::from($section->status))
+                @if ($approvalFrom->canBecome(App\Modules\Sections\Enums\SectionStatus::Active))
+                    <span x-data>
+                        <x-track-button variant="primary" icon="clipboard-check"
+                            x-on:click="$dispatch('track-dialog-open', { id: 'section-decide' })">{{ __('sections.approval.actions.decide') }}</x-track-button>
+                    </span>
+                @endif
+                @if ($approvalFrom->canBecome(App\Modules\Sections\Enums\SectionStatus::Rejected))
+                    <span x-data>
+                        <x-track-button variant="danger" icon="ban"
+                            x-on:click="$dispatch('track-dialog-open', { id: 'section-reject' })">{{ __('sections.approval.actions.reject') }}</x-track-button>
+                    </span>
+                @endif
+            @endcan
+
+            {{-- T498 — FR-179, FR-183: the creator sends a returned section back for a decision. --}}
+            @if ($resubmitOptions !== null)
+                <span x-data>
+                    <x-track-button variant="primary" icon="send"
+                        x-on:click="$dispatch('track-dialog-open', { id: 'section-resubmit' })">{{ __('sections.approval.actions.resubmit') }}</x-track-button>
+                </span>
+            @endif
+
             {{-- US6 — the reference's "استيراد كشف": only for a section the caller teaches or holds a
                  grant for (SectionPolicy::importRoster), not every section they can see. --}}
             @can('importRoster', $section)
@@ -198,6 +228,13 @@
             @endcan
         </x-slot:actions>
     </x-track-page-header>
+
+    {{-- T498 — FR-179, FR-183: why a section came back, or why it was refused, where its creator looks. --}}
+    @if (in_array($section->status, [App\Modules\Sections\Enums\SectionStatus::Returned->value, App\Modules\Sections\Enums\SectionStatus::Rejected->value], true) && $section->review_reason)
+        <x-track-alert :tone="$section->status === 'rejected' ? 'danger' : 'warning'">
+            {{ __('sections.approval.'.($section->status === 'rejected' ? 'rejected' : 'returned').'_notice', ['reason' => $section->review_reason]) }}
+        </x-track-alert>
+    @endif
 
     {{-- The metadata panel, above the tabs rather than inside one. It answers "which section am I
          looking at", which every tab needs, so putting it behind a tab hides the context for the
@@ -297,4 +334,12 @@
     @can('changeInstructor', $section)
         @include('sections._assign-dialog', ['section' => $section])
     @endcan
+
+    @can('approve', $section)
+        @include('sections._approval-dialog', ['section' => $section])
+    @endcan
+
+    @if ($resubmitOptions !== null)
+        @include('sections._resubmit-dialog', ['section' => $section] + $resubmitOptions)
+    @endif
 </x-app-layout>

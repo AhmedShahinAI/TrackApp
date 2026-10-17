@@ -29,7 +29,7 @@ test('an account created on the form lands in the creator\'s organization, not t
 
     $this->actingAs($admin)->postJson(route('api.v1.users.store'), [
         'name_ar' => 'مدرس', 'name_en' => 'Teacher', 'email' => 'form@mu.edu.sa',
-        'password' => 'Track2026', 'role' => 'INSTRUCTOR',
+        'password' => 'Track2026-Own', 'role' => 'INSTRUCTOR',
     ])->assertCreated();
 
     expect(User::query()->where('email', 'form@mu.edu.sa')->sole()->organization_id)->toBe($other->id);

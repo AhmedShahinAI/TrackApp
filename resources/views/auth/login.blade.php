@@ -108,6 +108,15 @@
             {{-- FR-001, said out loud. A person who cannot find a "create account" link should be
                  told why rather than left looking for it. --}}
             <p class="track-login__note">{{ __('auth.no_registration') }}</p>
+
+            {{-- T463, FR-114. Students have no account here; the support channel is their way in. Behind
+                 `support_channel_enabled`, off by default, so the link appears when the channel is opened
+                 to students and not with the deploy that ships it. --}}
+            @if (App\Modules\Settings\Settings::enabled(App\Modules\Settings\Settings::SUPPORT_CHANNEL_ENABLED))
+                <p class="track-login__note">
+                    <a href="{{ route('support.create') }}">{{ __('auth.support_link') }}</a>
+                </p>
+            @endif
         </section>
 
         <aside class="track-login__brand" aria-hidden="true">
